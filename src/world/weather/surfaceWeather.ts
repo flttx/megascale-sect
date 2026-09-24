@@ -122,11 +122,13 @@ export function withSurfaceWeather(material: Material) {
   patched.add(material)
   const own = Object.prototype.hasOwnProperty.call(material, 'onBeforeCompile') ? material.onBeforeCompile : null
   const key = material.customProgramCacheKey.bind(material)
+  // The default key is onBeforeCompile's source, which becomes this shared wrapper; keep the own hook's source in it.
+  const ownKey = own?.toString() ?? ''
   material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms, renderer: WebGLRenderer) => {
     own?.call(material, shader, renderer)
     patchSurfaceWeather(shader)
   }
-  material.customProgramCacheKey = () => `${key()}|wx1`
+  material.customProgramCacheKey = () => `${key()}|${ownKey}|wx1`
   material.needsUpdate = true
   return material
 }
