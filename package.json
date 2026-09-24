@@ -12,6 +12,9 @@
     "verify:characters": "node scripts/characters.mjs",
     "verify:optimization": "node scripts/verify-optimization.mjs",
     "verify:riding-pose": "node scripts/verify-riding-pose.mjs",
+    "verify:interact": "node scripts/verify-interact.mjs",
+    "verify:perf": "node scripts/verify-perf.mjs",
+    "verify:visual": "node scripts/verify-visual.mjs",
     "assets:optimize": "node scripts/optimize-characters.mjs",
     "assets:buildings": "node scripts/optimize-buildings.mjs"
   },
