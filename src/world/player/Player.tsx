@@ -130,7 +130,7 @@ export function Player() {
       store.setTelemetry({
         fps: frames.current / elapsed.current, position: [p.x, p.y, p.z], mode,
         speed: state.velocity.length(), distance: Math.hypot(p.x - main[0], p.y - main[1], p.z - main[2]),
-        altitude: p.y, drawCalls: gl.info.render.calls, triangles: gl.info.render.triangles,
+        altitude: p.y, drawCalls: gl.info.render.calls, triangles: gl.info.render.triangles, dpr: gl.getPixelRatio(),
       })
       elapsed.current = 0
       frames.current = 0

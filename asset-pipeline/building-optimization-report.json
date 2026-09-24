@@ -1,0 +1,116 @@
+[
+  {
+    "source": "public/assets/models/主建筑.glb",
+    "target": "public/assets/models/主建筑.optimized.glb",
+    "lod": "optimized",
+    "options": {
+      "suffix": "optimized",
+      "ratio": 0.35,
+      "error": 0.002,
+      "base": 4096,
+      "detail": 2048
+    },
+    "sourceSha256": "5ffc322459c0f0de2a84bdf885a9e23848ee1e5d0aa244e9fc0446118ccffb46",
+    "outputSha256": "a4443004581490e7d743db737b15c8658343cd892c1a12904027972dc3ca25a1",
+    "originalBytes": 49509420,
+    "optimizedBytes": 7123512,
+    "trianglesBefore": 1402646,
+    "trianglesAfter": 490926,
+    "seconds": 3.394
+  },
+  {
+    "source": "public/assets/models/主建筑.glb",
+    "target": "public/assets/models/主建筑.lod1.glb",
+    "lod": "lod1",
+    "options": {
+      "suffix": "lod1",
+      "ratio": 0.07,
+      "error": 0.02,
+      "base": 1024,
+      "detail": 512
+    },
+    "sourceSha256": "5ffc322459c0f0de2a84bdf885a9e23848ee1e5d0aa244e9fc0446118ccffb46",
+    "outputSha256": "ddcc488703ec5f5d9ece7701d8b1a62ad51107c83d0a7c783e9c6fb32949ce39",
+    "originalBytes": 49509420,
+    "optimizedBytes": 1425132,
+    "trianglesBefore": 1402646,
+    "trianglesAfter": 98184,
+    "seconds": 1.746
+  },
+  {
+    "source": "public/assets/models/山门.glb",
+    "target": "public/assets/models/山门.optimized.glb",
+    "lod": "optimized",
+    "options": {
+      "suffix": "optimized",
+      "ratio": 0.3,
+      "error": 0.002,
+      "base": 4096,
+      "detail": 2048
+    },
+    "sourceSha256": "d6a1a997e1e300d2524743bf098b37e5e63e8bec25f68c9abc699212d81c1a13",
+    "outputSha256": "17a0b703d781ff09e4f399d6886e0da96f3a59e76a5367cf343ec4857af4cd90",
+    "originalBytes": 51492652,
+    "optimizedBytes": 7099572,
+    "trianglesBefore": 1443904,
+    "trianglesAfter": 433170,
+    "seconds": 3.472
+  },
+  {
+    "source": "public/assets/models/山门.glb",
+    "target": "public/assets/models/山门.lod1.glb",
+    "lod": "lod1",
+    "options": {
+      "suffix": "lod1",
+      "ratio": 0.05,
+      "error": 0.02,
+      "base": 1024,
+      "detail": 512
+    },
+    "sourceSha256": "d6a1a997e1e300d2524743bf098b37e5e63e8bec25f68c9abc699212d81c1a13",
+    "outputSha256": "8ad0c8596d5493cd46e88372ef3f4707c06d7f51f87acedf0b389b34ff37602b",
+    "originalBytes": 51492652,
+    "optimizedBytes": 1191668,
+    "trianglesBefore": 1443904,
+    "trianglesAfter": 72194,
+    "seconds": 1.479
+  },
+  {
+    "source": "public/assets/models/侧塔.glb",
+    "target": "public/assets/models/侧塔.optimized.glb",
+    "lod": "optimized",
+    "options": {
+      "suffix": "optimized",
+      "ratio": 0.18,
+      "error": 0.004,
+      "base": 2048,
+      "detail": 1024
+    },
+    "sourceSha256": "2fa23a880fe09895073c1d56cc74dcc143da4332d53a293ad711ca628082b88d",
+    "outputSha256": "3b4fbd9519d51b9d2a26f3766cd11328d2a42e619f3f99463490f8af1abb6b77",
+    "originalBytes": 50555024,
+    "optimizedBytes": 3494312,
+    "trianglesBefore": 1421574,
+    "trianglesAfter": 255882,
+    "seconds": 1.92
+  },
+  {
+    "source": "public/assets/models/侧塔.glb",
+    "target": "public/assets/models/侧塔.lod1.glb",
+    "lod": "lod1",
+    "options": {
+      "suffix": "lod1",
+      "ratio": 0.035,
+      "error": 0.03,
+      "base": 512,
+      "detail": 256
+    },
+    "sourceSha256": "2fa23a880fe09895073c1d56cc74dcc143da4332d53a293ad711ca628082b88d",
+    "outputSha256": "c0269770945b621ff3df14073ba3964d3a33a5d100fdd1888135c5745985e131",
+    "originalBytes": 50555024,
+    "optimizedBytes": 685344,
+    "trianglesBefore": 1421574,
+    "trianglesAfter": 49752,
+    "seconds": 1.338
+  }
+]

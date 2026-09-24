@@ -14,8 +14,9 @@ import { useWorldStore } from './store'
 import { ASSETS } from './worldAssets'
 import { LAYOUT } from './worldLayout'
 import { EnvironmentT02R, EnvironmentReview } from './environment/t02r/EnvironmentT02R'
+import { QualityManager } from './quality'
 
-ASSETS.forEach((asset) => useGLTF.preload(asset.url))
+ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
 function DebugHelpers() {
   const show = useWorldStore((state) => state.showHelpers)
@@ -46,6 +47,7 @@ function DebugHelpers() {
 export function World() {
   return (
     <>
+      <QualityManager />
       <WorldEnvironment />
       <WorldLighting />
       <group name="ENV_Graybox" visible={new URLSearchParams(window.location.search).get('env') === 'graybox'}>

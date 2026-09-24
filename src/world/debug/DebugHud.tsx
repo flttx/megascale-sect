@@ -4,6 +4,8 @@ export function DebugHud() {
   const debug = useWorldStore((state) => state.debug)
   const telemetry = useWorldStore((state) => state.telemetry)
   const assets = useWorldStore((state) => state.assets)
+  const quality = useWorldStore((state) => state.quality)
+  const autoQuality = useWorldStore((state) => state.autoQuality)
   if (!debug) return null
   return (
     <aside className="debug-hud">
@@ -17,6 +19,7 @@ export function DebugHud() {
         <dt>ALTITUDE</dt><dd>{telemetry.altitude.toFixed(1)} m</dd>
         <dt>DRAW CALLS</dt><dd>{telemetry.drawCalls}</dd>
         <dt>TRIANGLES</dt><dd>{telemetry.triangles.toLocaleString()}</dd>
+        <dt>QUALITY</dt><dd>{quality.toUpperCase()}{autoQuality ? ' · AUTO' : ''} · DPR {telemetry.dpr.toFixed(2)}</dd>
       </dl>
       <div className="debug-assets">
         <b>ASSET INGEST</b>
