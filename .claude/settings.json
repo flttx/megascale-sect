@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(env)",
+      "Read(//c/Users/10949/.claude/skills/**)",
+      "Read(//c/Users/10949/.tripo/**)",
+      "Read(//c/Users/10949/**)",
+      "Bash(python3 -c \"import json,sys;d=json.load\\(sys.stdin\\);print\\(list\\(d.get\\('mcpServers',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(printenv)",
+      "Read(//c/Users/10949/ai-guidelines/**)",
+      "Bash(cat ~/ai-guidelines/workflow.md | head -150; cd f:/Projects/tripo-building; cat src/world/player/CharacterVisual.tsx src/world/player/SwordEffects.tsx | head -150; cat scripts/smoke.mjs | head -60)",
+      "Bash(npx gltf-transform *)",
+      "WebFetch(domain:platform.tripo3d.ai)",
+      "WebFetch(domain:developers.tripo3d.ai)",
+      "Bash(npm ls *)",
+      "Bash(python3 -m pip list)",
+      "Bash(py -m pip list)",
+      "Bash(where.exe tripo *)",
+      "Read(//d/nvm/**)",
+      "Read(//c/Users/10949/AppData/Roaming/**)",
+      "Read(//d/nvm/v22.23.1/**)",
+      "Read(//d/nvm/v22.23.1/node_modules/**)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)"
+    ]
+  }
+}

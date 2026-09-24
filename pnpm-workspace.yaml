@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - '@react-three/fiber@9.8.0'

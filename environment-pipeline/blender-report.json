@@ -1,0 +1,17 @@
+{
+  "collections": [
+    "Terrain",
+    "Terraces",
+    "Roads",
+    "Cliffs",
+    "HeroRocks",
+    "Scatter",
+    "Materials",
+    "Debug",
+    "FarMountains"
+  ],
+  "scatter_candidates": 894,
+  "bake_triangles": 416682,
+  "original_glbs_modified": false,
+  "blender": "5.2.1 LTS"
+}

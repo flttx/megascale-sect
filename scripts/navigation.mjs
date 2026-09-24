@@ -1,0 +1,67 @@
+import { chromium } from 'playwright'
+import fs from 'node:fs/promises'
+import assert from 'node:assert/strict'
+
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  args: ['--use-angle=d3d11'],
+})
+const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 })
+const errors = []
+page.on('pageerror', (error) => errors.push(error.message))
+page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
+await fs.mkdir('artifacts', { recursive: true })
+await page.goto(process.env.BASE_URL || 'http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' })
+await page.waitForFunction(() => document.body.innerText.includes('WORLD READY'), null, { timeout: 120000 })
+await page.getByRole('button', { name: /进入仙宗/ }).click()
+await page.keyboard.press('F3')
+const samples = []
+async function sample(name) {
+  await page.waitForTimeout(500)
+  const text = await page.locator('.debug-hud').innerText()
+  samples.push({ name, position: text.match(/POSITION\n([^\n]+)/)?.[1], mode: text.match(/MODE\n([^\n]+)/)?.[1], fps: text.match(/FPS\n([^\n]+)/)?.[1] })
+  await page.screenshot({ path: `artifacts/${name}.png` })
+}
+await sample('nav-spawn')
+await page.keyboard.down('Shift')
+await page.keyboard.down('w')
+await page.waitForFunction(() => window.__playerSnapshot().position[2] < 15, null, { timeout: 35000 })
+await sample('nav-gate')
+await page.waitForFunction(() => window.__playerSnapshot().position[2] < -80, null, { timeout: 25000 })
+await sample('nav-platform')
+await page.waitForFunction(() => window.__playerSnapshot().position[2] < -172.7, null, { timeout: 25000 })
+await page.keyboard.up('w')
+await page.keyboard.up('Shift')
+await sample('nav-main')
+await page.keyboard.press('f')
+await page.waitForFunction(() => window.__playerSnapshot().phase === 'FLIGHT', null, { timeout: 10000 })
+await page.keyboard.down('w')
+await page.keyboard.down('Space')
+await page.waitForTimeout(8000)
+await sample('nav-flight-wall')
+await page.keyboard.up('w')
+await page.keyboard.down('d')
+await page.waitForTimeout(8500)
+await page.keyboard.up('d')
+await page.keyboard.up('Space')
+await page.keyboard.down('w')
+await page.waitForTimeout(11000)
+await page.keyboard.up('w')
+await sample('nav-flight-back')
+await page.evaluate(() => {
+  const turn = new MouseEvent('mousemove', { bubbles: true })
+  Object.defineProperty(turn, 'movementX', { value: (Math.PI + Math.PI / 4) / 0.0025 })
+  Object.defineProperty(turn, 'movementY', { value: 300 })
+  window.dispatchEvent(turn)
+})
+await page.waitForTimeout(1200)
+await page.keyboard.press('F3')
+await page.screenshot({ path: 'artifacts/nav-flight-back-view.png' })
+console.log(JSON.stringify({ samples, errors }, null, 2))
+await fs.writeFile('artifacts/navigation-report.json', JSON.stringify({ samples, errors }, null, 2))
+assert.deepEqual(errors, [])
+assert.equal(samples[3].mode, 'GROUND')
+assert.equal(samples[5].mode, 'FLIGHT')
+assert.ok(Number(samples[5].position.split(' / ')[2]) < -450, 'Must reach behind the main building')
+await browser.close()

@@ -1,0 +1,374 @@
+[
+  {
+    "source": "public/assets/characters/male/rig.glb",
+    "target": "public/assets/characters/male/rig.optimized.glb",
+    "sourceSha256": "32701306d0846750b958d19a43f55692433b543a42f0449b222916dede62f142",
+    "outputSha256": "a73e46d8f09a6abf51b414e27ed26badeb9f0e8b222b515464be94d8ee349814",
+    "options": {
+      "ratio": 0.12,
+      "error": 0.0007,
+      "textureSize": 2048
+    },
+    "originalBytes": 60833144,
+    "optimizedBytes": 3249468,
+    "before": {
+      "triangles": 1465663,
+      "joints": [
+        [
+          "Root",
+          "mixamorig:Hips",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2",
+          "mixamorig:Neck",
+          "mixamorig:Head",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightArm",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftToeBase",
+          "mixamorig:RightUpLeg",
+          "mixamorig:RightLeg",
+          "mixamorig:RightFoot",
+          "mixamorig:RightToeBase"
+        ]
+      ],
+      "textures": [
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    "after": {
+      "triangles": 175879,
+      "joints": [
+        [
+          "Root",
+          "mixamorig:Hips",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2",
+          "mixamorig:Neck",
+          "mixamorig:Head",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightArm",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftToeBase",
+          "mixamorig:RightUpLeg",
+          "mixamorig:RightLeg",
+          "mixamorig:RightFoot",
+          "mixamorig:RightToeBase"
+        ]
+      ],
+      "textures": [
+        {
+          "size": [
+            2048,
+            2048
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            2048,
+            2048
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            2048,
+            2048
+          ],
+          "mime": "image/webp"
+        }
+      ]
+    }
+  },
+  {
+    "source": "public/assets/characters/male/sword.glb",
+    "target": "public/assets/characters/male/sword.optimized.glb",
+    "sourceSha256": "f7d37b61da083a9e038d4f745fe45a70b4a370963744b53bb5ffc41a0a66a84a",
+    "outputSha256": "1f4ee5fde09199f3cd0e6f355529245e647fc52b001331be9f06baa4f87026e2",
+    "options": {
+      "ratio": 0.1,
+      "error": 0.0005,
+      "textureSize": 1024
+    },
+    "originalBytes": 34287596,
+    "optimizedBytes": 1371000,
+    "before": {
+      "triangles": 1101940,
+      "joints": [],
+      "textures": [
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    "after": {
+      "triangles": 110193,
+      "joints": [],
+      "textures": [
+        {
+          "size": [
+            1024,
+            1024
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            1024,
+            1024
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            1024,
+            1024
+          ],
+          "mime": "image/webp"
+        }
+      ]
+    }
+  },
+  {
+    "source": "public/assets/characters/female/rig.glb",
+    "target": "public/assets/characters/female/rig.optimized.glb",
+    "sourceSha256": "1cb1315dea891c260a6837d97d2bd8c8a45727923719a6feb97680a21badf6d3",
+    "outputSha256": "d8ea7ed3b41c43f7a66ad09aeee2d150317973898cc73ea9df3a03545d73628c",
+    "options": {
+      "ratio": 0.12,
+      "error": 0.0007,
+      "textureSize": 2048
+    },
+    "originalBytes": 60268756,
+    "optimizedBytes": 3339888,
+    "before": {
+      "triangles": 1449938,
+      "joints": [
+        [
+          "Root",
+          "mixamorig:Hips",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2",
+          "mixamorig:Neck",
+          "mixamorig:Head",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightArm",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftToeBase",
+          "mixamorig:RightUpLeg",
+          "mixamorig:RightLeg",
+          "mixamorig:RightFoot",
+          "mixamorig:RightToeBase"
+        ]
+      ],
+      "textures": [
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    "after": {
+      "triangles": 173992,
+      "joints": [
+        [
+          "Root",
+          "mixamorig:Hips",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2",
+          "mixamorig:Neck",
+          "mixamorig:Head",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightArm",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftToeBase",
+          "mixamorig:RightUpLeg",
+          "mixamorig:RightLeg",
+          "mixamorig:RightFoot",
+          "mixamorig:RightToeBase"
+        ]
+      ],
+      "textures": [
+        {
+          "size": [
+            2048,
+            2048
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            2048,
+            2048
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            2048,
+            2048
+          ],
+          "mime": "image/webp"
+        }
+      ]
+    }
+  },
+  {
+    "source": "public/assets/characters/female/sword.glb",
+    "target": "public/assets/characters/female/sword.optimized.glb",
+    "sourceSha256": "82b701c08659a48f6e0c873365fa6004c24d58f5e91ab1b5245fd7ddb0b75a6e",
+    "outputSha256": "14a93b142ad62857f4c29e6e90a65c84811ec8d4f1aec56effb0ff98b35e52af",
+    "options": {
+      "ratio": 0.1,
+      "error": 0.0005,
+      "textureSize": 1024
+    },
+    "originalBytes": 29417296,
+    "optimizedBytes": 1221948,
+    "before": {
+      "triangles": 929088,
+      "joints": [],
+      "textures": [
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        },
+        {
+          "size": [
+            4096,
+            4096
+          ],
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    "after": {
+      "triangles": 92908,
+      "joints": [],
+      "textures": [
+        {
+          "size": [
+            1024,
+            1024
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            1024,
+            1024
+          ],
+          "mime": "image/webp"
+        },
+        {
+          "size": [
+            1024,
+            1024
+          ],
+          "mime": "image/webp"
+        }
+      ]
+    }
+  }
+]

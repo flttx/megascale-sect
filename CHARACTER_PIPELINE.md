@@ -1,0 +1,62 @@
+# 角色与御剑动画 · 2026-09-23
+
+> 本文保留骨骼生成与初版接入记录。后续已完成支撑脚 IK、飞行手感、声光与资产压缩；当前参数及实测见 [OPTIMIZATION.md](OPTIMIZATION.md)。运行时默认读取新增 `.optimized.glb`，原文件仍保留。
+
+## 交付
+
+- 男主角一 1.75 m，女主角二 1.70 m；通过 1 / 2 或界面切换，对应佩剑自动跟随。
+- 使用 Tripo 返回的蒙皮骨架，本地逐骨骼驱动呼吸、摆臂步行、奔跑、抬手施法、屈膝跳跃与御剑平衡。
+- 状态：GROUND → SUMMONING（1.2 s）→ BOARDING（1.25 s）→ FLIGHT → LANDING → DISMOUNTING（0.75 s）→ GROUND。
+- 召剑从虚空缩放显现、弧线飞入面前并转为水平；跃起阶段剑保持世界位置，角色沿弧线落到剑上。
+- 男剑长 2.2 m，女剑长 2.05 m，分别校准剑面与脚底；飞行时角色一直可见，随爬升与转向倾斜。
+- 法阵、光晕、粒子和渐隐剑气均由 Three.js 几何 / Shader 实现，无新增图片。
+- Alt 环视不会改变行进方向。失去鼠标锁定暂停位移和动作过渡。靠墙时转向侧面空地召剑，无可落地表面时拒绝落地，不瞬移回出生点。
+
+## 资产来源
+
+根目录原始四份 GLB 未改写。`public/assets/characters/{male,female}/sword.glb` 与原剑文件的 SHA-256 一致。`rig.glb` 是新返回的骨骼衍生文件，原角色文件仍保留。
+
+| 角色 | 原角色 task id | 原剑 task id | 使用的人形骨骼 task id |
+| --- | --- | --- | --- |
+| 男 | `87a0bb2a-7036-4b35-9aee-0f38ba5c8daa` | `78d6738f-5f8a-4903-bd8d-ccffdd26d806` | `8fc60029-fca8-4304-85e2-068f57d9a9e7` |
+| 女 | `f662dc18-023f-489a-8790-c71ac906ebb8` | `77d24ae9-fc72-4c42-9ba1-823a22eb2e6f` | `72022e4c-812b-462e-8021-4d5ba708058b` |
+
+运行时男骨骼 GLB 60,833,144 B，女骨骼 GLB 60,268,756 B；男剑 34,287,596 B，女剑 29,417,296 B。每个角色加载 23 个 Bone 节点（含 Root）。角色本体来自原资产，没有重新生成外观。
+
+## Tripo 服务结果与实际账单
+
+默认 rig v2.5 返回成功，但预设人形动作迁移报 `LEGACY_25_HUMANOID_INCOMPATIBLE_MOTION`。依据官方文档改用人形 `v1.0-20240301`、`spec=mixamo`、`out_format=glb`，得到带脊柱、双臂、双腿的有效蒙皮骨骼。此后动作迁移仍报 `unsupported target skeleton: rigged GLB matches skeleton profiles []`，因此停止重试，使用本地骨骼动画。
+
+**未获得 Tripo idle / walk / run / jump 动作文件；项目中没有伪称为 Tripo 输出的动作片段。**
+
+| 步骤 | Task id | 结果 | 实扣 credits |
+| --- | --- | --- | ---: |
+| 男初次 rig v2.5 | `746b56bb-8e18-445d-8863-507cea9e9e06` | 成功，未采用 | 25 |
+| 女初次 rig v2.5 | `c8813e34-c32f-459b-aca8-a1f33c862aae` | 成功，未采用 | 25 |
+| 男初次动作迁移 | `8ff3c6fc-cad2-4169-abd9-120d35f1b28b` | 失败，40 退回 | 0 |
+| 女初次动作迁移 | `0b325877-a841-4e98-9c6a-376e9c024867` | 失败，40 退回 | 0 |
+| 男人形 rig v1 | `8fc60029-fca8-4304-85e2-068f57d9a9e7` | 成功，使用 | 25 |
+| 女人形 rig v1 | `72022e4c-812b-462e-8021-4d5ba708058b` | 成功，使用 | 25 |
+| 男人形动作迁移 | `c8bb41f6-c0e9-4dd7-8ba9-155d0a0c21c1` | 失败，40 退回 | 0 |
+| 女人形动作迁移 | `de538030-b507-4f5c-9754-8bcf125f3a3c` | 失败，40 退回 | 0 |
+| 三次 rig-check | `ed123e69-2238-4039-b03d-3ed061dc2a72` / `d37dde49-0491-4e05-8f8b-826a4cc9daf6` / `d38813e0-55be-4251-86ab-ca0fa45e510d` | 均可绑骨 | 0 |
+| **合计** | | 余额 20,495 → 20,395；frozen = 0 | **100** |
+
+成功任务的模型、预览与 task.json 保存在 `character-pipeline/tripo-out/`。
+
+参考：[Tripo Rig 官方文档](https://developers.tripo3d.ai/en/docs/animations-rig)、[Retarget 官方文档](https://developers.tripo3d.ai/en/docs/animations-retarget)。
+
+## 实现位置
+
+- `src/world/player/characterAssets.ts`：资产、身高、佩剑尺寸及接触偏移。
+- `characterPose.ts`：读取骨骼静止姿态，按源模型解剖轴驱动关节并补偿脚底高度。
+- `playerMotion.ts`：完整过渡、落地与地面安全检查。
+- `CharacterVisual.tsx`：SkeletonUtils 克隆、角色与佩剑运动。
+- `SwordEffects.tsx`：召剑法阵、粒子、光晕、飞行拖尾。
+- `Player.tsx`：输入、暂停、切换、相机、开发环境只读测试快照。
+
+## 验证与限制
+
+`npm run verify:characters` 已通过：两角色加载真实蒙皮骨骼、步行关节变化、召剑、跳跃、升空、空中换人换剑、降落、重复切换、过渡中禁止换人、暂停恢复、墙边召剑、无地面拒绝降落、取消降落、最低离地高度。浏览器无报错。截图及采样保存在 `artifacts/characters/`。
+
+已检查背面和侧面截图并修正两剑原点不同导致的脚底接触偏移。长袍和头发依赖自动蒙皮，尚无布料模拟、足部 IK 或专业动作捕捉；大幅姿态仍可能有衣摆穿插。当前是可运行的动画 MVP。模型面数和贴图体积较大，首次加载另一角色有短暂停顿，旧的建筑 LOD 优化限制继续适用。

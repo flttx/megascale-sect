@@ -1,0 +1,39 @@
+{
+  "name": "megascale-sect-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "verify:smoke": "node scripts/smoke.mjs",
+    "verify:navigation": "node scripts/navigation.mjs",
+    "verify:characters": "node scripts/characters.mjs",
+    "verify:optimization": "node scripts/verify-optimization.mjs",
+    "verify:riding-pose": "node scripts/verify-riding-pose.mjs",
+    "assets:optimize": "node scripts/optimize-characters.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.8.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.186.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/extensions": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "meshoptimizer": "^1.2.0",
+    "playwright": "^1.63.0",
+    "sharp": "^0.35.4",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
+  }
+}
