@@ -19,6 +19,7 @@ import { EnvironmentT02R, EnvironmentReview } from './environment/t02r/Environme
 import { QualityManager } from './quality'
 import { WeatherSystem } from './weather/WeatherSystem'
 import { Landmarks } from './landmarks/Landmarks'
+import { PropField } from './props/PropField'
 
 ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
@@ -66,6 +67,7 @@ export function World() {
         <SideTower />
       </Suspense>
       <Landmarks />
+      <PropField />
       <Player />
       <DebugHelpers />
       <EnvironmentReview />
