@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "2ba5443b-275b-4c27-9e33-5b837f08568d",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:19:43.674264Z",
+    "completed_at": "2026-09-24T05:20:22.846930Z",
+    "prompt": "Low cluster of three rounded granite boulders of different sizes, grey speckled stone partly covered with patches of green moss, small ferns in the crevices, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no ground plane, grass field, landscape, water, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/rock_moss/concept.jpg"
+  },
+  "model": {
+    "task_id": "aa57f9f7-f7ff-4695-9c59-fa268cccca38",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:20:30.105196Z",
+    "completed_at": "2026-09-24T05:22:33.393283Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "2ba5443b-275b-4c27-9e33-5b837f08568d",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 10000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/rock_moss/preview.webp"
+  }
+}

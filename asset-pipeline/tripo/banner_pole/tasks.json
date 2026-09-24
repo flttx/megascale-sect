@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "cf3999a6-bf88-4cf1-b0a6-c9d8db02e10d",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:19:09.982971Z",
+    "completed_at": "2026-09-24T05:19:38.231652Z",
+    "prompt": "Tall lacquered wooden flagpole on a carved stone base, a long narrow vertical navy blue silk banner hanging from a short crossbar near the top, gold auspicious cloud pattern embroidered on the banner, gold finial on top of the pole, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no flag waving horizontally, national flag, letters, ground plane, multiple poles, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/banner_pole/concept.jpg"
+  },
+  "model": {
+    "task_id": "a6a08921-8983-46df-ae4d-0db7dd8dfa31",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:19:43.914556Z",
+    "completed_at": "2026-09-24T05:21:02.951961Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "cf3999a6-bf88-4cf1-b0a6-c9d8db02e10d",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 8000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/banner_pole/preview.webp"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "ff7ce2d8-9f1d-480c-8b52-c900ed094b91",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:11:45.903206Z",
+    "completed_at": "2026-09-24T05:12:21.626297Z",
+    "prompt": "Traditional Chinese stone lantern, square stepped base, tall carved column, hexagonal firebox with carved window openings, curved pagoda-style cap with upturned corners and a pearl finial, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no japanese garden, ground plane, grass, multiple objects, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/stone_lantern/concept.jpg"
+  },
+  "model": {
+    "task_id": "c246a646-b8d3-4665-a212-e30ffd54bd00",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:12:26.177524Z",
+    "completed_at": "2026-09-24T05:14:06.079867Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "ff7ce2d8-9f1d-480c-8b52-c900ed094b91",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 10000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/stone_lantern/preview.webp"
+  }
+}

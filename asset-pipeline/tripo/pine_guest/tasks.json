@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "7ec5f710-0cab-468a-bc89-82a414c804f4",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:16:33.117482Z",
+    "completed_at": "2026-09-24T05:17:24.307456Z",
+    "prompt": "Iconic Huangshan welcoming pine tree (Yingke pine), thick gnarled twisted trunk leaning outward, one long almost horizontal branch reaching far to the side like a welcoming arm, flat layered cloud-like tiers of dense dark green pine needles, rough reddish-grey scaly bark, short exposed roots at the base, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no broadleaf, flowers, pot, multiple trees, ground plane, grass, landscape, mountains, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/pine_guest/concept.jpg"
+  },
+  "model": {
+    "task_id": "5d9b604e-8138-482f-a57a-08df7db635b6",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:17:29.878490Z",
+    "completed_at": "2026-09-24T05:19:51.846967Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "7ec5f710-0cab-468a-bc89-82a414c804f4",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 20000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/pine_guest/preview.webp"
+  }
+}

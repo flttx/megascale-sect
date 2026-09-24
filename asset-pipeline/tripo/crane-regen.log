@@ -1,0 +1,8 @@
+[05:33:34] run                 1 asset(s): crane | balance 19355 (frozen 0)
+[05:33:35] crane               text-to-image e1b7d487-6745-47d7-930e-9f46b22fe6c8
+[05:34:16] crane               concept ok (5 cr) → asset-pipeline/tripo/crane/concept.jpg
+[05:34:18] crane               image-to-model #1 d632da0b-43c4-4fd0-9b70-d9adb77184bb
+[05:36:21] crane               image_to_model ok (40 cr) → asset-pipeline/tripo/crane/raw.glb
+[05:36:21] crane               DONE tris 9882→9882/2470, 239 KB, bbox 0.637×0.297×1, credits 45
+[05:36:23] run                 finished | balance 19310 (frozen 0) | spent 45 | failed: none
+exit 0

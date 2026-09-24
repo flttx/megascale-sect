@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "eb0d89f3-3fec-412e-bb4e-b6c490e969af",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:21:03.211149Z",
+    "completed_at": "2026-09-24T05:21:32.400647Z",
+    "prompt": "Chinese imperial guardian lion statue sitting upright on a tall rectangular carved stone plinth, curly mane, open mouth, one front paw resting on an ornate ball, carved stone, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no real lion, cartoon, ground plane, pair of lions, multiple objects, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/stone_lion/concept.jpg"
+  },
+  "model": {
+    "task_id": "f9142a95-f54f-4469-99b8-091c1ec07bbd",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:21:36.878780Z",
+    "completed_at": "2026-09-24T05:23:57.957945Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "eb0d89f3-3fec-412e-bb4e-b6c490e969af",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 16000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/stone_lion/preview.webp"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "6aabc385-3200-451e-a2b1-86331d6ed143",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:22:13.823963Z",
+    "completed_at": "2026-09-24T05:22:43.416637Z",
+    "prompt": "Chinese octagonal garden pavilion with double upturned eaves, navy blue glazed roof tiles, gold ridge ornaments and a gold gourd finial, eight slender pale stone columns, carved balustrade between the columns, raised white jade octagonal base with steps, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no walls, closed building, people, ground plane, landscape, trees, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/pavilion/concept.jpg"
+  },
+  "model": {
+    "task_id": "0d2f6c87-615e-40da-9e5f-ea30045bdf91",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:22:49.893299Z",
+    "completed_at": "2026-09-24T05:26:14.201770Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "6aabc385-3200-451e-a2b1-86331d6ed143",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 40000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/pavilion/preview.webp"
+  }
+}

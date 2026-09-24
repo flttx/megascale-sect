@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "be906205-d874-421e-9901-af61227129f9",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:28:14.985756Z",
+    "completed_at": "2026-09-24T05:28:51.109209Z",
+    "prompt": "Small floating sky island rock, grassy top with one small twisted pine tree, a short waterfall stub pouring over the edge and ending in mid-air, jagged inverted-cone rocky underside with hanging roots, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no buildings, castle, clouds, sky, ocean, multiple islands, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/floating_isle_b/concept.jpg"
+  },
+  "model": {
+    "task_id": "ec0f92a8-c7e3-40c0-a512-d4d2a0986ae4",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:28:56.390783Z",
+    "completed_at": "2026-09-24T05:31:15.971751Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "be906205-d874-421e-9901-af61227129f9",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 30000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/floating_isle_b/preview.webp"
+  }
+}

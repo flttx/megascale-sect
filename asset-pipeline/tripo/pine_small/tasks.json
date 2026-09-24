@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "73d86b44-6a5d-4d12-8956-e3c301bbdac8",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:17:28.410397Z",
+    "completed_at": "2026-09-24T05:17:54.826957Z",
+    "prompt": "Small windswept pine tree growing out of a crack in a grey granite rock, twisted trunk bending to one side, flat layered tufts of dark green pine needles, the jagged grey rock is part of the object as its base, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no broadleaf, flowers, pot, multiple trees, ground plane, grass field, landscape, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/pine_small/concept.jpg"
+  },
+  "model": {
+    "task_id": "8213dd10-a6a8-4798-8eb1-e68547004c4e",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:18:02.738276Z",
+    "completed_at": "2026-09-24T05:20:42.259085Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "73d86b44-6a5d-4d12-8956-e3c301bbdac8",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 16000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/pine_small/preview.webp"
+  }
+}

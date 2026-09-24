@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "7e8ff160-74bf-413b-b871-b8b5d91ff296",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:23:29.834009Z",
+    "completed_at": "2026-09-24T05:24:10.784180Z",
+    "prompt": "Three-bay Chinese stone memorial archway (pailou), four square pale stone pillars on carved bases, taller central bay and two lower side bays, each bay topped with a navy blue glazed tiled roof with upturned eaves, a blank gold plaque in the centre of the central bay, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no walls, building behind, people, ground plane, landscape, characters on plaque, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/pailou/concept.jpg"
+  },
+  "model": {
+    "task_id": "44e4f279-6d27-45df-995b-9bbc46ef08e6",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:24:15.162374Z",
+    "completed_at": "2026-09-24T05:26:02.358177Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "7e8ff160-74bf-413b-b871-b8b5d91ff296",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 40000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/pailou/preview.webp"
+  }
+}

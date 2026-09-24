@@ -1,0 +1,11 @@
+[05:11:43] run                 1 asset(s): stone_lantern | balance 20345 (frozen 0)
+[05:11:44] stone_lantern       text-to-image ff7ce2d8-9f1d-480c-8b52-c900ed094b91
+[05:12:23] stone_lantern       concept ok (5 cr) → asset-pipeline/tripo/stone_lantern/concept.jpg
+[05:12:24] stone_lantern       image-to-model #1 c246a646-b8d3-4665-a212-e30ffd54bd00
+[05:14:43] stone_lantern       image_to_model ok (40 cr) → asset-pipeline/tripo/stone_lantern/raw.glb
+prune: Removed types... Accessor (4)
+prune: Removed types... Accessor (3)
+prune: Removed types... Accessor (4)
+prune: Removed types... Accessor (3)
+[05:14:43] stone_lantern       DONE tris 9239→9239/2316, 508 KB, bbox 0.424×1×0.406, credits 45
+[05:14:45] run                 finished | balance 20300 (frozen 0) | spent 45 | failed: none

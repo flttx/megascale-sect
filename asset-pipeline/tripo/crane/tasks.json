@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "e1b7d487-6745-47d7-930e-9f46b22fe6c8",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:33:37.079940Z",
+    "completed_at": "2026-09-24T05:34:16.259205Z",
+    "prompt": "Red-crowned crane gliding in level flight, both wings fully spread flat and horizontal to the left and right like a wide T shape, neck stretched straight forward, long legs trailing straight behind, white plumage, black neck and black trailing wing feathers, red crown patch, elegant, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no standing, perched, wings raised up, wings folded, flock, multiple birds, sky, clouds, ground plane, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/crane/concept.jpg"
+  },
+  "model": {
+    "task_id": "d632da0b-43c4-4fd0-9b70-d9adb77184bb",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:34:19.607890Z",
+    "completed_at": "2026-09-24T05:35:49.522194Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "e1b7d487-6745-47d7-930e-9f46b22fe6c8",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 10000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/crane/preview.webp"
+  }
+}

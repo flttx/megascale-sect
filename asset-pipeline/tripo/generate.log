@@ -1,0 +1,108 @@
+[05:15:54] run                 21 asset(s): pine_guest, pine_tall, pine_small, bamboo, rock_scholar, rock_moss, lantern_post, banner_pole, incense_burner, stone_lion, pavilion, pailou, stele_turtle, bell_frame, teleport_array, spirit_crystal, crane, weather_altar, meditation_platform, floating_isle_a, floating_isle_b | balance 20300 (frozen 0)
+[05:15:56] pine_tall           text-to-image c39864d0-2392-45bf-bcaf-baa67bd15bf0
+[05:16:30] pine_tall           concept ok (5 cr) → asset-pipeline/tripo/pine_tall/concept.jpg
+[05:16:31] pine_guest          text-to-image 7ec5f710-0cab-468a-bc89-82a414c804f4
+[05:16:32] pine_tall           image-to-model #1 d5c151a4-0429-41d9-8240-1dfca240ee28
+[05:17:25] pine_guest          concept ok (5 cr) → asset-pipeline/tripo/pine_guest/concept.jpg
+[05:17:26] pine_small          text-to-image 73d86b44-6a5d-4d12-8956-e3c301bbdac8
+[05:17:28] pine_guest          image-to-model #1 5d9b604e-8138-482f-a57a-08df7db635b6
+[05:17:58] pine_small          concept ok (5 cr) → asset-pipeline/tripo/pine_small/concept.jpg
+[05:17:59] bamboo              text-to-image fc1433f2-f4ad-46cc-8953-88d77132d26b
+[05:18:01] pine_small          image-to-model #1 8213dd10-a6a8-4798-8eb1-e68547004c4e
+[05:18:21] pine_tall           image_to_model ok (40 cr) → asset-pipeline/tripo/pine_tall/raw.glb
+[05:18:22] pine_tall           DONE tris 19702→19702/4916, 530 KB, bbox 0.609×1×0.71, credits 45
+[05:18:32] bamboo              concept ok (5 cr) → asset-pipeline/tripo/bamboo/concept.jpg
+[05:18:35] rock_scholar        text-to-image d45f9110-8bc5-4a44-8955-c0366f75d2b3
+[05:18:35] bamboo              image-to-model #1 5b4bbdb5-0e2f-4140-9c3e-ec4384440684
+[05:19:06] rock_scholar        concept ok (5 cr) → asset-pipeline/tripo/rock_scholar/concept.jpg
+[05:19:08] rock_scholar        image-to-model #1 63439e56-1ea3-47c4-8e4d-1a85cea68036
+[05:19:08] banner_pole         text-to-image cf3999a6-bf88-4cf1-b0a6-c9d8db02e10d
+[05:19:41] banner_pole         concept ok (5 cr) → asset-pipeline/tripo/banner_pole/concept.jpg
+[05:19:42] rock_moss           text-to-image 2ba5443b-275b-4c27-9e33-5b837f08568d
+[05:19:42] banner_pole         image-to-model #1 a6a08921-8983-46df-ae4d-0db7dd8dfa31
+[05:19:54] pine_guest          image_to_model ok (40 cr) → asset-pipeline/tripo/pine_guest/raw.glb
+[05:19:55] pine_guest          DONE tris 19169→19169/5607, 501 KB, bbox 1×0.754×0.997, credits 45
+[05:20:26] rock_moss           concept ok (5 cr) → asset-pipeline/tripo/rock_moss/concept.jpg
+[05:20:27] lantern_post        text-to-image 73c4c325-0b79-457e-9238-500e837f0115
+[05:20:28] rock_moss           image-to-model #1 aa57f9f7-f7ff-4695-9c59-fa268cccca38
+[05:20:44] rock_scholar        image_to_model ok (40 cr) → asset-pipeline/tripo/rock_scholar/raw.glb
+[05:20:45] rock_scholar        DONE tris 11940→11940/1996, 490 KB, bbox 0.197×1×0.428, credits 45
+[05:20:47] pine_small          image_to_model ok (40 cr) → asset-pipeline/tripo/pine_small/raw.glb
+[05:20:47] pine_small          DONE tris 14767→14767/2953, 508 KB, bbox 0.79×1×0.966, credits 45
+[05:20:59] lantern_post        concept ok (5 cr) → asset-pipeline/tripo/lantern_post/concept.jpg
+[05:21:01] lantern_post        image-to-model #1 3eb41fb7-e699-4396-ad2b-9d8995fc3eb0
+[05:21:01] stone_lion          text-to-image eb0d89f3-3fec-412e-bb4e-b6c490e969af
+[05:21:06] banner_pole         image_to_model ok (40 cr) → asset-pipeline/tripo/banner_pole/raw.glb
+[05:21:07] banner_pole         DONE tris 7620→7620/1904, 416 KB, bbox 0.289×1×0.284, credits 45
+[05:21:21] bamboo              image_to_model ok (40 cr) → asset-pipeline/tripo/bamboo/raw.glb
+[05:21:21] bamboo              DONE tris 15190→15190/6084, 539 KB, bbox 0.584×1×0.808, credits 45
+[05:21:33] stone_lion          concept ok (5 cr) → asset-pipeline/tripo/stone_lion/concept.jpg
+[05:21:34] incense_burner      text-to-image 2b51e96a-3396-4ece-817d-6e5b9547b0ab
+[05:21:35] stone_lion          image-to-model #1 f9142a95-f54f-4469-99b8-091c1ec07bbd
+[05:22:10] incense_burner      concept ok (5 cr) → asset-pipeline/tripo/incense_burner/concept.jpg
+[05:22:12] pavilion            text-to-image 6aabc385-3200-451e-a2b1-86331d6ed143
+[05:22:12] incense_burner      image-to-model #1 45f9fbcd-4dde-43ad-a840-f6fc7c6e5a97
+[05:22:31] lantern_post        image_to_model ok (40 cr) → asset-pipeline/tripo/lantern_post/raw.glb
+[05:22:32] lantern_post        DONE tris 10841→10841/2164, 412 KB, bbox 0.253×1×0.528, credits 45
+[05:22:39] rock_moss           image_to_model ok (40 cr) → asset-pipeline/tripo/rock_moss/raw.glb
+[05:22:40] rock_moss           DONE tris 9760→9760/2062, 527 KB, bbox 0.789×0.376×1, credits 45
+[05:22:45] pavilion            concept ok (5 cr) → asset-pipeline/tripo/pavilion/concept.jpg
+[05:22:47] stele_turtle        text-to-image c7b38665-dd2e-4e14-b908-6436d887ccd0
+[05:22:48] pavilion            image-to-model #1 0d2f6c87-615e-40da-9e5f-ea30045bdf91
+[05:23:26] stele_turtle        concept ok (5 cr) → asset-pipeline/tripo/stele_turtle/concept.jpg
+[05:23:27] stele_turtle        image-to-model #1 e7cd827e-07eb-4bc3-9b77-e547b00271a1
+[05:23:28] pailou              text-to-image 7e8ff160-74bf-413b-b871-b8b5d91ff296
+[05:24:12] pailou              concept ok (5 cr) → asset-pipeline/tripo/pailou/concept.jpg
+[05:24:13] bell_frame          text-to-image 9b3449fb-b1a8-41aa-924c-f80c87faba31
+[05:24:13] pailou              image-to-model #1 44e4f279-6d27-45df-995b-9bbc46ef08e6
+[05:24:15] stone_lion          image_to_model ok (40 cr) → asset-pipeline/tripo/stone_lion/raw.glb
+[05:24:15] stone_lion          DONE tris 15708→15708/3141, 512 KB, bbox 0.482×1×0.586, credits 45
+[05:24:49] bell_frame          concept ok (5 cr) → asset-pipeline/tripo/bell_frame/concept.jpg
+[05:24:51] teleport_array      text-to-image beb5fe00-7b6c-480c-9613-6bba026cdb6c
+[05:24:53] bell_frame          image-to-model #1 df2a6766-3ccf-4c50-9835-9112a1622a3e
+[05:25:01] incense_burner      image_to_model ok (40 cr) → asset-pipeline/tripo/incense_burner/raw.glb
+[05:25:01] incense_burner      DONE tris 10954→10954, 424 KB, bbox 0.701×1×0.856, credits 45
+[05:25:23] teleport_array      concept ok (5 cr) → asset-pipeline/tripo/teleport_array/concept.jpg
+[05:25:26] spirit_crystal      text-to-image d45a6d2e-a937-4621-ad91-ea5cc8095595
+[05:25:27] teleport_array      image-to-model #1 b179654c-7526-4e62-a4cb-7ccaddd62235
+[05:25:52] spirit_crystal      concept ok (5 cr) → asset-pipeline/tripo/spirit_crystal/concept.jpg
+[05:25:54] weather_altar       text-to-image 276cf8ca-593a-40e2-86b6-21d45fbd2641
+[05:25:54] spirit_crystal      image-to-model #1 8ca4e025-7414-4542-a5d5-9c33b64f643c
+[05:25:55] stele_turtle        image_to_model ok (40 cr) → asset-pipeline/tripo/stele_turtle/raw.glb
+[05:25:56] stele_turtle        DONE tris 15005→15005, 526 KB, bbox 0.422×1×0.685, credits 45
+[05:26:06] pailou              image_to_model ok (40 cr) → asset-pipeline/tripo/pailou/raw.glb
+[05:26:07] pailou              DONE tris 37552→37552/7508, 1216 KB, bbox 0.227×0.55×1, credits 45
+[05:26:28] pavilion            image_to_model ok (40 cr) → asset-pipeline/tripo/pavilion/raw.glb
+[05:26:28] pavilion            DONE tris 36781→36781/7868, 1142 KB, bbox 0.941×1×0.984, credits 45
+[05:26:40] weather_altar       concept ok (5 cr) → asset-pipeline/tripo/weather_altar/concept.jpg
+[05:26:41] crane               text-to-image 8d7de3bf-b7b6-48ee-af21-1a69e563e74f
+[05:26:44] weather_altar       image-to-model #1 a5e2e681-c11b-4679-bcdc-ac4ea8bedbbb
+[05:27:09] crane               concept ok (5 cr) → asset-pipeline/tripo/crane/concept.jpg
+[05:27:11] meditation_platform text-to-image 5dfbcbd4-9a78-4b18-8f82-e3de434f3b6e
+[05:27:13] crane               image-to-model #1 25852157-fa34-4676-863f-9219c104005c
+[05:27:41] meditation_platform concept ok (5 cr) → asset-pipeline/tripo/meditation_platform/concept.jpg
+[05:27:42] floating_isle_a     text-to-image 347665c7-a932-4875-8135-3b08e29348d5
+[05:27:43] meditation_platform image-to-model #1 b839b514-bbd0-4f6c-b5a9-21d3aa37b993
+[05:27:57] bell_frame          image_to_model ok (40 cr) → asset-pipeline/tripo/bell_frame/raw.glb
+[05:27:57] bell_frame          DONE tris 18755→18755, 480 KB, bbox 0.783×1×0.731, credits 45
+[05:28:11] floating_isle_a     concept ok (5 cr) → asset-pipeline/tripo/floating_isle_a/concept.jpg
+[05:28:13] floating_isle_b     text-to-image be906205-d874-421e-9901-af61227129f9
+[05:28:13] floating_isle_a     image-to-model #1 59dca33b-a119-4b07-aabb-47cebeadebd3
+[05:28:15] teleport_array      image_to_model ok (40 cr) → asset-pipeline/tripo/teleport_array/raw.glb
+[05:28:16] teleport_array      DONE tris 29246→29246, 978 KB, bbox 0.997×0.227×1, credits 45
+[05:28:48] spirit_crystal      image_to_model ok (40 cr) → asset-pipeline/tripo/spirit_crystal/raw.glb
+[05:28:49] spirit_crystal      DONE tris 9490→9490/1898, 298 KB, bbox 0.708×1×0.809, credits 45
+[05:28:53] floating_isle_b     concept ok (5 cr) → asset-pipeline/tripo/floating_isle_b/concept.jpg
+[05:28:54] floating_isle_b     image-to-model #1 ec0f92a8-c7e3-40c0-a512-d4d2a0986ae4
+[05:29:34] crane               image_to_model ok (40 cr) → asset-pipeline/tripo/crane/raw.glb
+[05:29:35] crane               DONE tris 9777→9777/2444, 266 KB, bbox 0.572×0.843×1, credits 45
+[05:29:51] weather_altar       image_to_model ok (40 cr) → asset-pipeline/tripo/weather_altar/raw.glb
+[05:29:51] weather_altar       DONE tris 18648→18648, 465 KB, bbox 1×0.595×0.998, credits 45
+[05:30:13] meditation_platform image_to_model ok (40 cr) → asset-pipeline/tripo/meditation_platform/raw.glb
+[05:30:13] meditation_platform DONE tris 7824→7824/1560, 275 KB, bbox 0.998×0.34×1, credits 45
+[05:31:15] floating_isle_a     image_to_model ok (40 cr) → asset-pipeline/tripo/floating_isle_a/raw.glb
+[05:31:16] floating_isle_a     DONE tris 37567→37567/7494, 1360 KB, bbox 0.969×0.882×1, credits 45
+[05:31:34] floating_isle_b     image_to_model ok (40 cr) → asset-pipeline/tripo/floating_isle_b/raw.glb
+[05:31:35] floating_isle_b     DONE tris 29418→29418/5855, 1092 KB, bbox 0.934×1×0.964, credits 45
+[05:31:37] run                 finished | balance 19355 (frozen 0) | spent 945 | failed: none
+exit 0

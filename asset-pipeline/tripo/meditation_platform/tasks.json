@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "5dfbcbd4-9a78-4b18-8f82-e3de434f3b6e",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:27:12.683992Z",
+    "completed_at": "2026-09-24T05:27:40.297231Z",
+    "prompt": "Small low round stone dais, a woven round straw meditation cushion (putuan) on top, a tiny bronze incense burner beside the cushion, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no person, monk, ground plane, multiple cushions, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/meditation_platform/concept.jpg"
+  },
+  "model": {
+    "task_id": "b839b514-bbd0-4f6c-b5a9-21d3aa37b993",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:27:45.219425Z",
+    "completed_at": "2026-09-24T05:30:04.879096Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "5dfbcbd4-9a78-4b18-8f82-e3de434f3b6e",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 8000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/meditation_platform/preview.webp"
+  }
+}

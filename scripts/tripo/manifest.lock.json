@@ -1,0 +1,1734 @@
+{
+  "assets": {
+    "stone_lantern": {
+      "id": "stone_lantern",
+      "name_zh": "石灯笼",
+      "status": "ok",
+      "heightM": 2.4,
+      "scaleToHeight": 2.4,
+      "instanced": true,
+      "tasks": {
+        "concept": "ff7ce2d8-9f1d-480c-8b52-c900ed094b91",
+        "model": "c246a646-b8d3-4665-a212-e30ffd54bd00",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "ff7ce2d8-9f1d-480c-8b52-c900ed094b91",
+            "model": "c246a646-b8d3-4665-a212-e30ffd54bd00",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/stone_lantern/raw.glb",
+        "bytes": 15251044,
+        "triangles": 9239
+      },
+      "lod0": {
+        "path": "public/assets/props/stone_lantern.glb",
+        "bytes": 520248,
+        "triangles": 9239,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/stone_lantern.lod1.glb",
+        "bytes": 115500,
+        "triangles": 2316,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.212,
+          0,
+          -0.203
+        ],
+        "max": [
+          0.212,
+          1,
+          0.203
+        ],
+        "size": [
+          0.424,
+          1,
+          0.406
+        ]
+      },
+      "preview": "asset-pipeline/tripo/stone_lantern/preview.webp",
+      "concept": "asset-pipeline/tripo/stone_lantern/concept.jpg",
+      "generatedAt": "2026-09-24T05:14:43.777Z",
+      "optimizedAt": "2026-09-24T05:33:04.082Z",
+      "history": []
+    },
+    "pine_tall": {
+      "id": "pine_tall",
+      "name_zh": "高松",
+      "status": "ok",
+      "heightM": 18,
+      "scaleToHeight": 18,
+      "instanced": true,
+      "tasks": {
+        "concept": "c39864d0-2392-45bf-bcaf-baa67bd15bf0",
+        "model": "d5c151a4-0429-41d9-8240-1dfca240ee28",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "c39864d0-2392-45bf-bcaf-baa67bd15bf0",
+            "model": "d5c151a4-0429-41d9-8240-1dfca240ee28",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/pine_tall/raw.glb",
+        "bytes": 14111648,
+        "triangles": 19702
+      },
+      "lod0": {
+        "path": "public/assets/props/pine_tall.glb",
+        "bytes": 542880,
+        "triangles": 19702,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/pine_tall.lod1.glb",
+        "bytes": 117240,
+        "triangles": 4916,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.305,
+          0,
+          -0.355
+        ],
+        "max": [
+          0.305,
+          1,
+          0.355
+        ],
+        "size": [
+          0.609,
+          1,
+          0.71
+        ]
+      },
+      "preview": "asset-pipeline/tripo/pine_tall/preview.webp",
+      "concept": "asset-pipeline/tripo/pine_tall/concept.jpg",
+      "generatedAt": "2026-09-24T05:18:22.440Z",
+      "optimizedAt": "2026-09-24T05:33:03.472Z",
+      "history": []
+    },
+    "pine_guest": {
+      "id": "pine_guest",
+      "name_zh": "迎客松",
+      "status": "ok",
+      "heightM": 14,
+      "scaleToHeight": 18.568,
+      "instanced": true,
+      "tasks": {
+        "concept": "7ec5f710-0cab-468a-bc89-82a414c804f4",
+        "model": "5d9b604e-8138-482f-a57a-08df7db635b6",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "7ec5f710-0cab-468a-bc89-82a414c804f4",
+            "model": "5d9b604e-8138-482f-a57a-08df7db635b6",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/pine_guest/raw.glb",
+        "bytes": 12409248,
+        "triangles": 19169
+      },
+      "lod0": {
+        "path": "public/assets/props/pine_guest.glb",
+        "bytes": 513436,
+        "triangles": 19169,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/pine_guest.lod1.glb",
+        "bytes": 150396,
+        "triangles": 5607,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.5,
+          0,
+          -0.499
+        ],
+        "max": [
+          0.5,
+          0.754,
+          0.499
+        ],
+        "size": [
+          1,
+          0.754,
+          0.997
+        ]
+      },
+      "preview": "asset-pipeline/tripo/pine_guest/preview.webp",
+      "concept": "asset-pipeline/tripo/pine_guest/concept.jpg",
+      "generatedAt": "2026-09-24T05:19:55.315Z",
+      "optimizedAt": "2026-09-24T05:33:02.913Z",
+      "history": []
+    },
+    "rock_scholar": {
+      "id": "rock_scholar",
+      "name_zh": "太湖石",
+      "status": "ok",
+      "heightM": 3.5,
+      "scaleToHeight": 3.5,
+      "instanced": true,
+      "tasks": {
+        "concept": "d45f9110-8bc5-4a44-8955-c0366f75d2b3",
+        "model": "63439e56-1ea3-47c4-8e4d-1a85cea68036",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "d45f9110-8bc5-4a44-8955-c0366f75d2b3",
+            "model": "63439e56-1ea3-47c4-8e4d-1a85cea68036",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/rock_scholar/raw.glb",
+        "bytes": 15802540,
+        "triangles": 11940
+      },
+      "lod0": {
+        "path": "public/assets/props/rock_scholar.glb",
+        "bytes": 502160,
+        "triangles": 11940,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/rock_scholar.lod1.glb",
+        "bytes": 91328,
+        "triangles": 1996,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.098,
+          0,
+          -0.214
+        ],
+        "max": [
+          0.098,
+          1,
+          0.214
+        ],
+        "size": [
+          0.197,
+          1,
+          0.428
+        ]
+      },
+      "preview": "asset-pipeline/tripo/rock_scholar/preview.webp",
+      "concept": "asset-pipeline/tripo/rock_scholar/concept.jpg",
+      "generatedAt": "2026-09-24T05:20:45.254Z",
+      "optimizedAt": "2026-09-24T05:33:03.543Z",
+      "history": []
+    },
+    "pine_small": {
+      "id": "pine_small",
+      "name_zh": "小松",
+      "status": "ok",
+      "heightM": 6,
+      "scaleToHeight": 6,
+      "instanced": true,
+      "tasks": {
+        "concept": "73d86b44-6a5d-4d12-8956-e3c301bbdac8",
+        "model": "8213dd10-a6a8-4798-8eb1-e68547004c4e",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "73d86b44-6a5d-4d12-8956-e3c301bbdac8",
+            "model": "8213dd10-a6a8-4798-8eb1-e68547004c4e",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/pine_small/raw.glb",
+        "bytes": 18982612,
+        "triangles": 14767
+      },
+      "lod0": {
+        "path": "public/assets/props/pine_small.glb",
+        "bytes": 520224,
+        "triangles": 14767,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/pine_small.lod1.glb",
+        "bytes": 100088,
+        "triangles": 2953,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.395,
+          0,
+          -0.483
+        ],
+        "max": [
+          0.395,
+          1,
+          0.483
+        ],
+        "size": [
+          0.79,
+          1,
+          0.966
+        ]
+      },
+      "preview": "asset-pipeline/tripo/pine_small/preview.webp",
+      "concept": "asset-pipeline/tripo/pine_small/concept.jpg",
+      "generatedAt": "2026-09-24T05:20:47.897Z",
+      "optimizedAt": "2026-09-24T05:33:02.968Z",
+      "history": []
+    },
+    "banner_pole": {
+      "id": "banner_pole",
+      "name_zh": "旗幡",
+      "status": "ok",
+      "heightM": 10,
+      "scaleToHeight": 10,
+      "instanced": true,
+      "tasks": {
+        "concept": "cf3999a6-bf88-4cf1-b0a6-c9d8db02e10d",
+        "model": "a6a08921-8983-46df-ae4d-0db7dd8dfa31",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "cf3999a6-bf88-4cf1-b0a6-c9d8db02e10d",
+            "model": "a6a08921-8983-46df-ae4d-0db7dd8dfa31",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/banner_pole/raw.glb",
+        "bytes": 14000424,
+        "triangles": 7620
+      },
+      "lod0": {
+        "path": "public/assets/props/banner_pole.glb",
+        "bytes": 425892,
+        "triangles": 7620,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/banner_pole.lod1.glb",
+        "bytes": 86072,
+        "triangles": 1904,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.145,
+          0,
+          -0.142
+        ],
+        "max": [
+          0.145,
+          1,
+          0.142
+        ],
+        "size": [
+          0.289,
+          1,
+          0.284
+        ]
+      },
+      "preview": "asset-pipeline/tripo/banner_pole/preview.webp",
+      "concept": "asset-pipeline/tripo/banner_pole/concept.jpg",
+      "generatedAt": "2026-09-24T05:21:07.472Z",
+      "optimizedAt": "2026-09-24T05:33:04.620Z",
+      "history": []
+    },
+    "bamboo": {
+      "id": "bamboo",
+      "name_zh": "竹丛",
+      "status": "ok",
+      "heightM": 8,
+      "scaleToHeight": 8,
+      "instanced": true,
+      "tasks": {
+        "concept": "fc1433f2-f4ad-46cc-8953-88d77132d26b",
+        "model": "5b4bbdb5-0e2f-4140-9c3e-ec4384440684",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "fc1433f2-f4ad-46cc-8953-88d77132d26b",
+            "model": "5b4bbdb5-0e2f-4140-9c3e-ec4384440684",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/bamboo/raw.glb",
+        "bytes": 10051964,
+        "triangles": 15190
+      },
+      "lod0": {
+        "path": "public/assets/props/bamboo.glb",
+        "bytes": 552092,
+        "triangles": 15190,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/bamboo.lod1.glb",
+        "bytes": 198384,
+        "triangles": 6084,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.292,
+          0,
+          -0.404
+        ],
+        "max": [
+          0.292,
+          1,
+          0.404
+        ],
+        "size": [
+          0.584,
+          1,
+          0.808
+        ]
+      },
+      "preview": "asset-pipeline/tripo/bamboo/preview.webp",
+      "concept": "asset-pipeline/tripo/bamboo/concept.jpg",
+      "generatedAt": "2026-09-24T05:21:21.905Z",
+      "optimizedAt": "2026-09-24T05:33:08.391Z",
+      "history": []
+    },
+    "lantern_post": {
+      "id": "lantern_post",
+      "name_zh": "灯柱宫灯",
+      "status": "ok",
+      "heightM": 4.5,
+      "scaleToHeight": 4.5,
+      "instanced": true,
+      "tasks": {
+        "concept": "73c4c325-0b79-457e-9238-500e837f0115",
+        "model": "3eb41fb7-e699-4396-ad2b-9d8995fc3eb0",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "73c4c325-0b79-457e-9238-500e837f0115",
+            "model": "3eb41fb7-e699-4396-ad2b-9d8995fc3eb0",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/lantern_post/raw.glb",
+        "bytes": 11354048,
+        "triangles": 10841
+      },
+      "lod0": {
+        "path": "public/assets/props/lantern_post.glb",
+        "bytes": 422320,
+        "triangles": 10841,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/lantern_post.lod1.glb",
+        "bytes": 87240,
+        "triangles": 2164,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.126,
+          0,
+          -0.264
+        ],
+        "max": [
+          0.126,
+          1,
+          0.264
+        ],
+        "size": [
+          0.253,
+          1,
+          0.528
+        ]
+      },
+      "preview": "asset-pipeline/tripo/lantern_post/preview.webp",
+      "concept": "asset-pipeline/tripo/lantern_post/concept.jpg",
+      "generatedAt": "2026-09-24T05:22:32.122Z",
+      "optimizedAt": "2026-09-24T05:33:04.555Z",
+      "history": []
+    },
+    "rock_moss": {
+      "id": "rock_moss",
+      "name_zh": "苔石",
+      "status": "ok",
+      "heightM": 2,
+      "scaleToHeight": 5.319,
+      "instanced": true,
+      "tasks": {
+        "concept": "2ba5443b-275b-4c27-9e33-5b837f08568d",
+        "model": "aa57f9f7-f7ff-4695-9c59-fa268cccca38",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "2ba5443b-275b-4c27-9e33-5b837f08568d",
+            "model": "aa57f9f7-f7ff-4695-9c59-fa268cccca38",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/rock_moss/raw.glb",
+        "bytes": 18501640,
+        "triangles": 9760
+      },
+      "lod0": {
+        "path": "public/assets/props/rock_moss.glb",
+        "bytes": 539608,
+        "triangles": 9760,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/rock_moss.lod1.glb",
+        "bytes": 93704,
+        "triangles": 2062,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.395,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.395,
+          0.376,
+          0.5
+        ],
+        "size": [
+          0.789,
+          0.376,
+          1
+        ]
+      },
+      "preview": "asset-pipeline/tripo/rock_moss/preview.webp",
+      "concept": "asset-pipeline/tripo/rock_moss/concept.jpg",
+      "generatedAt": "2026-09-24T05:22:40.496Z",
+      "optimizedAt": "2026-09-24T05:33:04.048Z",
+      "history": []
+    },
+    "stone_lion": {
+      "id": "stone_lion",
+      "name_zh": "石狮",
+      "status": "ok",
+      "heightM": 3.2,
+      "scaleToHeight": 3.2,
+      "instanced": false,
+      "tasks": {
+        "concept": "eb0d89f3-3fec-412e-bb4e-b6c490e969af",
+        "model": "f9142a95-f54f-4469-99b8-091c1ec07bbd",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "eb0d89f3-3fec-412e-bb4e-b6c490e969af",
+            "model": "f9142a95-f54f-4469-99b8-091c1ec07bbd",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/stone_lion/raw.glb",
+        "bytes": 19681004,
+        "triangles": 15708
+      },
+      "lod0": {
+        "path": "public/assets/props/stone_lion.glb",
+        "bytes": 524028,
+        "triangles": 15708,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/stone_lion.lod1.glb",
+        "bytes": 84860,
+        "triangles": 3141,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.241,
+          0,
+          -0.293
+        ],
+        "max": [
+          0.241,
+          1,
+          0.293
+        ],
+        "size": [
+          0.482,
+          1,
+          0.586
+        ]
+      },
+      "preview": "asset-pipeline/tripo/stone_lion/preview.webp",
+      "concept": "asset-pipeline/tripo/stone_lion/concept.jpg",
+      "generatedAt": "2026-09-24T05:24:15.904Z",
+      "optimizedAt": "2026-09-24T05:33:05.196Z",
+      "history": []
+    },
+    "incense_burner": {
+      "id": "incense_burner",
+      "name_zh": "香炉鼎",
+      "status": "ok",
+      "heightM": 3,
+      "scaleToHeight": 3,
+      "instanced": false,
+      "tasks": {
+        "concept": "2b51e96a-3396-4ece-817d-6e5b9547b0ab",
+        "model": "45f9fbcd-4dde-43ad-a840-f6fc7c6e5a97",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "2b51e96a-3396-4ece-817d-6e5b9547b0ab",
+            "model": "45f9fbcd-4dde-43ad-a840-f6fc7c6e5a97",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/incense_burner/raw.glb",
+        "bytes": 15669496,
+        "triangles": 10954
+      },
+      "lod0": {
+        "path": "public/assets/props/incense_burner.glb",
+        "bytes": 433932,
+        "triangles": 10954,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": null,
+      "bbox": {
+        "min": [
+          -0.35,
+          0,
+          -0.428
+        ],
+        "max": [
+          0.35,
+          1,
+          0.428
+        ],
+        "size": [
+          0.701,
+          1,
+          0.856
+        ]
+      },
+      "preview": "asset-pipeline/tripo/incense_burner/preview.webp",
+      "concept": "asset-pipeline/tripo/incense_burner/concept.jpg",
+      "generatedAt": "2026-09-24T05:25:01.404Z",
+      "optimizedAt": "2026-09-24T05:33:05.662Z",
+      "history": []
+    },
+    "stele_turtle": {
+      "id": "stele_turtle",
+      "name_zh": "赑屃碑",
+      "status": "ok",
+      "heightM": 4.5,
+      "scaleToHeight": 4.5,
+      "instanced": false,
+      "tasks": {
+        "concept": "c7b38665-dd2e-4e14-b908-6436d887ccd0",
+        "model": "e7cd827e-07eb-4bc3-9b77-e547b00271a1",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "c7b38665-dd2e-4e14-b908-6436d887ccd0",
+            "model": "e7cd827e-07eb-4bc3-9b77-e547b00271a1",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/stele_turtle/raw.glb",
+        "bytes": 15743948,
+        "triangles": 15005
+      },
+      "lod0": {
+        "path": "public/assets/props/stele_turtle.glb",
+        "bytes": 538760,
+        "triangles": 15005,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": null,
+      "bbox": {
+        "min": [
+          -0.211,
+          0,
+          -0.343
+        ],
+        "max": [
+          0.211,
+          1,
+          0.343
+        ],
+        "size": [
+          0.422,
+          1,
+          0.685
+        ]
+      },
+      "preview": "asset-pipeline/tripo/stele_turtle/preview.webp",
+      "concept": "asset-pipeline/tripo/stele_turtle/concept.jpg",
+      "generatedAt": "2026-09-24T05:25:55.999Z",
+      "optimizedAt": "2026-09-24T05:33:06.062Z",
+      "history": []
+    },
+    "pailou": {
+      "id": "pailou",
+      "name_zh": "牌坊",
+      "status": "ok",
+      "heightM": 12,
+      "scaleToHeight": 21.818,
+      "instanced": false,
+      "tasks": {
+        "concept": "7e8ff160-74bf-413b-b871-b8b5d91ff296",
+        "model": "44e4f279-6d27-45df-995b-9bbc46ef08e6",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "7e8ff160-74bf-413b-b871-b8b5d91ff296",
+            "model": "44e4f279-6d27-45df-995b-9bbc46ef08e6",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/pailou/raw.glb",
+        "bytes": 12730144,
+        "triangles": 37552
+      },
+      "lod0": {
+        "path": "public/assets/props/pailou.glb",
+        "bytes": 1244868,
+        "triangles": 37552,
+        "textures": {
+          "base": 2048,
+          "detail": 1024
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/pailou.lod1.glb",
+        "bytes": 231664,
+        "triangles": 7508,
+        "textures": {
+          "base": 512,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.114,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.114,
+          0.55,
+          0.5
+        ],
+        "size": [
+          0.227,
+          0.55,
+          1
+        ]
+      },
+      "preview": "asset-pipeline/tripo/pailou/preview.webp",
+      "concept": "asset-pipeline/tripo/pailou/concept.jpg",
+      "generatedAt": "2026-09-24T05:26:07.182Z",
+      "optimizedAt": "2026-09-24T05:33:06.058Z",
+      "history": []
+    },
+    "pavilion": {
+      "id": "pavilion",
+      "name_zh": "八角亭",
+      "status": "ok",
+      "heightM": 9,
+      "scaleToHeight": 9,
+      "instanced": false,
+      "tasks": {
+        "concept": "6aabc385-3200-451e-a2b1-86331d6ed143",
+        "model": "0d2f6c87-615e-40da-9e5f-ea30045bdf91",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "6aabc385-3200-451e-a2b1-86331d6ed143",
+            "model": "0d2f6c87-615e-40da-9e5f-ea30045bdf91",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/pavilion/raw.glb",
+        "bytes": 11032176,
+        "triangles": 36781
+      },
+      "lod0": {
+        "path": "public/assets/props/pavilion.glb",
+        "bytes": 1169716,
+        "triangles": 36781,
+        "textures": {
+          "base": 2048,
+          "detail": 1024
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/pavilion.lod1.glb",
+        "bytes": 279264,
+        "triangles": 7868,
+        "textures": {
+          "base": 512,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.47,
+          0,
+          -0.492
+        ],
+        "max": [
+          0.47,
+          1,
+          0.492
+        ],
+        "size": [
+          0.941,
+          1,
+          0.984
+        ]
+      },
+      "preview": "asset-pipeline/tripo/pavilion/preview.webp",
+      "concept": "asset-pipeline/tripo/pavilion/concept.jpg",
+      "generatedAt": "2026-09-24T05:26:28.925Z",
+      "optimizedAt": "2026-09-24T05:33:05.342Z",
+      "history": []
+    },
+    "bell_frame": {
+      "id": "bell_frame",
+      "name_zh": "古钟",
+      "status": "ok",
+      "heightM": 6,
+      "scaleToHeight": 6,
+      "instanced": false,
+      "tasks": {
+        "concept": "9b3449fb-b1a8-41aa-924c-f80c87faba31",
+        "model": "df2a6766-3ccf-4c50-9835-9112a1622a3e",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "9b3449fb-b1a8-41aa-924c-f80c87faba31",
+            "model": "df2a6766-3ccf-4c50-9835-9112a1622a3e",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/bell_frame/raw.glb",
+        "bytes": 11212344,
+        "triangles": 18755
+      },
+      "lod0": {
+        "path": "public/assets/props/bell_frame.glb",
+        "bytes": 491752,
+        "triangles": 18755,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": null,
+      "bbox": {
+        "min": [
+          -0.392,
+          0,
+          -0.366
+        ],
+        "max": [
+          0.392,
+          1,
+          0.366
+        ],
+        "size": [
+          0.783,
+          1,
+          0.731
+        ]
+      },
+      "preview": "asset-pipeline/tripo/bell_frame/preview.webp",
+      "concept": "asset-pipeline/tripo/bell_frame/concept.jpg",
+      "generatedAt": "2026-09-24T05:27:57.605Z",
+      "optimizedAt": "2026-09-24T05:33:06.351Z",
+      "history": []
+    },
+    "teleport_array": {
+      "id": "teleport_array",
+      "name_zh": "传送阵",
+      "status": "ok",
+      "heightM": 2,
+      "scaleToHeight": 8.811,
+      "widthM": 10,
+      "scaleToWidth": 10,
+      "instanced": false,
+      "tasks": {
+        "concept": "beb5fe00-7b6c-480c-9613-6bba026cdb6c",
+        "model": "b179654c-7526-4e62-a4cb-7ccaddd62235",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "beb5fe00-7b6c-480c-9613-6bba026cdb6c",
+            "model": "b179654c-7526-4e62-a4cb-7ccaddd62235",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/teleport_array/raw.glb",
+        "bytes": 15868080,
+        "triangles": 29246
+      },
+      "lod0": {
+        "path": "public/assets/props/teleport_array.glb",
+        "bytes": 1001280,
+        "triangles": 29246,
+        "textures": {
+          "base": 2048,
+          "detail": 1024
+        }
+      },
+      "lod1": null,
+      "bbox": {
+        "min": [
+          -0.498,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.498,
+          0.227,
+          0.5
+        ],
+        "size": [
+          0.997,
+          0.227,
+          1
+        ]
+      },
+      "preview": "asset-pipeline/tripo/teleport_array/preview.webp",
+      "concept": "asset-pipeline/tripo/teleport_array/concept.jpg",
+      "generatedAt": "2026-09-24T05:28:16.125Z",
+      "optimizedAt": "2026-09-24T05:33:06.697Z",
+      "history": []
+    },
+    "spirit_crystal": {
+      "id": "spirit_crystal",
+      "name_zh": "灵石",
+      "status": "ok",
+      "heightM": 2.5,
+      "scaleToHeight": 2.5,
+      "instanced": true,
+      "tasks": {
+        "concept": "d45a6d2e-a937-4621-ad91-ea5cc8095595",
+        "model": "8ca4e025-7414-4542-a5d5-9c33b64f643c",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "d45a6d2e-a937-4621-ad91-ea5cc8095595",
+            "model": "8ca4e025-7414-4542-a5d5-9c33b64f643c",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/spirit_crystal/raw.glb",
+        "bytes": 10205572,
+        "triangles": 9490
+      },
+      "lod0": {
+        "path": "public/assets/props/spirit_crystal.glb",
+        "bytes": 305400,
+        "triangles": 9490,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/spirit_crystal.lod1.glb",
+        "bytes": 60804,
+        "triangles": 1898,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.354,
+          0,
+          -0.404
+        ],
+        "max": [
+          0.354,
+          1,
+          0.404
+        ],
+        "size": [
+          0.708,
+          1,
+          0.809
+        ]
+      },
+      "preview": "asset-pipeline/tripo/spirit_crystal/preview.webp",
+      "concept": "asset-pipeline/tripo/spirit_crystal/concept.jpg",
+      "generatedAt": "2026-09-24T05:28:49.222Z",
+      "optimizedAt": "2026-09-24T05:33:07.598Z",
+      "history": []
+    },
+    "crane": {
+      "id": "crane",
+      "name_zh": "仙鹤",
+      "status": "ok",
+      "heightM": 0.8,
+      "scaleToHeight": 2.694,
+      "widthM": 2.2,
+      "scaleToWidth": 2.2,
+      "instanced": true,
+      "tasks": {
+        "concept": "e1b7d487-6745-47d7-930e-9f46b22fe6c8",
+        "model": "d632da0b-43c4-4fd0-9b70-d9adb77184bb",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "e1b7d487-6745-47d7-930e-9f46b22fe6c8",
+            "model": "d632da0b-43c4-4fd0-9b70-d9adb77184bb",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/crane/raw.glb",
+        "bytes": 7152172,
+        "triangles": 9882
+      },
+      "lod0": {
+        "path": "public/assets/props/crane.glb",
+        "bytes": 244440,
+        "triangles": 9882,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/crane.lod1.glb",
+        "bytes": 69816,
+        "triangles": 2470,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.318,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.318,
+          0.297,
+          0.5
+        ],
+        "size": [
+          0.637,
+          0.297,
+          1
+        ]
+      },
+      "preview": "asset-pipeline/tripo/crane/preview.webp",
+      "concept": "asset-pipeline/tripo/crane/concept.jpg",
+      "generatedAt": "2026-09-24T05:36:21.638Z",
+      "optimizedAt": "2026-09-24T05:36:21.638Z",
+      "history": [
+        {
+          "tasks": {
+            "concept": "8d7de3bf-b7b6-48ee-af21-1a69e563e74f",
+            "model": "25852157-fa34-4676-863f-9219c104005c",
+            "modelType": "image_to_model",
+            "imageToModelFailures": [],
+            "attempts": [
+              {
+                "concept": "8d7de3bf-b7b6-48ee-af21-1a69e563e74f",
+                "model": "25852157-fa34-4676-863f-9219c104005c",
+                "broken": null
+              }
+            ]
+          },
+          "credits": {
+            "concept": 5,
+            "model": 40,
+            "total": 45
+          },
+          "raw": {
+            "path": "asset-pipeline/tripo/crane/raw.glb",
+            "bytes": 7580552,
+            "triangles": 9777
+          },
+          "generatedAt": "2026-09-24T05:29:35.005Z"
+        }
+      ]
+    },
+    "weather_altar": {
+      "id": "weather_altar",
+      "name_zh": "祭坛",
+      "status": "ok",
+      "heightM": 4,
+      "scaleToHeight": 6.723,
+      "instanced": false,
+      "tasks": {
+        "concept": "276cf8ca-593a-40e2-86b6-21d45fbd2641",
+        "model": "a5e2e681-c11b-4679-bcdc-ac4ea8bedbbb",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "276cf8ca-593a-40e2-86b6-21d45fbd2641",
+            "model": "a5e2e681-c11b-4679-bcdc-ac4ea8bedbbb",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/weather_altar/raw.glb",
+        "bytes": 10101100,
+        "triangles": 18648
+      },
+      "lod0": {
+        "path": "public/assets/props/weather_altar.glb",
+        "bytes": 475728,
+        "triangles": 18648,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": null,
+      "bbox": {
+        "min": [
+          -0.5,
+          0,
+          -0.499
+        ],
+        "max": [
+          0.5,
+          0.595,
+          0.499
+        ],
+        "size": [
+          1,
+          0.595,
+          0.998
+        ]
+      },
+      "preview": "asset-pipeline/tripo/weather_altar/preview.webp",
+      "concept": "asset-pipeline/tripo/weather_altar/concept.jpg",
+      "generatedAt": "2026-09-24T05:29:51.640Z",
+      "optimizedAt": "2026-09-24T05:33:06.974Z",
+      "history": []
+    },
+    "meditation_platform": {
+      "id": "meditation_platform",
+      "name_zh": "蒲团台",
+      "status": "ok",
+      "heightM": 0.8,
+      "scaleToHeight": 2.353,
+      "instanced": true,
+      "tasks": {
+        "concept": "5dfbcbd4-9a78-4b18-8f82-e3de434f3b6e",
+        "model": "b839b514-bbd0-4f6c-b5a9-21d3aa37b993",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "5dfbcbd4-9a78-4b18-8f82-e3de434f3b6e",
+            "model": "b839b514-bbd0-4f6c-b5a9-21d3aa37b993",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/meditation_platform/raw.glb",
+        "bytes": 11578344,
+        "triangles": 7824
+      },
+      "lod0": {
+        "path": "public/assets/props/meditation_platform.glb",
+        "bytes": 281560,
+        "triangles": 7824,
+        "textures": {
+          "base": 1024,
+          "detail": 512
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/meditation_platform.lod1.glb",
+        "bytes": 57632,
+        "triangles": 1560,
+        "textures": {
+          "base": 256,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.499,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.499,
+          0.34,
+          0.5
+        ],
+        "size": [
+          0.998,
+          0.34,
+          1
+        ]
+      },
+      "preview": "asset-pipeline/tripo/meditation_platform/preview.webp",
+      "concept": "asset-pipeline/tripo/meditation_platform/concept.jpg",
+      "generatedAt": "2026-09-24T05:30:13.944Z",
+      "optimizedAt": "2026-09-24T05:33:07.184Z",
+      "history": []
+    },
+    "floating_isle_a": {
+      "id": "floating_isle_a",
+      "name_zh": "浮岛A",
+      "status": "ok",
+      "heightM": 18,
+      "scaleToHeight": 20.408,
+      "widthM": 35,
+      "scaleToWidth": 35,
+      "instanced": false,
+      "tasks": {
+        "concept": "347665c7-a932-4875-8135-3b08e29348d5",
+        "model": "59dca33b-a119-4b07-aabb-47cebeadebd3",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "347665c7-a932-4875-8135-3b08e29348d5",
+            "model": "59dca33b-a119-4b07-aabb-47cebeadebd3",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/floating_isle_a/raw.glb",
+        "bytes": 17698220,
+        "triangles": 37567
+      },
+      "lod0": {
+        "path": "public/assets/props/floating_isle_a.glb",
+        "bytes": 1392136,
+        "triangles": 37567,
+        "textures": {
+          "base": 2048,
+          "detail": 1024
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/floating_isle_a.lod1.glb",
+        "bytes": 193772,
+        "triangles": 7494,
+        "textures": {
+          "base": 512,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.485,
+          0,
+          -0.5
+        ],
+        "max": [
+          0.485,
+          0.882,
+          0.5
+        ],
+        "size": [
+          0.969,
+          0.882,
+          1
+        ]
+      },
+      "preview": "asset-pipeline/tripo/floating_isle_a/preview.webp",
+      "concept": "asset-pipeline/tripo/floating_isle_a/concept.jpg",
+      "generatedAt": "2026-09-24T05:31:16.728Z",
+      "optimizedAt": "2026-09-24T05:33:07.904Z",
+      "history": []
+    },
+    "floating_isle_b": {
+      "id": "floating_isle_b",
+      "name_zh": "浮岛B",
+      "status": "ok",
+      "heightM": 12,
+      "scaleToHeight": 12,
+      "instanced": false,
+      "tasks": {
+        "concept": "be906205-d874-421e-9901-af61227129f9",
+        "model": "ec0f92a8-c7e3-40c0-a512-d4d2a0986ae4",
+        "modelType": "image_to_model",
+        "imageToModelFailures": [],
+        "attempts": [
+          {
+            "concept": "be906205-d874-421e-9901-af61227129f9",
+            "model": "ec0f92a8-c7e3-40c0-a512-d4d2a0986ae4",
+            "broken": null
+          }
+        ]
+      },
+      "modelVersion": "v3.1-20260211",
+      "textureVersion": "v3.5-20260815",
+      "imageModel": "seedream_v5",
+      "credits": {
+        "concept": 5,
+        "model": 40,
+        "total": 45
+      },
+      "raw": {
+        "path": "asset-pipeline/tripo/floating_isle_b/raw.glb",
+        "bytes": 12505368,
+        "triangles": 29418
+      },
+      "lod0": {
+        "path": "public/assets/props/floating_isle_b.glb",
+        "bytes": 1118640,
+        "triangles": 29418,
+        "textures": {
+          "base": 2048,
+          "detail": 1024
+        }
+      },
+      "lod1": {
+        "path": "public/assets/props/floating_isle_b.lod1.glb",
+        "bytes": 170600,
+        "triangles": 5855,
+        "textures": {
+          "base": 512,
+          "detail": 256
+        }
+      },
+      "bbox": {
+        "min": [
+          -0.467,
+          0,
+          -0.482
+        ],
+        "max": [
+          0.467,
+          1,
+          0.482
+        ],
+        "size": [
+          0.934,
+          1,
+          0.964
+        ]
+      },
+      "preview": "asset-pipeline/tripo/floating_isle_b/preview.webp",
+      "concept": "asset-pipeline/tripo/floating_isle_b/concept.jpg",
+      "generatedAt": "2026-09-24T05:31:35.448Z",
+      "optimizedAt": "2026-09-24T05:33:08.404Z",
+      "history": []
+    }
+  },
+  "failures": {},
+  "runs": [
+    {
+      "startedAt": "2026-09-24T05:11:43.031Z",
+      "ids": [
+        "stone_lantern"
+      ],
+      "force": false,
+      "optimizeOnly": false,
+      "balanceBefore": 20345,
+      "finishedAt": "2026-09-24T05:14:45.524Z",
+      "balanceAfter": 20300,
+      "spent": 45,
+      "failed": []
+    },
+    {
+      "startedAt": "2026-09-24T05:15:43.980Z",
+      "ids": [
+        "stone_lantern"
+      ],
+      "force": false,
+      "optimizeOnly": true,
+      "balanceBefore": 20300,
+      "finishedAt": "2026-09-24T05:15:44.940Z",
+      "balanceAfter": 20300,
+      "spent": 0,
+      "failed": []
+    },
+    {
+      "startedAt": "2026-09-24T05:15:54.905Z",
+      "ids": [
+        "pine_guest",
+        "pine_tall",
+        "pine_small",
+        "bamboo",
+        "rock_scholar",
+        "rock_moss",
+        "lantern_post",
+        "banner_pole",
+        "incense_burner",
+        "stone_lion",
+        "pavilion",
+        "pailou",
+        "stele_turtle",
+        "bell_frame",
+        "teleport_array",
+        "spirit_crystal",
+        "crane",
+        "weather_altar",
+        "meditation_platform",
+        "floating_isle_a",
+        "floating_isle_b"
+      ],
+      "force": false,
+      "optimizeOnly": false,
+      "balanceBefore": 20300,
+      "finishedAt": "2026-09-24T05:31:37.461Z",
+      "balanceAfter": 19355,
+      "spent": 945,
+      "failed": []
+    },
+    {
+      "startedAt": "2026-09-24T05:33:02.298Z",
+      "ids": [
+        "pine_guest",
+        "pine_tall",
+        "pine_small",
+        "bamboo",
+        "rock_scholar",
+        "rock_moss",
+        "stone_lantern",
+        "lantern_post",
+        "banner_pole",
+        "incense_burner",
+        "stone_lion",
+        "pavilion",
+        "pailou",
+        "stele_turtle",
+        "bell_frame",
+        "teleport_array",
+        "spirit_crystal",
+        "crane",
+        "weather_altar",
+        "meditation_platform",
+        "floating_isle_a",
+        "floating_isle_b"
+      ],
+      "force": false,
+      "optimizeOnly": true,
+      "balanceBefore": 19355,
+      "finishedAt": "2026-09-24T05:33:21.702Z",
+      "balanceAfter": 19355,
+      "spent": 0,
+      "failed": []
+    },
+    {
+      "startedAt": "2026-09-24T05:33:34.128Z",
+      "ids": [
+        "crane"
+      ],
+      "force": true,
+      "optimizeOnly": false,
+      "balanceBefore": 19355,
+      "finishedAt": "2026-09-24T05:36:23.107Z",
+      "balanceAfter": 19310,
+      "spent": 45,
+      "failed": []
+    }
+  ]
+}

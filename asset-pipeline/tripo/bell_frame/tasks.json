@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "9b3449fb-b1a8-41aa-924c-f80c87faba31",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:24:14.949953Z",
+    "completed_at": "2026-09-24T05:24:45.446896Z",
+    "prompt": "Large ancient bronze temple bell hanging in a sturdy dark wooden frame, the frame topped by a small navy tiled roof with upturned eaves, a wooden striking log hanging on ropes beside the bell, stone base, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no bell tower building, walls, people, ground plane, multiple bells, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/bell_frame/concept.jpg"
+  },
+  "model": {
+    "task_id": "df2a6766-3ccf-4c50-9835-9112a1622a3e",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:24:54.883757Z",
+    "completed_at": "2026-09-24T05:27:40.840219Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "9b3449fb-b1a8-41aa-924c-f80c87faba31",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 20000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/bell_frame/preview.webp"
+  }
+}

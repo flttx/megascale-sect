@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "d45f9110-8bc5-4a44-8955-c0366f75d2b3",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:18:36.906634Z",
+    "completed_at": "2026-09-24T05:19:02.635186Z",
+    "prompt": "Tall vertical Taihu scholar's rock standing upright, pale grey eroded limestone with many perforations, holes and hollows, twisting organic sculptural shape, narrow base, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no plinth with text, pot, water, ground plane, landscape, multiple rocks, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/rock_scholar/concept.jpg"
+  },
+  "model": {
+    "task_id": "63439e56-1ea3-47c4-8e4d-1a85cea68036",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:19:09.870907Z",
+    "completed_at": "2026-09-24T05:20:40.579567Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "d45f9110-8bc5-4a44-8955-c0366f75d2b3",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 12000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/rock_scholar/preview.webp"
+  }
+}

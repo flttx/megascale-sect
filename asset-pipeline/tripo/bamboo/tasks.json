@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "fc1433f2-f4ad-46cc-8953-88d77132d26b",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:18:01.420800Z",
+    "completed_at": "2026-09-24T05:18:29.543112Z",
+    "prompt": "Dense clump of green bamboo, many tall slender jointed bamboo culms growing together from one base, a few culms leaning outward, clusters of narrow green bamboo leaves along the upper half, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no pot, fence, ground plane, grass field, forest, landscape, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/bamboo/concept.jpg"
+  },
+  "model": {
+    "task_id": "5b4bbdb5-0e2f-4140-9c3e-ec4384440684",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:18:37.438760Z",
+    "completed_at": "2026-09-24T05:20:58.972419Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "fc1433f2-f4ad-46cc-8953-88d77132d26b",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 18000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/bamboo/preview.webp"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "c39864d0-2392-45bf-bcaf-baa67bd15bf0",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:15:57.785769Z",
+    "completed_at": "2026-09-24T05:16:26.873421Z",
+    "prompt": "Tall straight old Chinese pine tree, straight vertical trunk with rough reddish-grey scaly bark, few side branches ending in flat horizontal layered tiers of dense dark green pine needles, broad layered crown near the top, short exposed roots at the base, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no broadleaf, flowers, pot, multiple trees, ground plane, grass, landscape, mountains, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/pine_tall/concept.jpg"
+  },
+  "model": {
+    "task_id": "d5c151a4-0429-41d9-8240-1dfca240ee28",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:16:34.462606Z",
+    "completed_at": "2026-09-24T05:18:18.443223Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "c39864d0-2392-45bf-bcaf-baa67bd15bf0",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 20000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/pine_tall/preview.webp"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "347665c7-a932-4875-8135-3b08e29348d5",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:27:44.376930Z",
+    "completed_at": "2026-09-24T05:28:10.865108Z",
+    "prompt": "Floating sky island chunk, wide flat grassy top with a few small shrubs, massive jagged inverted-cone rocky underside tapering to a point, layered pale grey stone strata, hanging roots and vines dangling below, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, natural realistic colours with subtle cool mist-white and indigo tones, weathered, high detail, soft studio light --no buildings, castle, waterfall, clouds, sky, ocean, multiple islands, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/floating_isle_a/concept.jpg"
+  },
+  "model": {
+    "task_id": "59dca33b-a119-4b07-aabb-47cebeadebd3",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:28:15.315442Z",
+    "completed_at": "2026-09-24T05:31:12.345519Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "347665c7-a932-4875-8135-3b08e29348d5",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 40000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/floating_isle_a/preview.webp"
+  }
+}

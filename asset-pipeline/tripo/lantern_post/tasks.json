@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "73c4c325-0b79-457e-9238-500e837f0115",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:20:29.162527Z",
+    "completed_at": "2026-09-24T05:20:59.463124Z",
+    "prompt": "Carved stone lamp post with a curved dragon-head arm at the top, a hexagonal Chinese palace lantern hanging from the arm, lantern with carved frame and silk panels, long red and gold silk tassel hanging below the lantern, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no street lamp, electric light, ground plane, multiple objects, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/lantern_post/concept.jpg"
+  },
+  "model": {
+    "task_id": "3eb41fb7-e699-4396-ad2b-9d8995fc3eb0",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:21:03.086078Z",
+    "completed_at": "2026-09-24T05:22:21.904437Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "73c4c325-0b79-457e-9238-500e837f0115",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 12000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/lantern_post/preview.webp"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "concept": {
+    "task_id": "2b51e96a-3396-4ece-817d-6e5b9547b0ab",
+    "type": "text_to_image",
+    "status": "success",
+    "credits_consumed": 5,
+    "created_at": "2026-09-24T05:21:36.521462Z",
+    "completed_at": "2026-09-24T05:22:10.357661Z",
+    "prompt": "Large ancient bronze tripod incense cauldron (ding) with three sturdy legs, two upright handles, a domed pierced lid with a small lion finial, green-bronze patina with gold highlights, single isolated object, centered, full view, 3/4 angle, plain light grey background, no ground, no text, Chinese xianxia fantasy, white jade and pale stone with brushed gold trim and deep navy/indigo accents, weathered, high detail, soft studio light --no smoke, fire, ground plane, multiple objects, text, watermark, blurry, low quality",
+    "file": "asset-pipeline/tripo/incense_burner/concept.jpg"
+  },
+  "model": {
+    "task_id": "45f9fbcd-4dde-43ad-a840-f6fc7c6e5a97",
+    "type": "image_to_model",
+    "status": "success",
+    "credits_consumed": 40,
+    "created_at": "2026-09-24T05:22:13.841197Z",
+    "completed_at": "2026-09-24T05:24:51.854584Z",
+    "request": {
+      "endpoint": "image-to-model",
+      "input": "2b51e96a-3396-4ece-817d-6e5b9547b0ab",
+      "model": "v3.1-20260211",
+      "texture": true,
+      "pbr": true,
+      "texture_quality": "detailed",
+      "face_limit": 12000,
+      "texture_version": "v3.5-20260815"
+    },
+    "failures": [],
+    "preview": "asset-pipeline/tripo/incense_burner/preview.webp"
+  }
+}
