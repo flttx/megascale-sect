@@ -8,8 +8,10 @@ import { GrandStairs } from './environment/GrandStairs'
 import { MainPlatform } from './environment/MainPlatform'
 import { Cliffs } from './environment/Cliffs'
 import { Player } from './player/Player'
-import { WorldLighting } from './WorldLighting'
-import { WorldEnvironment } from './WorldEnvironment'
+import { SkyDome } from './sky/SkyDome'
+import { CloudSea } from './sky/CloudSea'
+import { Lighting } from './sky/Lighting'
+import { PostFX } from './sky/PostFX'
 import { useWorldStore } from './store'
 import { ASSETS } from './worldAssets'
 import { LAYOUT } from './worldLayout'
@@ -48,8 +50,9 @@ export function World() {
   return (
     <>
       <QualityManager />
-      <WorldEnvironment />
-      <WorldLighting />
+      <SkyDome />
+      <Lighting />
+      <CloudSea />
       <group name="ENV_Graybox" visible={new URLSearchParams(window.location.search).get('env') === 'graybox'}>
         <Cliffs /><MainRoad /><GrandStairs /><MainPlatform />
       </group>
@@ -62,6 +65,7 @@ export function World() {
       <Player />
       <DebugHelpers />
       <EnvironmentReview />
+      <PostFX />
     </>
   )
 }

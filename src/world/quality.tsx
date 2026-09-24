@@ -10,12 +10,18 @@ export interface QualityPreset {
   label: string
   /** Device-pixel-ratio range the adaptive scaler may move within. */
   dpr: [number, number]
+  /** Cascaded shadow splits (0 disables sun shadows) and per-cascade map size. */
+  shadowCascades: number; shadowMapSize: number
+  /** Hardware MSAA samples on the composer target; 0 falls back to SMAA. */
+  msaa: number
+  ao: boolean; bloom: boolean; godRays: boolean
+  cloudLayers: number; cloudPuffs: number
 }
 
 export const QUALITY_PRESETS: Record<QualityLevel, QualityPreset> = {
-  low: { label: '流畅', dpr: [0.7, 1] },
-  mid: { label: '均衡', dpr: [0.85, 1.25] },
-  high: { label: '极致', dpr: [1, 1.5] },
+  low: { label: '流畅', dpr: [0.7, 1], shadowCascades: 0, shadowMapSize: 1024, msaa: 0, ao: false, bloom: false, godRays: false, cloudLayers: 2, cloudPuffs: 24 },
+  mid: { label: '均衡', dpr: [0.85, 1.25], shadowCascades: 3, shadowMapSize: 2048, msaa: 2, ao: false, bloom: true, godRays: true, cloudLayers: 3, cloudPuffs: 40 },
+  high: { label: '极致', dpr: [1, 1.5], shadowCascades: 4, shadowMapSize: 2048, msaa: 4, ao: true, bloom: true, godRays: true, cloudLayers: 3, cloudPuffs: 48 },
 }
 
 /**

@@ -108,7 +108,9 @@ export default function App() {
   return (
     <main className="app-shell">
       <Canvas
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        // Anti-aliasing, tone mapping and fog happen in the post-processing chain.
+        gl={{ antialias: false, stencil: false, powerPreference: 'high-performance' }}
+        shadows="percentage"
         dpr={[1, 1.5]}
         camera={{ position: [0, 3, 154], fov: 72, near: 0.08, far: 2500 }}
         onCreated={({ gl }) => { canvas.current = gl.domElement }}

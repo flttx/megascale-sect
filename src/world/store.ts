@@ -21,11 +21,15 @@ type WorldState = {
   setTelemetry: (value: Telemetry) => void; setAsset: (id: string, value: string) => void
 }
 
+// `?quality=low|mid|high` pins a tier and disables auto-downgrade (used by verification scripts).
+const pinnedQuality = new URLSearchParams(window.location.search).get('quality')
+const isQualityLevel = (value: string | null): value is QualityLevel => value === 'low' || value === 'mid' || value === 'high'
+
 export const useWorldStore = create<WorldState>((set) => ({
   started: false, locked: false, debug: false, showHelpers: false,
   character: 'male', characterReady: { male: false, female: false }, phase: 'GROUND', notice: null,
   soundEnabled: true, toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
-  quality: 'high', autoQuality: true, setQuality: (quality, auto = false) => set({ quality, autoQuality: auto }),
+  quality: isQualityLevel(pinnedQuality) ? pinnedQuality : 'high', autoQuality: !isQualityLevel(pinnedQuality), setQuality: (quality, auto = false) => set({ quality, autoQuality: auto }),
   selectCharacter: (character) => set((state) => {
     if (!['GROUND', 'FLIGHT'].includes(state.phase)) return { notice: '请等当前动作结束后切换角色' }
     return { character, notice: null }

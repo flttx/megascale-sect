@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { BoxGeometry, BufferGeometry, Euler, Group, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from 'three'
+import { BoxGeometry, BufferGeometry, Euler, Group, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Raycaster, Vector2, Vector3 } from 'three'
 import { LAYOUT } from '../../worldLayout'
 import { GrandStairs } from '../GrandStairs'
 import { environmentMaterial } from './materials'
@@ -27,7 +27,7 @@ function Rocks() {
       const items = rocks.filter(r => r.variant === i)
       const mesh = new InstancedMesh(variants[i], material, items.length); mesh.name = `RockInstances_${i}`
       items.forEach((item, n) => mesh.setMatrixAt(n, instanceMatrix(item.position, item.scale, item.rotation)))
-      mesh.computeBoundingSphere(); mesh.castShadow = false; output.add(mesh)
+      mesh.computeBoundingSphere(); output.add(mesh)
     }
     output.userData.instances = rocks
     return output
@@ -87,7 +87,7 @@ export function EnvironmentT02R() {
     <Terraces /><Roads />
     <group name="Cliffs" userData={{ strategy: 'Continuous shoulder / cliff face / talus heightfield with authored ridge branches' }} />
     <group name="HeroRocks"><Suspense fallback={null}><Rocks /></Suspense></group>
-    <group name="FarMountains">{distant.map((g, i) => <mesh key={i} name={`Mountain_Layer_${i}`} geometry={g} material={distantMaterial} />)}</group>
+    <group name="FarMountains">{distant.map((g, i) => <mesh key={i} name={`Mountain_Layer_${i}`} geometry={g} material={distantMaterial} userData={{ castShadow: false }} />)}</group>
     <group name="Materials" /><group name="Debug" />
   </group>
 }
@@ -100,6 +100,14 @@ export function EnvironmentReview() {
     if (!import.meta.env.DEV) return
     const target = window as unknown as Record<string, unknown>
     target.__environmentReview = (eye: number[], look: number[]) => { camera.userData.review = { eye, look } }
+    // Names the object under a normalised screen point (−1…1), for diagnosing stray geometry.
+    target.__pick = (x: number, y: number) => {
+      const ray = new Raycaster(); ray.setFromCamera(new Vector2(x, y), camera)
+      const hit = ray.intersectObjects(scene.children, true).find((h) => h.object.visible && !['SkyDome', 'SunProxy'].includes(h.object.name) && !h.object.name.startsWith('Cloud'))
+      const chain: string[] = []
+      for (let o: Object3D | null = hit?.object ?? null; o; o = o.parent) chain.push(o.name || o.type)
+      return hit ? { distance: hit.distance, point: hit.point.toArray().map(Math.round), chain } : null
+    }
     target.__environmentStats = () => {
       const root = scene.getObjectByName('ENV_T02R') || scene.getObjectByName('ENV_Graybox')
       let triangles = 0, calls = 0, terrainTriangles = 0, rocks = 0, heroRocks = 0
@@ -129,7 +137,7 @@ export function EnvironmentReview() {
       capture(scene.getObjectByName('ENV_Graybox'), 'ENV_Graybox')
       return { meshes, scatter: makeScatter(), road: roadSamples.map(p => p.toArray()), layout: LAYOUT }
     }
-    return () => { delete target.__environmentReview; delete target.__environmentStats; delete target.__environmentExport }
+    return () => { delete target.__environmentReview; delete target.__pick; delete target.__environmentStats; delete target.__environmentExport }
   }, [camera, gl, scene])
   useFrame(() => {
     const review = camera.userData.review
