@@ -20,6 +20,7 @@ import { QualityManager } from './quality'
 import { WeatherSystem } from './weather/WeatherSystem'
 import { Landmarks } from './landmarks/Landmarks'
 import { PropField } from './props/PropField'
+import { Interactables } from './interact/Interactables'
 
 ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
@@ -68,6 +69,7 @@ export function World() {
       </Suspense>
       <Landmarks />
       <PropField />
+      <Interactables />
       <Player />
       <DebugHelpers />
       <EnvironmentReview />

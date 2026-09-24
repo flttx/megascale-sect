@@ -1,0 +1,179 @@
+import { useEffect, useMemo, useRef } from 'react'
+import { ORB_COUNT, ORBS } from '../world/interact/orbs'
+import { director } from '../world/interact/cinematics'
+import { sitesOf } from '../world/interact/registry'
+import { getPlayerRuntime } from '../world/player/playerHandle'
+import { useWorldStore } from '../world/store'
+import type { InteractKind } from '../world/sites'
+import { LAYOUT } from '../world/worldLayout'
+import { angleDelta, bearing, uiBridge } from './bridge'
+import { useUiStore } from './uiStore'
+
+const KIND_EN: Record<InteractKind, string> = { stele: 'STELE', viewpoint: 'OVERLOOK', bell: 'BELL', altar: 'ALTAR', meditation: 'MEDITATE', teleport: 'ARRAY' }
+
+/** Half of the compass field of view (radians) and the strip's half width in px. */
+const SPAN = (80 * Math.PI) / 180
+const HALF = 230
+
+interface CompassItem {
+  key: string
+  className: string
+  label: string
+  /** Fixed bearing, or a world point the bearing is taken toward from the player. */
+  angle?: number
+  target?: readonly [number, number]
+  title?: string
+}
+
+const CARDINALS: [number, string][] = [[0, '北'], [90, '东'], [180, '南'], [270, '西']]
+
+function staticItems(): CompassItem[] {
+  const items: CompassItem[] = []
+  for (let deg = 0; deg < 360; deg += 15) {
+    const cardinal = CARDINALS.find(([d]) => d === deg)
+    if (cardinal) items.push({ key: `c${deg}`, className: 'compass-cardinal', label: cardinal[1], angle: (deg * Math.PI) / 180 })
+    else items.push({ key: `t${deg}`, className: deg % 45 === 0 ? 'compass-tick compass-tick-major' : 'compass-tick', label: '', angle: (deg * Math.PI) / 180 })
+  }
+  return items
+}
+
+/** Nearest cluster that still has uncollected orbs: [centroid x, centroid z, distance] or null. */
+function nearestOrbCluster(x: number, y: number, z: number, collected: string[]) {
+  const sums = new Map<string, [number, number, number, number]>()
+  for (const orb of ORBS) {
+    if (collected.includes(orb.id)) continue
+    const sum = sums.get(orb.cluster) ?? [0, 0, 0, 0]
+    sum[0] += orb.position[0]; sum[1] += orb.position[1]; sum[2] += orb.position[2]; sum[3]++
+    sums.set(orb.cluster, sum)
+  }
+  let best: [number, number, number] | null = null
+  sums.forEach(([sx, sy, sz, n]) => {
+    const cx = sx / n, cy = sy / n, cz = sz / n
+    const d = Math.hypot(cx - x, cy - y, cz - z)
+    if (!best || d < best[2]) best = [cx, cz, d]
+  })
+  return best as [number, number, number] | null
+}
+
+/** Top-centre compass bar: cardinals, ticks, overlooks, arrays, the main hall and the nearest orb cluster. */
+function Compass() {
+  const viewpoints = useUiStore((state) => state.viewpoints)
+  const arrays = useUiStore((state) => state.arrays)
+  const ticks = useMemo(staticItems, [])
+  const sites = useMemo<CompassItem[]>(() => [
+    { key: 'hall', className: 'compass-marker compass-hall', label: '殿', target: [LAYOUT.main.position[0], LAYOUT.main.position[2]], title: '云阙主殿' },
+    ...sitesOf('viewpoint').map((s) => ({ key: s.id, className: 'compass-marker compass-view', label: '◇', target: [s.position[0], s.position[2]] as const, title: `观景 · ${s.name}` })),
+    ...sitesOf('teleport').map((s) => ({ key: s.id, className: 'compass-marker compass-array', label: '◎', target: [s.position[0], s.position[2]] as const, title: `传送阵 · ${s.name}` })),
+  ], [])
+  const refs = useRef(new Map<string, HTMLElement>())
+  const orbRef = useRef<HTMLElement | null>(null)
+  const orbText = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    let frame = 0, count = 0
+    let cluster: [number, number, number] | null = null
+    const place = (el: HTMLElement, angle: number, heading: number) => {
+      const delta = angleDelta(angle, heading)
+      const visible = Math.abs(delta) < SPAN
+      el.style.opacity = visible ? String(Math.min(1, (SPAN - Math.abs(delta)) / 0.25)) : '0'
+      if (visible) el.style.transform = `translateX(${((delta / SPAN) * HALF).toFixed(1)}px)`
+    }
+    const tick = () => {
+      frame = requestAnimationFrame(tick)
+      const p = getPlayerRuntime()?.position
+      const heading = uiBridge.heading
+      const px = p?.x ?? 0, pz = p?.z ?? 150
+      for (const item of ticks) { const el = refs.current.get(item.key); if (el && item.angle !== undefined) place(el, item.angle, heading) }
+      for (const item of sites) {
+        const el = refs.current.get(item.key)
+        if (!el || !item.target) continue
+        const far = Math.hypot(item.target[0] - px, item.target[1] - pz)
+        if (far < 6) { el.style.opacity = '0'; continue }
+        place(el, bearing(px, pz, item.target[0], item.target[1]), heading)
+      }
+      if (count++ % 20 === 0 && p) cluster = nearestOrbCluster(p.x, p.y, p.z, useUiStore.getState().orbs)
+      if (orbRef.current) {
+        if (!cluster || !p) orbRef.current.style.opacity = '0'
+        else {
+          place(orbRef.current, bearing(px, pz, cluster[0], cluster[1]), heading)
+          if (orbText.current) orbText.current.textContent = cluster[2] < 1000 ? `${Math.round(cluster[2])}m` : `${(cluster[2] / 1000).toFixed(1)}km`
+        }
+      }
+    }
+    tick()
+    return () => cancelAnimationFrame(frame)
+  }, [ticks, sites])
+  const done = (key: string) => viewpoints.includes(key) || arrays.includes(key)
+  return <div className="compass" role="img" aria-label="罗盘：显示方位、观景台、传送阵、主殿与最近的灵光">
+    <div className="compass-strip" aria-hidden="true">
+      {ticks.map((item) => <span key={item.key} ref={(el) => { if (el) refs.current.set(item.key, el); else refs.current.delete(item.key) }} className={item.className}>{item.label}</span>)}
+      {sites.map((item) => <span key={item.key} ref={(el) => { if (el) refs.current.set(item.key, el); else refs.current.delete(item.key) }}
+        className={item.className} data-done={done(item.key)} title={item.title}>{item.label}</span>)}
+      <span ref={orbRef} className="compass-marker compass-orb">✦<small ref={orbText} /></span>
+    </div>
+    <i className="compass-needle" aria-hidden="true" />
+  </div>
+}
+
+/** 「E 研读 · 入山碑」 above the crosshair when something is in reach. */
+function InteractPrompt() {
+  const nearby = useUiStore((state) => state.nearby)
+  const overlay = useUiStore((state) => state.overlay)
+  const cameraMode = useWorldStore((state) => state.cameraMode)
+  if (!nearby || overlay || cameraMode !== 'player') return null
+  return <div className="interact-prompt" role="status" aria-live="polite">
+    <kbd>E</kbd><b>{nearby.verb}</b><span>·</span><strong>{nearby.name}</strong><small>{KIND_EN[nearby.kind]}</small>
+  </div>
+}
+
+function OrbCounter() {
+  const orbs = useUiStore((state) => state.orbs.length)
+  return <div className="orb-counter" aria-label={`已收集灵光 ${orbs} / ${ORB_COUNT}`}>
+    <i aria-hidden="true" /><span>灵光</span><b>{orbs}</b><em>/ {ORB_COUNT}</em>
+  </div>
+}
+
+/** Cinematic caption plus letterbox bars (viewpoint sweeps and meditation). */
+function CaptionView() {
+  const caption = useUiStore((state) => state.caption)
+  const cameraMode = useWorldStore((state) => state.cameraMode)
+  const cinematic = cameraMode === 'cinematic'
+  const skip = director.shot?.kind === 'meditation' ? '按 E 起身' : '按 E / Esc / 点击 跳过'
+  return <>
+    <div className="letterbox" data-on={cinematic} aria-hidden="true"><i /><i /></div>
+    {cinematic && caption && <div className="cinema-caption" role="status" aria-live="polite">
+      <small>{caption.kicker}</small>
+      <strong>{caption.title}</strong>
+      <p>{caption.text}</p>
+      <em>{skip}</em>
+    </div>}
+  </>
+}
+
+/** White-gold teleport flash, cinematic veil and the photo shutter, replayed by key bumps. */
+function Effects() {
+  const flashKey = useUiStore((state) => state.flashKey)
+  const shutterKey = useUiStore((state) => state.shutterKey)
+  const veil = useUiStore((state) => state.veil)
+  return <>
+    {flashKey > 0 && <div key={`f${flashKey}`} className="teleport-flash" aria-hidden="true" />}
+    {shutterKey > 0 && <div key={`s${shutterKey}`} className="photo-shutter" aria-hidden="true" />}
+    <div className="cinema-veil" data-on={veil} aria-hidden="true" />
+  </>
+}
+
+/** The in-game HUD layer: H, photo mode and cinematics hide the widgets; effects always play. */
+export function Hud() {
+  const started = useWorldStore((state) => state.started)
+  const cameraMode = useWorldStore((state) => state.cameraMode)
+  const hidden = useUiStore((state) => state.hudHidden)
+  return <>
+    {started && !hidden && cameraMode === 'player' && <>
+      <Compass />
+      <OrbCounter />
+      <InteractPrompt />
+    </>}
+    {started && cameraMode !== 'photo' && <CaptionView />}
+    <Effects />
+  </>
+}
+
