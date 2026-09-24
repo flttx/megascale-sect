@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3 } from 'three'
-import type { Group, MeshStandardMaterial, ShaderMaterial } from 'three'
+import type { Group, Material, MeshStandardMaterial, ShaderMaterial } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { environmentMaterial } from '../environment/t02r/materials'
 import { atmosphere } from '../sky/atmosphere'
@@ -141,6 +141,17 @@ function PropFieldContent() {
     mesh.name = 'Prop_pailou_piers'
     return mesh
   }, [layout])
+
+  // Sources are clones (extractSource) and the glow / pier materials are built here, so they are ours to release;
+  // the cached GLTFs stay intact for a remount.
+  useEffect(() => () => {
+    for (const bucket of buckets) for (const mesh of [bucket.near, bucket.far]) {
+      if (!mesh) continue
+      mesh.geometry.dispose(); (mesh.material as Material).dispose(); mesh.dispose()
+    }
+  }, [buckets])
+  useEffect(() => () => { (glow.material as Material).dispose(); glow.dispose() }, [glow])
+  useEffect(() => () => { piers?.geometry.dispose(); piers?.material.dispose() }, [piers])
 
   useEffect(() => {
     // Flight / camera colliders for the large structures (walking passes through the open bays).

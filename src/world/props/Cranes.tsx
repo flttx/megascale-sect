@@ -104,6 +104,7 @@ export function Cranes() {
   const flock = useMemo(() => makeFlock(count, curves), [count, curves])
   const state = useMemo(() => ({ scatterAt: -Infinity, time: 0, lengths: curves.map((c) => c.getLength()), initialised: false }), [curves])
 
+  useEffect(() => () => meshes.forEach(({ mesh }) => { mesh.geometry.dispose(); mesh.material.dispose(); mesh.dispose() }), [meshes])
   useEffect(() => worldEvents.on('bell', () => { state.scatterAt = state.time }), [state])
 
   useEffect(() => {

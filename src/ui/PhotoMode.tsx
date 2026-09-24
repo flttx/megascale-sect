@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useWorldStore } from '../world/store'
 import { photo, uiBridge } from './bridge'
 import { PHOTO_FILTER_CSS, PHOTO_FILTER_LABELS, PHOTO_FILTERS, useUiStore } from './uiStore'
@@ -22,6 +22,7 @@ export function PhotoMode() {
   const hidden = useUiStore((state) => state.hudHidden)
   const shutterKey = useUiStore((state) => state.shutterKey)
   const [saved, setSaved] = useState<{ count: number; name: string } | null>(null)
+  const seen = useRef(photo.count)
 
   useEffect(() => {
     const canvas = uiBridge.canvas
@@ -32,9 +33,15 @@ export function PhotoMode() {
 
   useEffect(() => {
     if (!shutterKey) return
-    // The PNG is encoded asynchronously; read the result once it has landed.
-    const timer = window.setTimeout(() => setSaved(photo.last ? { count: photo.count, name: photo.last.name } : null), 450)
-    return () => window.clearTimeout(timer)
+    // The PNG is encoded asynchronously (slower on large canvases): wait for its count to land, give up after 4 s.
+    let tries = 0
+    const timer = window.setInterval(() => {
+      const last = photo.last
+      if (photo.count !== seen.current && last) { seen.current = photo.count; setSaved({ count: photo.count, name: last.name }) }
+      else if (++tries < 40) return
+      window.clearInterval(timer)
+    }, 100)
+    return () => window.clearInterval(timer)
   }, [shutterKey])
 
   useEffect(() => {

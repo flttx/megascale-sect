@@ -111,7 +111,7 @@ function Plinths() {
     instanced.userData.castShadow = false
     return instanced
   }, [])
-  useEffect(() => () => { mesh?.geometry.dispose(); mesh?.dispose() }, [mesh])
+  useEffect(() => () => { mesh?.geometry.dispose(); mesh?.material.dispose(); mesh?.dispose() }, [mesh])
   return mesh ? <primitive object={mesh} /> : null
 }
 
@@ -148,7 +148,7 @@ function ViewpointMarkers() {
     }
     paint(useUiStore.getState().viewpoints)
     const unsubscribe = useUiStore.subscribe((s, p) => { if (s.viewpoints !== p.viewpoints) paint(s.viewpoints) })
-    return () => { unsubscribe(); jade.geometry.dispose(); jade.dispose(); shaft.geometry.dispose(); shaft.dispose() }
+    return () => { unsubscribe(); jade.geometry.dispose(); jade.material.dispose(); jade.dispose(); shaft.geometry.dispose(); shaft.material.dispose(); shaft.dispose() }
   }, [sites, jade, shaft])
   useFrame((state) => {
     const t = state.clock.elapsedTime
@@ -188,7 +188,7 @@ function ArrayGlyphs() {
     }
     paint(useUiStore.getState().arrays)
     const unsubscribe = useUiStore.subscribe((s, p) => { if (s.arrays !== p.arrays) paint(s.arrays) })
-    return () => { unsubscribe(); mesh.geometry.dispose(); mesh.dispose() }
+    return () => { unsubscribe(); mesh.geometry.dispose(); mesh.material.dispose(); mesh.dispose() }
   }, [sites, mesh])
   useFrame((state) => syncGlow(mesh.material, state.clock.elapsedTime))
   return <primitive object={mesh} />
@@ -255,7 +255,7 @@ function SpiritOrbs() {
       ORBS.forEach((orb, i) => { if (!s.orbs.includes(orb.id)) collectedAt.current[i] = -1 })
       sync(s.orbs)
     })
-    return () => { unsubscribe(); core.geometry.dispose(); core.material.dispose(); core.dispose(); halo.geometry.dispose(); halo.dispose() }
+    return () => { unsubscribe(); core.geometry.dispose(); core.material.dispose(); core.dispose(); halo.geometry.dispose(); halo.material.dispose(); halo.dispose() }
   }, [core, halo])
 
   useFrame((state) => {
@@ -366,6 +366,7 @@ function InteractionLoop() {
 
 const euler = new Euler(0, 0, 0, 'YXZ')
 const move = new Vector3()
+const offset = new Vector3()
 /** Free camera for photo mode (WASD, Q/E down/up, Shift fast, wheel zoom), plus the PNG capture hook. */
 function PhotoCamera() {
   const camera = useThree((state) => state.camera)
@@ -403,7 +404,7 @@ function PhotoCamera() {
     // Stay near the player and above the ground.
     const runtime = getPlayerRuntime()
     if (runtime) {
-      const offset = camera.position.clone().sub(runtime.position)
+      offset.subVectors(camera.position, runtime.position)
       if (offset.length() > 90) camera.position.copy(runtime.position).addScaledVector(offset.normalize(), 90)
     }
     const floor = groundHeight(camera.position.x, camera.position.z, camera.position.y + 1)

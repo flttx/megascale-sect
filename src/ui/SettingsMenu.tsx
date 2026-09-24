@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { mixer } from '../world/audio/mixer'
 import type { VolumeChannel } from '../world/audio/mixer'
 import { QUALITY_LEVELS, QUALITY_PRESETS } from '../world/quality'
+import { useShallow } from 'zustand/react/shallow'
 import { useWorldStore } from '../world/store'
 import { getHours } from '../world/weather/timeOfDay'
 import { WEATHER_LABELS } from '../world/weather/weatherMachine'
@@ -65,14 +66,22 @@ function Clock() {
 }
 
 function SettingsPanel() {
-  const world = useWorldStore()
+  // Only the settings fields: the store also carries telemetry that changes several times a second.
+  const world = useWorldStore(useShallow((s) => ({
+    quality: s.quality, autoQuality: s.autoQuality, setQuality: s.setQuality, fov: s.fov, setFov: s.setFov,
+    mouseSensitivity: s.mouseSensitivity, setMouseSensitivity: s.setMouseSensitivity, soundEnabled: s.soundEnabled,
+    toggleSound: s.toggleSound, weather: s.weather, timeScale: s.timeScale, setTimeScale: s.setTimeScale,
+    timePaused: s.timePaused, setTimePaused: s.setTimePaused, autoWeather: s.autoWeather, setAutoWeather: s.setAutoWeather,
+  })))
   const volumes = useUiStore((state) => state.volumes)
   const setVolume = (channel: VolumeChannel, value: number) => {
     useUiStore.getState().setVolumes({ ...useUiStore.getState().volumes, [channel]: value })
     mixer.setVolume(channel, value)
   }
   const percent = (v: number) => `${Math.round(v * 100)}%`
-  return <Dialog title="暂停 · 设置" hideTitle className="panel-dialog settings-dialog" onClose={requestLock}>
+  // Pointer lock needs a user gesture and Esc is not one, so Esc only returns focus to 继续 (Enter or a click resumes).
+  const focusResume = () => document.querySelector<HTMLElement>('.settings-resume')?.focus({ preventScroll: true })
+  return <Dialog title="暂停 · 设置" hideTitle className="panel-dialog settings-dialog" onClose={requestLock} onEscape={focusResume}>
     <header className="settings-head">
       <div><small>PAUSED · SETTINGS</small><strong>暂停 · 设置</strong></div>
       <button className="settings-resume" data-autofocus onClick={requestLock} aria-label="继续游戏并锁定视角">继续 <span aria-hidden="true">→</span></button>
@@ -124,6 +133,6 @@ function SettingsPanel() {
         <dl>{CONTROLS.map(([key, action]) => <div key={key}><dt><kbd>{key}</kbd></dt><dd>{action}</dd></div>)}</dl>
       </section>
     </div>
-    <footer className="settings-foot"><span>设置自动保存于本机</span><span><kbd>Esc</kbd> 或点击空白处继续</span></footer>
+    <footer className="settings-foot"><span>设置自动保存于本机</span><span><kbd>Enter</kbd> 或点击空白处继续</span></footer>
   </Dialog>
 }

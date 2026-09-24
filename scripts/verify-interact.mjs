@@ -7,8 +7,11 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 const context = await browser.newContext({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1, acceptDownloads: true })
 const page = await context.newPage()
 const errors = []
-page.on('pageerror', (e) => errors.push(e.message))
-page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)) })
+// Known-harmless console noise (D3D shader compiler warnings, three deprecation notices).
+const NOISE = [/warning X\d+/, /THREE\.Clock: This module has been deprecated/]
+const record = (text) => { if (!NOISE.some((pattern) => pattern.test(text))) errors.push(text.slice(0, 300)) }
+page.on('pageerror', (e) => record(e.message))
+page.on('console', (m) => { if (m.type() === 'error') record(m.text()) })
 const results = []
 const check = (name, ok, detail = '') => { results.push([ok ? 'PASS' : 'FAIL', name, detail]); console.log(ok ? 'PASS' : 'FAIL', name, detail) }
 const wait = (ms) => page.waitForTimeout(ms)
@@ -210,6 +213,12 @@ check('settings open', (await ui()).settingsOpen)
 await shot('settings')
 const focused = await page.evaluate(() => document.activeElement?.className ?? '')
 check('settings focus on resume', focused.includes('settings-resume'), focused)
+// Esc cannot re-lock the pointer (not a user gesture): it keeps the menu and returns focus to 继续.
+await page.getByRole('slider', { name: '视野角度' }).focus()
+await page.keyboard.press('Escape')
+await wait(200)
+const escFocus = await page.evaluate(() => document.activeElement?.className ?? '')
+check('settings esc refocuses resume', (await ui()).settingsOpen && escFocus.includes('settings-resume'), escFocus)
 const fov0 = (await ui()).fov
 await page.getByRole('slider', { name: '视野角度' }).focus()
 await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight')
@@ -228,6 +237,7 @@ check('save written', saved.length > 0, saved.join(','))
 
 console.log('draw deltas', deltas.join(', '))
 console.log('errors', errors.slice(0, 8))
+check('no page errors', errors.length === 0, `${errors.length}`)
 const failed = results.filter(([r]) => r === 'FAIL')
 console.log(`${results.length - failed.length}/${results.length} passed`)
 await browser.close()

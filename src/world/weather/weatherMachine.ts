@@ -31,6 +31,7 @@ const PROFILES: Record<WeatherKind, Profile> = {
   snow: { cover: 0.88, overcast: 0.7, fogMul: 2.2, fogLift: 35, sunDim: 0.62, desat: 0.75, darken: 0.04, wind: 0.8, rain: 0, snow: 1, storm: 0 },
   storm: { cover: 1, overcast: 0.95, fogMul: 1.7, fogLift: 25, sunDim: 0.92, desat: 0.72, darken: 0.5, wind: 2.8, rain: 1.35, snow: 0, storm: 1 },
 }
+const PROFILE_KEYS = Object.keys(PROFILES.clear) as (keyof Profile)[]
 type Blend = Profile
 
 /**
@@ -65,7 +66,7 @@ export function tickWeather(delta: number, target: WeatherKind) {
   weather.target = target
   const goal = PROFILES[target], b = weather.blend
   const k = 1 - Math.exp(-delta / BLEND_TAU)
-  for (const key of Object.keys(goal) as (keyof Profile)[]) b[key] += (goal[key] - b[key]) * k
+  for (const key of PROFILE_KEYS) b[key] += (goal[key] - b[key]) * k
   const raining = Math.min(1, b.rain), snowing = b.snow
   weather.wetness = MathUtils.clamp(weather.wetness + (raining > 0.3 ? delta / 40 * raining : -delta / 150), 0, 1)
   weather.snowCover = MathUtils.clamp(weather.snowCover + (snowing > 0.3 ? delta / 70 * snowing : -delta / 180) - raining * delta / 60, 0, 1)

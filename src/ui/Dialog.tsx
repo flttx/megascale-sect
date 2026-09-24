@@ -10,6 +10,8 @@ interface DialogProps {
   hideTitle?: boolean
   className?: string
   onClose: () => void
+  /** Esc calls this instead of onClose (e.g. when closing needs a real user gesture, which Esc is not). */
+  onEscape?: () => void
   /** Clicking the dimmed backdrop closes (default true). */
   backdropCloses?: boolean
   /** Plain Tab calls this instead of moving focus (the scroll overlay closes on Tab); Shift+Tab still cycles. */
@@ -21,11 +23,13 @@ interface DialogProps {
  * Modal shell: role="dialog" + aria-modal, focuses the first control on open and returns focus on close,
  * Esc closes, Tab wraps inside (trap-lite). Esc and Tab handled here never reach the game's global handlers.
  */
-export function Dialog({ title, hideTitle = false, className = '', onClose, backdropCloses = true, onTab, children }: DialogProps) {
+export function Dialog({ title, hideTitle = false, className = '', onClose, onEscape, backdropCloses = true, onTab, children }: DialogProps) {
   const panel = useRef<HTMLElement | null>(null)
   const titleId = useId()
   const close = useRef(onClose)
   close.current = onClose
+  const escape = useRef(onEscape)
+  escape.current = onEscape
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const first = panel.current?.querySelector<HTMLElement>('[data-autofocus]') ?? panel.current?.querySelector<HTMLElement>(FOCUSABLE)
@@ -33,7 +37,7 @@ export function Dialog({ title, hideTitle = false, className = '', onClose, back
     return () => { if (previous?.isConnected) previous.focus({ preventScroll: true }) }
   }, [])
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close.current(); return }
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); (escape.current ?? close.current)(); return }
     // The player's window handler cancels arrows/Space (camera keys); keep them for sliders and buttons here.
     if (NAV_KEYS.includes(event.key)) { event.stopPropagation(); return }
     if (event.key !== 'Tab') return
