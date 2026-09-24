@@ -82,7 +82,7 @@ try {
   const paused = await snapshot()
   await page.waitForTimeout(600)
   assert.equal((await snapshot()).elapsed, paused.elapsed, 'Releasing the mouse must pause the summon sequence')
-  await page.locator('.resume-button').click()
+  await page.locator('.settings-resume').click()
   await phase('BOARDING')
   await page.waitForTimeout(500)
   await capture('female-jump')

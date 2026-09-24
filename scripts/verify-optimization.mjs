@@ -102,7 +102,7 @@ try {
   await page.waitForTimeout(400)
   const paused = await state()
   assert.ok(paused.audio.paused && paused.audio.rms < 0.00001)
-  await page.locator('.resume-button').click()
+  await page.locator('.settings-resume').click()
   await page.waitForTimeout(500)
   assert.ok((await state()).audio.rms > 0.00001, 'Resume must restore live audio')
   await page.keyboard.press('f')
