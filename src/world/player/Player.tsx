@@ -8,6 +8,7 @@ import { CharacterVisual } from './CharacterVisual'
 import { createPlayerRuntime, isAirborne, requestFlightToggle, stepPlayer } from './playerMotion'
 import { type CharacterId } from './characterAssets'
 import { playerAudio } from './playerAudio'
+import { bindPlayerRuntime } from './playerHandle'
 
 export function Player() {
   const avatar = useRef<Group>(null)
@@ -28,6 +29,7 @@ export function Player() {
 
   useEffect(() => {
     camera.position.set(0, 2.75, LAYOUT.spawn.position[2] + 4.8)
+    const unbind = bindPlayerRuntime(runtime.current)
     const down = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
       if ([' ', 'alt', 'f3', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) event.preventDefault()
@@ -40,7 +42,7 @@ export function Player() {
       if (!store.started || !store.locked) return
       if (['w', 'a', 's', 'd', 'control'].includes(key)) event.preventDefault()
       keys.current.add(key)
-      if (key === 'f') {
+      if (key === 'f' && store.cameraMode === 'player') {
         store.setNotice(requestFlightToggle(runtime.current))
         store.setPhase(runtime.current.phase)
       }
@@ -48,13 +50,16 @@ export function Player() {
     const up = (event: KeyboardEvent) => keys.current.delete(event.key.toLowerCase())
     const mouse = (event: MouseEvent) => {
       if (document.pointerLockElement !== gl.domElement) return
+      const { cameraMode, mouseSensitivity } = useWorldStore.getState()
+      if (cameraMode !== 'player') return
+      const look = mouseSensitivity
       if (event.altKey || keys.current.has('alt')) {
         freeLook.current = true
-        viewYaw.current += event.movementX * 0.0025
-        viewPitch.current = Math.max(-0.8, Math.min(1.05, viewPitch.current - event.movementY * 0.0022))
+        viewYaw.current += event.movementX * 0.0025 * look
+        viewPitch.current = Math.max(-0.8, Math.min(1.05, viewPitch.current - event.movementY * 0.0022 * look))
       } else {
-        runtime.current.yaw += event.movementX * 0.0025
-        runtime.current.pitch = Math.max(-0.8, Math.min(1.05, runtime.current.pitch - event.movementY * 0.0022))
+        runtime.current.yaw += event.movementX * 0.0025 * look
+        runtime.current.pitch = Math.max(-0.8, Math.min(1.05, runtime.current.pitch - event.movementY * 0.0022 * look))
       }
     }
     const clear = () => keys.current.clear()
@@ -87,6 +92,7 @@ export function Player() {
       window.removeEventListener('blur', clear)
       document.removeEventListener('pointerlockchange', clear)
       delete debugWindow.__playerSnapshot
+      unbind()
       playerAudio.dispose()
     }
   }, [camera, gl])
@@ -103,7 +109,9 @@ export function Player() {
       Number(current.has(' ')) - Number(current.has('control') || current.has('c')),
       Number(current.has('s')) - Number(current.has('w')),
     )
-    if (!store.started || !store.locked || !state.ready) input.current.set(0, 0, 0)
+    // Scripted and photo cameras freeze the player in place; the world keeps simulating.
+    const controlling = store.started && store.locked && state.ready && store.cameraMode === 'player'
+    if (!controlling) input.current.set(0, 0, 0)
     if (store.started && store.locked && state.ready) stepPlayer(state, input.current, current.has('shift'), delta)
     else { state.time += delta; state.velocity.set(0, 0, 0); state.gait *= Math.exp(-14 * delta) }
     playerAudio.update(state, store.started && store.locked && state.ready, store.soundEnabled)
@@ -121,7 +129,7 @@ export function Player() {
         if (Math.abs(difference) < 0.002 && Math.abs(state.pitch - viewPitch.current) < 0.002) freeLook.current = false
       } else { viewYaw.current = state.yaw; viewPitch.current = state.pitch }
     }
-    updateCameraRig(camera, state.position, viewYaw.current, viewPitch.current, mode, delta, state.velocity.length(), state.bank, state.impact)
+    if (store.cameraMode === 'player') updateCameraRig(camera, state.position, viewYaw.current, viewPitch.current, mode, delta, state.velocity.length(), state.bank, state.impact, store.fov)
     elapsed.current += rawDelta
     frames.current++
     if (elapsed.current >= 0.25) {

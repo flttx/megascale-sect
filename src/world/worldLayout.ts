@@ -1,3 +1,5 @@
+import { walkableHeight } from './surfaces'
+
 export const LAYOUT = {
   spawn: { position: [0, 0, 150] as const, size: [30, 24] as const },
   road: { width: 16, fromZ: 162, toZ: 20 },
@@ -18,7 +20,18 @@ export const LAYOUT = {
   worldLimit: 1100,
 } as const
 
-export function groundHeight(x: number, z: number): number | null {
+/**
+ * Walkable surface height under (x, z), or null where there is none. `fromY` is the querying body's
+ * height: registered surfaces (islands, bridges) more than 1 m above it are ignored, so flying under an
+ * island never snaps onto its top.
+ */
+export function groundHeight(x: number, z: number, fromY = Infinity): number | null {
+  const base = layoutGroundHeight(x, z)
+  const extra = walkableHeight(x, z, fromY)
+  return extra === null ? base : base === null ? extra : Math.max(base, extra)
+}
+
+function layoutGroundHeight(x: number, z: number): number | null {
   const { spawn, road, stairs, platform } = LAYOUT
   if (insideMainFootprint(x, z)) return null
   if (Math.abs(x) <= spawn.size[0] / 2 && z >= 138 && z <= 162) return 0

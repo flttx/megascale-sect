@@ -1,11 +1,12 @@
 import { Color, MeshStandardMaterial } from 'three'
+import { patchSurfaceWeather } from '../../weather/surfaceWeather'
 
 export type Surface = 'terrain' | 'rock' | 'paving' | 'gravel' | 'masonry' | 'distant'
 export function environmentMaterial(surface: Surface) {
   const material = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.91, metalness: surface === 'paving' ? 0.025 : 0 })
   material.name = `T02R_${surface}`
   const index = ['terrain', 'rock', 'paving', 'gravel', 'masonry', 'distant'].indexOf(surface)
-  material.customProgramCacheKey = () => `t02r-${index}-7`
+  material.customProgramCacheKey = () => `t02r-${index}-8`
   material.onBeforeCompile = (shader) => {
     // Concept palette: pale karst rock, muted pine-moss greens, dark slate paving.
     shader.uniforms.envGround = { value: new Color('#6f7266') }
@@ -93,6 +94,7 @@ export function environmentMaterial(surface: Surface) {
       vec3 grad=sign(det)*(dFdx(relief)*r1+dFdy(relief)*r2);
       normal=normalize(abs(det)*normal-grad);
     `)
+    patchSurfaceWeather(shader)
   }
   return material
 }

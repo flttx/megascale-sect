@@ -1,5 +1,8 @@
 import { Vector3 } from 'three'
 import { insideMainCollider, LAYOUT } from '../worldLayout'
+import { insideAnyCollider } from '../surfaces'
+
+const blocked = (x: number, y: number, z: number) => insideMainCollider(x, y, z) || insideAnyCollider(x, y, z)
 const forward = new Vector3(), right = new Vector3(), desired = new Vector3()
 
 export function stepFlight(
@@ -20,11 +23,11 @@ export function stepFlight(
   const nextX = position.x + velocity.x * delta
   const nextY = position.y + velocity.y * delta
   const nextZ = position.z + velocity.z * delta
-  if (!insideMainCollider(nextX, position.y, position.z)) position.x = nextX
+  if (!blocked(nextX, position.y, position.z)) position.x = nextX
   else velocity.x = 0
-  if (!insideMainCollider(position.x, position.y, nextZ)) position.z = nextZ
+  if (!blocked(position.x, position.y, nextZ)) position.z = nextZ
   else velocity.z = 0
-  if (!insideMainCollider(position.x, nextY, position.z)) position.y = nextY
+  if (!blocked(position.x, nextY, position.z)) position.y = nextY
   else velocity.y = 0
   position.x = Math.max(-LAYOUT.worldLimit, Math.min(LAYOUT.worldLimit, position.x))
   position.y = Math.max(-50, Math.min(1100, position.y))

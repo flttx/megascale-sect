@@ -4,6 +4,7 @@ import { Box3, Mesh, Quaternion, Vector3, type Object3D } from 'three'
 import { LAYOUT } from '../worldLayout'
 import { MG04_SIDE_TOWER } from '../worldAssets'
 import { useWorldStore } from '../store'
+import { withSceneWeather } from '../weather/surfaceWeather'
 
 // Meshopt quantisation stores the dequantisation scale/offset on the mesh node,
 // so the node's world transform must travel with the shared geometry.
@@ -26,7 +27,7 @@ export function SideTower() {
     const box = new Box3().setFromObject(gltf.scene)
     const size = box.getSize(new Vector3())
     const center = box.getCenter(new Vector3())
-    return { source: firstMesh(gltf.scene), lodSource: firstMesh(lod.scene), box, size, center, scale: MG04_SIDE_TOWER.targetHeight / size.y }
+    return { source: firstMesh(withSceneWeather(gltf.scene)), lodSource: firstMesh(withSceneWeather(lod.scene)), box, size, center, scale: MG04_SIDE_TOWER.targetHeight / size.y }
   }, [gltf.scene, lod.scene])
 
   useEffect(() => {

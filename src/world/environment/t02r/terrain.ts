@@ -124,15 +124,20 @@ export function makeTerrain() {
   xs.push(-191, -15, -9, 0, 9, 15, 191); zs.push(-516, -65, 20, 45, 55, 65, 138, 150, 162)
   return heightMesh([...new Set(xs)].sort((a, b) => a - b), [...new Set(zs)].sort((a, b) => a - b), terrainHeight)
 }
+export const DISTANT_RIDGE_LAYERS = 4
+/** Z extent of a distant ridge layer's mesh. */
+export const distantRidgeBand = (layer: number) => [-1050 - layer * 270, -1050 - layer * 270 + 26 * 18] as const
+export function distantRidgeHeight(layer: number, x: number, z: number) {
+  const center = -835 - layer * 270 + Math.sin(x / 230 + layer) * 38
+  const crest = 130 + layer * 45 + 95 * noise(x / 270, layer, 25) + 42 * noise(x / 110, layer, 31)
+  const cross = Math.exp(-Math.pow((z - center) / (90 + layer * 10), 2))
+  return -175 + crest * 1.8 * cross + 17 * noise(x / 53, z / 81, 33) * cross
+}
 export function makeDistantRidge(layer: number) {
   const xs = Array.from({ length: 341 }, (_, i) => -1700 + i * 10)
-  const zs = Array.from({ length: 27 }, (_, i) => -1050 - layer * 270 + i * 18)
-  return heightMesh(xs, zs, (x, z) => {
-    const center = -835 - layer * 270 + Math.sin(x / 230 + layer) * 38
-    const crest = 130 + layer * 45 + 95 * noise(x / 270, layer, 25) + 42 * noise(x / 110, layer, 31)
-    const cross = Math.exp(-Math.pow((z - center) / (90 + layer * 10), 2))
-    return -175 + crest * 1.8 * cross + 17 * noise(x / 53, z / 81, 33) * cross
-  })
+  const [minZ] = distantRidgeBand(layer)
+  const zs = Array.from({ length: 27 }, (_, i) => minZ + i * 18)
+  return heightMesh(xs, zs, (x, z) => distantRidgeHeight(layer, x, z))
 }
 export function makeRoad(shoulder = false) {
   const positions: number[] = [], indices: number[] = []

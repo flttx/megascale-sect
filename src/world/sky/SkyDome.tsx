@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { BackSide, Mesh, PMREMGenerator, Scene, ShaderMaterial, SphereGeometry, Uniform, type WebGLRenderTarget } from 'three'
-import { atmosphere, updateAtmosphere } from './atmosphere'
+import { atmosphere } from './atmosphere'
 import { FOG_GLSL, NOISE_GLSL } from './glsl'
 
 const vertexShader = /* glsl */ `
@@ -16,7 +16,7 @@ varying vec3 vDir;
 uniform vec3 uZenith; uniform vec3 uHorizon; uniform vec3 uGround;
 uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uSunIntensity;
 uniform vec3 uMoonDir; uniform float uMoonIntensity; uniform float uStars;
-uniform vec3 uCloudLit; uniform vec3 uCloudShade; uniform float uCloudCover; uniform vec2 uWind;
+uniform vec3 uCloudLit; uniform vec3 uCloudShade; uniform float uCloudCover; uniform float uOvercast; uniform vec2 uWind;
 uniform float uTime; uniform float uEnvPass;
 ${NOISE_GLSL}
 ${FOG_GLSL}
@@ -29,7 +29,7 @@ void main() {
   vec3 below = uEnvPass > 0.5 ? uGround : mix(mix(uCloudShade, uCloudLit, 0.6), uHorizon, 0.35);
   col = mix(col, below, smoothstep(0.0, -0.14, h));
 
-  float sunUp = smoothstep(-0.1, 0.04, uSunDir.y);
+  float sunUp = smoothstep(-0.1, 0.04, uSunDir.y) * (1.0 - uOvercast * 0.85);
   float mu = max(dot(dir, uSunDir), 0.0);
   col += uSunColor * sunUp * (pow(mu, 6.0) * 0.18 + pow(mu, 48.0) * 0.45 + pow(mu, 700.0) * 1.6);
 
@@ -56,13 +56,19 @@ void main() {
     float cirrus = smoothstep(0.55, 0.9, skyFbm(vec2(uv.x * 0.35, uv.y * 1.6) + 3.1, 4)) * 0.35 * smoothstep(0.0, 0.3, h);
     col = mix(col, uCloudLit * 1.05, cirrus * (1.0 - alpha));
     col = mix(col, cloud, alpha * 0.92);
+    // Weather overcast: a low, slowly rolling grey deck that swallows the blue sky.
+    if (uOvercast > 0.001) {
+      float deck = skyFbm(uv * 0.6 + uWind * uTime * 0.0008, uEnvPass > 0.5 ? 2 : 4);
+      vec3 grey = mix(uCloudShade, uCloudLit, 0.25 + deck * 0.45);
+      col = mix(col, grey, uOvercast * smoothstep(-0.02, 0.1, h) * (0.8 + 0.2 * deck));
+    }
   }
 
   // Moon disk with a faint mottled face and halo.
   float moon = dot(dir, uMoonDir);
   float moonDisk = smoothstep(0.99955, 0.99968, moon);
   float mottled = 0.78 + 0.22 * skyNoise(dir.xy * 900.0);
-  col += vec3(0.85, 0.9, 1.0) * uMoonIntensity * (moonDisk * mottled * 6.0 + pow(max(moon, 0.0), 180.0) * 0.4);
+  col += vec3(0.85, 0.9, 1.0) * uMoonIntensity * (1.0 - uOvercast * 0.9) * (moonDisk * mottled * 6.0 + pow(max(moon, 0.0), 180.0) * 0.4);
 
   // Sun disk last so clouds only partly veil it; dimmed for the IBL capture to avoid fireflies.
   float disk = smoothstep(0.99975, 0.99988, mu) * step(-0.01, h);
@@ -81,7 +87,7 @@ export function createSkyMaterial() {
       uZenith: new Uniform(atmosphere.zenith), uHorizon: new Uniform(atmosphere.horizon), uGround: new Uniform(atmosphere.ground),
       uSunDir: new Uniform(atmosphere.sunDirection), uSunColor: new Uniform(atmosphere.sunColor), uSunIntensity: new Uniform(0),
       uMoonDir: new Uniform(atmosphere.moonDirection), uMoonIntensity: new Uniform(0), uStars: new Uniform(0),
-      uCloudLit: new Uniform(atmosphere.cloudLit), uCloudShade: new Uniform(atmosphere.cloudShade), uCloudCover: new Uniform(0.5),
+      uCloudLit: new Uniform(atmosphere.cloudLit), uCloudShade: new Uniform(atmosphere.cloudShade), uCloudCover: new Uniform(0.5), uOvercast: new Uniform(0),
       uWind: new Uniform(atmosphere.wind), uTime: new Uniform(0), uEnvPass: new Uniform(0),
       fogTint: new Uniform(atmosphere.fogColor), fogSunColor: new Uniform(atmosphere.sunColor), fogSunDir: new Uniform(atmosphere.sunDirection),
       fogDensity: new Uniform(0), fogFalloff: new Uniform(0), fogBase: new Uniform(0),
@@ -109,10 +115,7 @@ export function SkyDome() {
     const previousBackground = scene.background
     scene.background = null
     env.current = { pmrem: new PMREMGenerator(gl), target: null, version: -1 }
-    const hooks = window as unknown as Record<string, unknown>
-    if (import.meta.env.DEV) hooks.__setTimeOfDay = updateAtmosphere
     return () => {
-      delete hooks.__setTimeOfDay
       scene.environment = null; scene.background = previousBackground
       env.current?.target?.dispose(); env.current?.pmrem.dispose(); env.current = null
       material.dispose(); dome.geometry.dispose()
@@ -125,6 +128,7 @@ export function SkyDome() {
     u.uMoonIntensity.value = a.moonIntensity
     u.uStars.value = a.stars
     u.uCloudCover.value = a.cloudCover
+    u.uOvercast.value = a.overcast
     scene.environmentIntensity = a.envIntensity
     const state = env.current
     if (!state || state.version === a.envVersion) return

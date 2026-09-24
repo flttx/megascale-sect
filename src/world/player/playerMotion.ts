@@ -45,7 +45,7 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
       const direction = yaw + offset
       const x = position.x + Math.sin(direction) * FLIGHT_SEQUENCE.step
       const z = position.z - Math.cos(direction) * FLIGHT_SEQUENCE.step
-      return { x, z, direction, height: groundHeight(x, z) }
+      return { x, z, direction, height: groundHeight(x, z, position.y + 0.8) }
     }).find((candidate) => candidate.height !== null && Math.abs(position.y - candidate.height) <= 0.8)
     if (!landing || landing.height === null) return '请在平稳、开阔的位置召剑'
     runtime.origin.copy(position)
@@ -57,8 +57,8 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
     return null
   }
   if (runtime.phase === 'FLIGHT') {
-    const surface = groundHeight(runtime.position.x, runtime.position.z)
-    if (surface === null) return '请飞到道路或主平台上方，再按 F 落地'
+    const surface = groundHeight(runtime.position.x, runtime.position.z, runtime.position.y)
+    if (surface === null) return '请飞到道路、平台或浮岛上方，再按 F 落地'
     runtime.destination.copy(runtime.position).setY(surface + FLIGHT_SEQUENCE.hover)
     runtime.velocity.set(0, 0, 0)
     changePhase(runtime, 'LANDING')
@@ -111,7 +111,7 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
       const angle = Math.atan2(Math.sin(runtime.yaw - runtime.facing), Math.cos(runtime.yaw - runtime.facing))
       runtime.facing += angle * (1 - Math.exp(-7 * delta))
       stepFlight(position, velocity, input, runtime.facing, runtime.pitch, boosting, delta, runtime.braking)
-      const surface = groundHeight(position.x, position.z)
+      const surface = groundHeight(position.x, position.z, position.y + FLIGHT_SEQUENCE.hover)
       if (surface !== null && position.y < surface + FLIGHT_SEQUENCE.hover) {
         position.y = surface + FLIGHT_SEQUENCE.hover
         velocity.y = Math.max(0, velocity.y)

@@ -1,4 +1,5 @@
 import type { PlayerPhase, PlayerRuntime } from './playerMotion'
+import { mixer } from '../audio/mixer'
 
 // All sound is synthesized locally: no remote audio, downloads, or paid services.
 class PlayerAudio {
@@ -18,12 +19,12 @@ class PlayerAudio {
 
   unlock() {
     if (!this.context) {
-      const context = this.context = new AudioContext()
+      const context = this.context = mixer.unlock()
       const master = this.master = context.createGain()
       master.gain.value = 0
       this.analyser = context.createAnalyser()
       this.analyser.fftSize = 256
-      master.connect(this.analyser).connect(context.destination)
+      master.connect(this.analyser).connect(mixer.bus('sfx') ?? context.destination)
       const wind = this.wind = context.createGain()
       wind.gain.value = 0
       const filter = this.filter = context.createBiquadFilter()
@@ -39,7 +40,7 @@ class PlayerAudio {
       source.connect(filter).connect(wind).connect(master)
       source.start()
     }
-    void this.context.resume().catch(() => {})
+    else mixer.unlock()
   }
 
   private chime(name: string, startFrequency: number, endFrequency: number, duration: number, volume: number) {
@@ -96,9 +97,10 @@ class PlayerAudio {
   }
 
   dispose() {
+    // The context is shared with the rest of the game; only this voice's nodes are torn down.
     this.source?.stop()
     this.source?.disconnect()
-    void this.context?.close().catch(() => {})
+    this.master?.disconnect()
     this.context = undefined; this.master = undefined; this.wind = undefined; this.filter = undefined
     this.source = undefined; this.analyser = undefined; this.paused = true; this.phase = 'GROUND'; this.events = []
   }

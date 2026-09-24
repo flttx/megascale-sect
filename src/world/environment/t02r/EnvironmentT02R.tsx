@@ -99,7 +99,7 @@ export function EnvironmentReview() {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const target = window as unknown as Record<string, unknown>
-    target.__environmentReview = (eye: number[], look: number[]) => { camera.userData.review = { eye, look } }
+    target.__environmentReview = (eye: number[] | null, look: number[]) => { camera.userData.review = eye ? { eye, look } : null }
     // Names the object under a normalised screen point (−1…1), for diagnosing stray geometry.
     target.__pick = (x: number, y: number) => {
       const ray = new Raycaster(); ray.setFromCamera(new Vector2(x, y), camera)

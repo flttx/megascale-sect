@@ -17,6 +17,8 @@ import { ASSETS } from './worldAssets'
 import { LAYOUT } from './worldLayout'
 import { EnvironmentT02R, EnvironmentReview } from './environment/t02r/EnvironmentT02R'
 import { QualityManager } from './quality'
+import { WeatherSystem } from './weather/WeatherSystem'
+import { Landmarks } from './landmarks/Landmarks'
 
 ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
@@ -50,6 +52,7 @@ export function World() {
   return (
     <>
       <QualityManager />
+      <WeatherSystem />
       <SkyDome />
       <Lighting />
       <CloudSea />
@@ -62,6 +65,7 @@ export function World() {
         <MainBuilding />
         <SideTower />
       </Suspense>
+      <Landmarks />
       <Player />
       <DebugHelpers />
       <EnvironmentReview />

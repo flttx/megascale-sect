@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { Detailed, useGLTF } from '@react-three/drei'
 import { Box3, Vector3 } from 'three'
+import { withSceneWeather } from '../weather/surfaceWeather'
 import type { AssetConfig } from '../worldAssets'
 import { useWorldStore } from '../store'
 
@@ -20,8 +21,8 @@ export function WorldAsset({ config }: { config: AssetConfig }) {
   const { gltf, lod, box, size, center, scale } = useAssetMetrics(config)
   const showHelpers = useWorldStore((state) => state.showHelpers)
   const setAsset = useWorldStore((state) => state.setAsset)
-  const scene = useMemo(() => gltf.scene.clone(true), [gltf.scene])
-  const lodScene = useMemo(() => lod.scene.clone(true), [lod.scene])
+  const scene = useMemo(() => withSceneWeather(gltf.scene).clone(true), [gltf.scene])
+  const lodScene = useMemo(() => withSceneWeather(lod.scene).clone(true), [lod.scene])
   const actualScale = scale * config.scaleMultiplier
 
   useEffect(() => {

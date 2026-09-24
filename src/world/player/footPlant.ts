@@ -40,7 +40,7 @@ export class FootPlant {
       const stance = walking && Math.cos(state.stride + chain.offset) < -0.12
       if (!stance) { chain.locked = false; continue }
       if (!chain.locked) { chain.foot.getWorldPosition(chain.anchor); chain.locked = true }
-      const surface = groundHeight(chain.anchor.x, chain.anchor.z)
+      const surface = groundHeight(chain.anchor.x, chain.anchor.z, chain.anchor.y + 0.5)
       if (surface === null) { chain.locked = false; continue }
       chain.anchor.y = surface + chain.sole * scale.y
       target.copy(chain.anchor)

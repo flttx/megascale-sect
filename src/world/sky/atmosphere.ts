@@ -1,5 +1,8 @@
 import { Color, MathUtils, Vector2, Vector3 } from 'three'
 
+/** Height (m) where the height fog is at its base density; weather lifts it every frame. */
+const FOG_BASE = -110
+
 /**
  * Mutable sky state shared by the sky dome, cloud sea, lights and post FX.
  * Consumers read it inside useFrame so time-of-day / weather updates never re-render React.
@@ -12,9 +15,13 @@ export const atmosphere = {
   moonColor: new Color('#9fb3e6'), moonIntensity: 0,
   zenith: new Color(), horizon: new Color(), ground: new Color(),
   hemiSky: new Color(), hemiGround: new Color(), hemiIntensity: 0, envIntensity: 0,
-  fogColor: new Color(), fogDensity: 0, fogFalloff: 0.0058, fogBase: -110,
+  fogColor: new Color(), fogDensity: 0, fogFalloff: 0.0058, fogBase: FOG_BASE,
   cloudLit: new Color(), cloudShade: new Color(), cloudCover: 0.5,
+  /** Solid cloud veil over the whole sky (weather); hides sun disk, moon and stars. */
+  overcast: 0,
   stars: 0, exposure: 1,
+  /** 0 by day → 1 at night; lamps, emissives and night ambience key off it (already > 0 at dusk). */
+  night: 0,
   wind: new Vector2(4, -1.5),
   /** Bumped when the change is large enough that the IBL environment should be re-rendered. */
   envVersion: 0,
@@ -64,8 +71,9 @@ export function updateAtmosphere(hours: number) {
   mix('cloudLit', a.cloudLit); mix('cloudShade', a.cloudShade)
   const lerp = (key: 'sunI' | 'hemiI' | 'env' | 'fogD' | 'stars' | 'exposure') => MathUtils.lerp(k0[key], k1[key], t)
   a.sunIntensity = lerp('sunI'); a.hemiIntensity = lerp('hemiI'); a.envIntensity = lerp('env')
-  a.fogDensity = lerp('fogD'); a.stars = lerp('stars'); a.exposure = lerp('exposure')
+  a.fogDensity = lerp('fogD'); a.fogBase = FOG_BASE; a.stars = lerp('stars'); a.exposure = lerp('exposure')
   a.moonIntensity = MathUtils.smoothstep(-y, -0.02, 0.2) * 0.9
+  a.night = 1 - MathUtils.smoothstep(y, -0.1, 0.1)
   if (lastEnvSun.angleTo(a.sunDirection) > MathUtils.degToRad(1.5)) { lastEnvSun.copy(a.sunDirection); a.envVersion++ }
 }
 updateAtmosphere(atmosphere.hours)

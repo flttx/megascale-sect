@@ -27,7 +27,7 @@ export function CameraRig({ camera }: { camera: PerspectiveCamera }) {
 
 export function updateCameraRig(
   camera: PerspectiveCamera, player: Vector3, yaw: number, pitch: number,
-  mode: Mode, delta: number, speed = 0, bank = 0, impact = 0,
+  mode: Mode, delta: number, speed = 0, bank = 0, impact = 0, baseFov = 72,
 ) {
   const forwardX = Math.sin(yaw)
   const forwardZ = -Math.cos(yaw)
@@ -44,11 +44,11 @@ export function updateCameraRig(
   desired.y += impact * 0.045
   anchor.copy(player).y += 1.1
   keepCameraOutsideBuilding(desired, anchor)
-  const surface = groundHeight(desired.x, desired.z)
+  const surface = groundHeight(desired.x, desired.z, player.y + 2)
   if (surface !== null) desired.y = Math.max(surface + 0.35, desired.y)
   camera.position.lerp(desired, 1 - Math.exp(-(mode === 'FLIGHT' ? 7 : 11) * delta))
   keepCameraOutsideBuilding(camera.position, anchor)
-  const cameraSurface = groundHeight(camera.position.x, camera.position.z)
+  const cameraSurface = groundHeight(camera.position.x, camera.position.z, player.y + 2)
   if (cameraSurface !== null) camera.position.y = Math.max(cameraSurface + 0.35, camera.position.y)
   lookAt.set(
     player.x + forwardX * 3,
@@ -57,7 +57,7 @@ export function updateCameraRig(
   )
   camera.lookAt(lookAt)
   camera.rotateZ(-bank * 0.075)
-  const fov = 72 + speedMix * 8
+  const fov = baseFov + speedMix * 8
   camera.fov += (fov - camera.fov) * (1 - Math.exp(-4 * delta))
   camera.updateProjectionMatrix()
 }
