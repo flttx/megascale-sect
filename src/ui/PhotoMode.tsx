@@ -33,13 +33,12 @@ export function PhotoMode() {
 
   useEffect(() => {
     if (!shutterKey) return
-    // The PNG is encoded asynchronously (slower on large canvases): wait for its count to land, give up after 4 s.
+    // PNGs are encoded asynchronously (slower on large canvases): watch for 4 s so a burst's later shots land too.
     let tries = 0
     const timer = window.setInterval(() => {
       const last = photo.last
       if (photo.count !== seen.current && last) { seen.current = photo.count; setSaved({ count: photo.count, name: last.name }) }
-      else if (++tries < 40) return
-      window.clearInterval(timer)
+      if (++tries >= 40) window.clearInterval(timer)
     }, 100)
     return () => window.clearInterval(timer)
   }, [shutterKey])

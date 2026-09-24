@@ -133,6 +133,6 @@ function SettingsPanel() {
         <dl>{CONTROLS.map(([key, action]) => <div key={key}><dt><kbd>{key}</kbd></dt><dd>{action}</dd></div>)}</dl>
       </section>
     </div>
-    <footer className="settings-foot"><span>设置自动保存于本机</span><span><kbd>Enter</kbd> 或点击空白处继续</span></footer>
+    <footer className="settings-foot"><span>设置自动保存于本机</span><span><kbd>Esc</kbd> 再 <kbd>Enter</kbd>，或点击空白处继续</span></footer>
   </Dialog>
 }
