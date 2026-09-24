@@ -58,3 +58,15 @@ export const propUrl = (id: string, lod1: boolean) => `/assets/props/${id}${lod1
 
 /** Crane: wingspan runs along local z (±0.5), body along x; 0.8 m tall at scale 2.694. */
 export const CRANE_SCALE = 2.694 * 3.4
+
+/**
+ * Base-colour correction (material colour multiplier). Several Tripo textures came out blue-cast (mean
+ * texel of pine_guest ≈ #324b53, pine_small ≈ #4d697e, rock_scholar ≈ #8790a0); pull them toward the
+ * greens and warm greys of the environment.
+ */
+export const PROP_TINT: Partial<Record<PropId, [number, number, number]>> = {
+  pine_tall: [1, 1, 0.9],
+  pine_guest: [1.12, 1, 0.72],
+  pine_small: [1.05, 0.96, 0.62],
+  rock_scholar: [1.1, 1.01, 0.88],
+}

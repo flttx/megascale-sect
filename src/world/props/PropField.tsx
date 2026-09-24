@@ -16,7 +16,7 @@ import { buildPropLayout } from './placement'
 import { extractSource } from './propSource'
 import type { Source } from './propSource'
 import type { Placement } from './placement'
-import { PROP_IDS, PROPS, propUrl } from './propCatalog'
+import { PROP_IDS, PROP_TINT, PROPS, propUrl } from './propCatalog'
 import type { PropId, PropSpec } from './propCatalog'
 
 const DENSITY = { low: 0.4, mid: 0.7, high: 1 } as const
@@ -102,6 +102,8 @@ function PropFieldContent() {
       const glowMaterials: MeshStandardMaterial[] = []
       for (const [source, tag] of [[lod0, 'lod0'], [lod1, 'lod1']] as const) {
         if (!source) continue
+        const tint = PROP_TINT[id]
+        if (tint) source.material.color.multiply(new Color(...tint))
         if (spec.glow) glowMaterials.push(withGlowMask(source.material, spec.glow, glowColor(id), `${id}-${tag}`))
         withSurfaceWeather(source.material)
       }
