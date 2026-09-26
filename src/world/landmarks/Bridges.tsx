@@ -5,6 +5,7 @@ import { hash } from '../environment/t02r/terrain'
 import { BRIDGES, ISLANDS } from '../sites'
 import type { BridgeSite } from '../sites'
 import { withSurfaceWeather } from '../weather/surfaceWeather'
+import { islandRim } from './rockLayout'
 import { LAYOUT } from '../worldLayout'
 
 /**
@@ -42,7 +43,8 @@ function bridgeFrame(b: BridgeSite) {
 function bridgeParts(b: BridgeSite, k: number) {
   const parts: BoxPart[] = [], ropes: Vector3[][] = []
   const { len, isle, along, tAtIsland, t0, yaw } = bridgeFrame(b)
-  const t1 = tAtIsland((isle?.padRadius ?? 0) + 0.6), tRim = tAtIsland((isle?.radius ?? 0) - 1.4)
+  const t1 = tAtIsland((isle?.padRadius ?? 0) + 0.6)
+  const tRim = isle ? tAtIsland(islandRim(isle, Math.atan2(b.from[2] - isle.top[2], b.from[0] - isle.top[0]), b.halfWidth + 0.3) - 1.4) : 1
   const slope = (t: number) => Math.atan(((b.to[1] - b.from[1]) - b.sag * 4 * (1 - 2 * t)) / len)
   const w = b.halfWidth
   // Planks every 0.52 m with a little yaw / roll / height jitter; every sixth rests on a cross-beam.

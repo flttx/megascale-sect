@@ -1,4 +1,5 @@
 import { hash, roadAt } from '../environment/t02r/terrain'
+import { PILLAR_SUMMITS } from '../landmarks/rockLayout'
 import { BRIDGES, ISLANDS, PILLARS, siteClearance } from '../sites'
 import type { Vec3 } from '../surfaces'
 
@@ -58,7 +59,8 @@ function placeOrbs(): OrbSite[] {
   })
 
   // Crowns of the eight tallest pillars.
-  ;[...PILLARS].sort((a, b) => b.topY - a.topY).slice(0, 8).forEach((pillar) => push([pillar.x, pillar.topY + 2.4, pillar.z], 'pillar', pillar.id))
+  PILLARS.map((pillar, i) => ({ pillar, summit: PILLAR_SUMMITS[i] })).sort((a, b) => b.summit[1] - a.summit[1]).slice(0, 8)
+    .forEach(({ pillar, summit: [x, y, z] }) => push([x, y + 2.4, z], 'pillar', pillar.id))
 
   // Main hall roof tiers (heights probed from above; each sits ~3 m over the tiles).
   const roof: Vec3[] = [[0, 447, -320], [0, 384, -346], [0, 380, -292], [0, 235, -400], [0, 234, -240], [78, 178, -320], [-78, 178, -320], [48, 231, -272]]

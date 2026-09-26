@@ -46,6 +46,8 @@ export const BRIDGES: BridgeSite[] = [
 
 export interface PillarSite {
   id: string
+  /** Index of the cluster it was scattered in (rendered and LOD-switched together). */
+  cluster: number
   x: number; z: number
   /** Top surface height; the base is buried at PILLAR_BASE_Y under the cloud sea. */
   topY: number
@@ -82,7 +84,7 @@ const PILLAR_CLUSTERS: [number, number, number, number, number, number][] = [
 function generatePillars(): PillarSite[] {
   const out: PillarSite[] = []
   let seed = 0
-  for (const [cx, cz, spread, count, minTop, maxTop] of PILLAR_CLUSTERS) {
+  PILLAR_CLUSTERS.forEach(([cx, cz, spread, count, minTop, maxTop], cluster) => {
     for (let placed = 0, attempt = 0; placed < count && attempt < count * 8; attempt++) {
       seed++
       const x = cx + (hash(seed, 1, 501) - 0.5) * spread * 2, z = cz + (hash(seed, 2, 502) - 0.5) * spread * 2
@@ -91,10 +93,10 @@ function generatePillars(): PillarSite[] {
       if (groundMax(x, z, radius + 30) > -110) continue
       if (out.some((p) => Math.hypot(p.x - x, p.z - z) < p.radius + radius + 30)) continue
       if (ISLANDS.some((i) => Math.hypot(i.top[0] - x, i.top[2] - z) < i.radius + radius + 25)) continue
-      out.push({ id: `pillar_${out.length}`, x, z, topY, radius })
+      out.push({ id: `pillar_${out.length}`, cluster, x, z, topY, radius })
       placed++
     }
-  }
+  })
   return out
 }
 

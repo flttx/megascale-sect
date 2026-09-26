@@ -1,6 +1,7 @@
 import { buildingDistance, hash, noise, roadAt, roadDistance, slopeAt, terrainHeight } from '../environment/t02r/terrain'
 import { towerFootings } from '../environment/t02r/scatter'
-import { BRIDGES, ISLANDS, PILLARS, siteClearance, yawToward } from '../sites'
+import { PILLAR_LEDGES } from '../landmarks/rockLayout'
+import { BRIDGES, ISLANDS, siteClearance, yawToward } from '../sites'
 import type { Vec3 } from '../surfaces'
 import { LAYOUT } from '../worldLayout'
 import { PROPS } from './propCatalog'
@@ -159,14 +160,15 @@ export function buildPropLayout(): PropLayout {
       tryAdd('spirit_crystal', approach + 1.9 + c * 0.32 + hash(k, c + 6) * 0.2, P - 2 - c * 1.2, 1.1 + hash(k, c + 9) * 0.8, c * 0.3)
   })
 
-  // ── Karst pillar summits: a lone twisted pine or a crystal outcrop on ~40% of the tops. ──
-  PILLARS.forEach((p, i) => {
+  // ── Karst pillar ledges: a twisted pine on about half the authored shelves, never two crowding one spot. ──
+  const planted: { x: number; z: number; y: number }[] = []
+  PILLAR_LEDGES.forEach((l, i) => {
     const h = hash(i, 71)
-    if (h > 0.4) return
-    const a = hash(i, 72) * 6.28, rho = p.radius * 0.25 * hash(i, 73)
-    const x = p.x + Math.cos(a) * rho, z = p.z + Math.sin(a) * rho
-    if (h < 0.26) add('pine_small', x, p.topY - 1, z, hash(i, 74) * 6.28, 2.2 + hash(i, 75) * 0.8, h * 0.4)
-    else add('spirit_crystal', x, p.topY - 0.5, z, hash(i, 76) * 6.28, 3 + hash(i, 77) * 1.5, h)
+    if (h > 0.55 || planted.some((p) => Math.abs(p.y - l.y) < 12 && Math.hypot(p.x - l.x, p.z - l.z) < 5)) return
+    const a = hash(i, 72) * 6.28, rho = l.radius * 0.3 * hash(i, 73)
+    const x = l.x + Math.cos(a) * rho, z = l.z + Math.sin(a) * rho
+    planted.push({ x: l.x, z: l.z, y: l.y })
+    add('pine_small', x, l.y - 0.3, z, hash(i, 74) * 6.28, 1.3 + Math.min(l.radius, 4) * 0.25 + hash(i, 75) * 0.3, h * 0.4)
   })
 
   // ── Terrain: grouped pines, bamboo and rocks on the gentler slopes of the valley and the cliffs. ──

@@ -2,7 +2,7 @@ import { MeshStandardMaterial } from 'three'
 import { patchSurfaceWeather } from '../../weather/surfaceWeather'
 import { SURFACE_SETS, surfaceTextures } from '../terrainTextures'
 
-export type Surface = 'terrain' | 'rock' | 'paving' | 'gravel' | 'masonry' | 'distant'
+export type Surface = 'terrain' | 'rock' | 'karst' | 'paving' | 'gravel' | 'masonry' | 'distant'
 
 const layer = (set: (typeof SURFACE_SETS)[number]) => `${SURFACE_SETS.indexOf(set)}.0`
 
@@ -16,6 +16,9 @@ uniform sampler2DArray uSurfAlbedo; uniform sampler2DArray uSurfDetail;
 varying vec3 vEnvPosition; varying vec3 vEnvNormal;
 #ifdef SURF_MASK
   varying vec2 vSurfMask;
+#endif
+#ifdef ROCK_MASK
+  varying vec4 vRockMask;
 #endif
 vec3 surfP, surfDx, surfDy, surfN, surfW;
 float envHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -102,13 +105,16 @@ const ROCK = (scale: number, farScale: number) => /* glsl */ `
   surfAlbedo *= mix(vec3(0.92, 0.95, 1.0), vec3(1.07, 1.02, 0.93), bands) * (0.7 + patches * 0.55);
 `
 
-/** Moss in damp air near the cloud tops, and (for free-standing rock) on its ledges. */
-const ROCK_MOSS = (ledges: boolean) => /* glsl */ `
+/**
+ * Moss in damp air near the cloud tops, and (for free-standing rock) on its ledges; `extra` is a GLSL
+ * expression for more cover (e.g. a baked vegetation mask).
+ */
+const ROCK_MOSS = (ledges: boolean, extra = '0.0') => /* glsl */ `
   {
     vec4 mA, mD; vec3 mN;
     float ledge = ${ledges ? 'smoothstep(0.52, 0.8, surfN.y + (envFbm(sp.xz * 0.05) - 0.5) * 0.5)' : '0.0'};
     float damp = smoothstep(-40.0, -110.0, sp.y) * (1.0 - smoothstep(-200.0, -280.0, sp.y));
-    float cover = max(ledge, damp * smoothstep(0.55, 0.75, envFbm(vec2(sp.x + sp.z, sp.y * 0.4) * 0.03)) * 0.8);
+    float cover = max(max(ledge, ${extra}), damp * smoothstep(0.55, 0.75, envFbm(vec2(sp.x + sp.z, sp.y * 0.4) * 0.03)) * 0.8);
     if (cover > 0.01) {
       surfTri(${layer('moss')}, 9.0, mA, mD, mN);
       float w = heightMix(surfHeight, mD.a, cover, 0.25);
@@ -156,12 +162,23 @@ const SURFACES: Record<Surface, string> = {
     }
     ${ROCK_MOSS(false)}
     // Below the cloud tops the stone is soaked and dark.
-    float soak = smoothstep(-90.0, -170.0, sp.y);
+    float soak = (1.0 - smoothstep(-170.0, -90.0, sp.y));
     surfAlbedo *= 1.0 - soak * 0.35; surfRough *= 1.0 - soak * 0.25;
   `,
   rock: /* glsl */ `
     ${ROCK(9, 37.7)}
     ${ROCK_MOSS(true)}
+  `,
+  // The Blender pillars and islands: baked cavity AO (r), vegetation (g) and bedding bands (b) in rockMask.
+  karst: /* glsl */ `
+    ${ROCK(11, 43.1)}
+    float kAO = smoothstep(0.04, 0.8, vRockMask.r);
+    surfAO *= mix(0.3, 1.0, kAO);
+    surfAlbedo *= mix(0.62, 1.0, kAO) * mix(vec3(0.88, 0.92, 1.0), vec3(1.1, 1.02, 0.9), vRockMask.b);
+    ${ROCK_MOSS(true, 'smoothstep(0.08, 0.5, vRockMask.g)')}
+    // Below the cloud tops the stone is soaked and dark.
+    float soak = (1.0 - smoothstep(-170.0, -90.0, sp.y));
+    surfAlbedo *= 1.0 - soak * 0.35; surfRough *= 1.0 - soak * 0.25;
   `,
   distant: /* glsl */ `
     vec4 rA, rD, mA, mD; vec3 rN, mN;
@@ -204,14 +221,18 @@ const SURFACES: Record<Surface, string> = {
 export function environmentMaterial(surface: Surface) {
   const material = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, metalness: 0 })
   material.name = `T02R_${surface}`
-  const masked = surface === 'terrain'
-  material.customProgramCacheKey = () => `t02r-${surface}-10`
+  const masked = surface === 'terrain', rockMasked = surface === 'karst'
+  material.customProgramCacheKey = () => `t02r-${surface}-11`
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, surfaceTextures)
     if (masked) shader.defines = { ...shader.defines, SURF_MASK: '' }
+    if (rockMasked) shader.defines = { ...shader.defines, ROCK_MASK: '' }
     shader.vertexShader = `varying vec3 vEnvPosition; varying vec3 vEnvNormal;
       #ifdef SURF_MASK
         attribute vec2 surfaceMask; varying vec2 vSurfMask;
+      #endif
+      #ifdef ROCK_MASK
+        attribute vec4 rockMask; varying vec4 vRockMask;
       #endif
       ${shader.vertexShader}`.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
       vec4 envP = vec4(transformed, 1.0);
@@ -224,6 +245,9 @@ export function environmentMaterial(surface: Surface) {
       vEnvNormal = normalize(mat3(modelMatrix) * envN);
       #ifdef SURF_MASK
         vSurfMask = surfaceMask;
+      #endif
+      #ifdef ROCK_MASK
+        vRockMask = rockMask;
       #endif
     `)
     shader.fragmentShader = `${HEAD}\n${shader.fragmentShader}`

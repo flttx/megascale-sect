@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react'
 import { BufferAttribute, BufferGeometry, Color, DoubleSide, Mesh, ShaderMaterial, Uniform } from 'three'
 import { terrainHeight } from '../environment/t02r/terrain'
 import { ISLANDS } from '../sites'
+import { islandLip, islandRim } from './rockLayout'
 import { atmosphere } from '../sky/atmosphere'
 import { CLOUD_SEA_Y } from '../sky/CloudSea'
 import { fogUniforms } from '../sky/fog'
@@ -92,8 +93,8 @@ function buildFalls() {
   FALLS.forEach(([id, angle, width], k) => {
     const isle = ISLANDS.find((i) => i.id === id)
     if (!isle) return
-    const [cx, T, cz] = isle.top, ox = Math.cos(angle), oz = Math.sin(angle), tx = -oz, tz = ox
-    const lipR = isle.radius * 1.1, lipY = T - 0.9, base = pos.length / 3
+    const [cx, , cz] = isle.top, ox = Math.cos(angle), oz = Math.sin(angle), tx = -oz, tz = ox
+    const lip = islandLip(isle, angle, width / 2), lipR = islandRim(isle, angle, width / 2) - 0.5, lipY = lip.y + 0.15, base = pos.length / 3
     const bottom = Math.max(CLOUD_SEA_Y + 4, terrainHeight(cx + ox * (lipR + 12), cz + oz * (lipR + 12)) + 3)
     const drop = lipY - bottom, rows = 40, cols = 6
     for (let i = 0; i <= rows; i++) {
