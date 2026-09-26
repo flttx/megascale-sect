@@ -1,0 +1,121 @@
+{
+  "concepts": {
+    "a": {
+      "task_id": "ed086044-d71b-47d9-bd77-3a00a5444e8c",
+      "variant": "a",
+      "prompt": "colossal ancient Kun from Chinese mythology, a giant sky whale, a single whale, the entire whale visible from head to tail, realistic massive whale shape like a humpback whale with a long tapering tail and broad horizontal tail flukes, very long elegant wing-like pectoral fins spread wide outward to the sides like wings, heavy weathered deeply wrinkled whale hide, deep slate blue-grey back fading to a pale jade and ivory underside with long throat grooves, clusters of barnacles and jade-green and grey stone encrustations on the head, back and fins, faint engraved auspicious xiangyun cloud swirl patterns with subtle gold inlay, majestic, ancient, realistic concept art sculpture, three-quarter view from slightly above and to the side, head pointing left, both pectoral fins clearly visible and spread, isolated on a plain light grey studio background, no water, no clouds, no ground, no text, soft even studio lighting, sharp silhouette, high detail --no cartoon, cute, toy, anime, several whales, water, ocean, splash, clouds, sky, ground, people, text, watermark, cropped, blurry, low quality",
+      "file": "concept_a.jpg",
+      "credits": 5
+    },
+    "b": {
+      "task_id": "bcac27a2-a82d-4898-b569-fe8272f62ad9",
+      "variant": "b",
+      "prompt": "colossal ancient Kun from Chinese mythology, a giant sky whale, a single whale, the entire whale visible from head to tail, realistic massive whale shape like a humpback whale with a long tapering tail and broad horizontal tail flukes, very long elegant wing-like pectoral fins spread wide outward to the sides like wings, heavy weathered deeply wrinkled whale hide, deep slate blue-grey back fading to a pale jade and ivory underside with long throat grooves, clusters of barnacles and jade-green and grey stone encrustations on the head, back and fins, faint engraved auspicious xiangyun cloud swirl patterns with subtle gold inlay, majestic, ancient, realistic concept art sculpture, a small overgrown ruined Chinese pavilion with a few gnarled pine trees growing on the middle of its back, three-quarter view from slightly above and to the side, head pointing left, both pectoral fins clearly visible and spread, isolated on a plain light grey studio background, no water, no clouds, no ground, no text, soft even studio lighting, sharp silhouette, high detail --no cartoon, cute, toy, anime, several whales, water, ocean, splash, clouds, sky, ground, people, text, watermark, cropped, blurry, low quality",
+      "file": "concept_b.jpg",
+      "credits": 5
+    },
+    "c": {
+      "task_id": "da3caccd-e5b3-4f77-b23b-a0c2bdc13def",
+      "variant": "c",
+      "prompt": "colossal ancient Kun from Chinese mythology, a giant sky whale, a single whale, the entire whale visible from head to tail, realistic massive whale shape like a humpback whale with a long tapering tail and broad horizontal tail flukes, very long elegant wing-like pectoral fins spread wide outward to the sides like wings, heavy weathered deeply wrinkled whale hide, deep slate blue-grey back fading to a pale jade and ivory underside with long throat grooves, clusters of barnacles and jade-green and grey stone encrustations on the head, back and fins, faint engraved auspicious xiangyun cloud swirl patterns with subtle gold inlay, majestic, ancient, realistic concept art sculpture, side view profile, head pointing left, pectoral fins spread outward and slightly down, tail flukes horizontal, isolated on a plain light grey studio background, no water, no clouds, no ground, no text, soft even studio lighting, sharp silhouette, high detail --no cartoon, cute, toy, anime, several whales, water, ocean, splash, clouds, sky, ground, people, text, watermark, cropped, blurry, low quality",
+      "file": "concept_c.jpg",
+      "credits": 5
+    },
+    "d": {
+      "task_id": "751d59fa-685e-4af7-9368-93333a4c547a",
+      "variant": "d",
+      "prompt": "colossal ancient Kun from Chinese mythology, a giant sky whale, a single whale, the entire whale visible from head to tail, realistic massive whale shape like a humpback whale with a long tapering tail and broad horizontal tail flukes, very long elegant wing-like pectoral fins spread wide outward to the sides like wings, heavy weathered deeply wrinkled whale hide, deep slate blue-grey back fading to a pale jade and ivory underside with long throat grooves, clusters of barnacles and jade-green and grey stone encrustations on the head, back and fins, faint engraved auspicious xiangyun cloud swirl patterns with subtle gold inlay, majestic, ancient, realistic concept art sculpture, gliding pose with fins spread flat like wings, three-quarter top view from above and slightly in front, head pointing to the lower left, symmetric, straight body, isolated on a plain light grey studio background, no water, no clouds, no ground, no text, soft even studio lighting, sharp silhouette, high detail --no cartoon, cute, toy, anime, several whales, water, ocean, splash, clouds, sky, ground, people, text, watermark, cropped, blurry, low quality",
+      "file": "concept_d.jpg",
+      "credits": 5
+    },
+    "e": {
+      "task_id": "480c60a4-c860-4fb0-a1df-9c2a58805b31",
+      "variant": "e",
+      "prompt": "colossal ancient Kun from Chinese mythology, a giant sky whale, a single whale, the entire whale visible from head to tail, realistic massive whale shape like a humpback whale with a long tapering tail and broad horizontal tail flukes, very long elegant wing-like pectoral fins spread wide outward to the sides like wings, heavy weathered deeply wrinkled whale hide, deep slate blue-grey back fading to a pale jade and ivory underside with long throat grooves, clusters of barnacles and jade-green and grey stone encrustations on the head, back and fins, faint engraved auspicious xiangyun cloud swirl patterns with subtle gold inlay, majestic, ancient, realistic concept art sculpture, a small overgrown ruined Chinese pavilion with a few gnarled pine trees with dense needle foliage growing on the middle of its back, gliding pose with fins spread flat like wings, three-quarter top view from above and slightly in front, head pointing to the lower left, symmetric, straight body, isolated on a plain light grey studio background, no water, no clouds, no ground, no text, soft even studio lighting, sharp silhouette, high detail --no cartoon, cute, toy, anime, several whales, water, ocean, splash, clouds, sky, ground, people, text, watermark, cropped, blurry, low quality",
+      "file": "concept_e.jpg",
+      "credits": 5
+    }
+  },
+  "models": {
+    "a": {
+      "task_id": "e60253bc-4942-4c9c-a67d-fe11b450f1ef",
+      "request": {
+        "input": "ed086044-d71b-47d9-bd77-3a00a5444e8c",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "face_limit": 80000,
+        "texture_version": "v3.5-20260815"
+      },
+      "file": "raw_a.glb",
+      "bytes": 18266112,
+      "preview": "tripo_preview_a.webp",
+      "credits": 40
+    },
+    "c": {
+      "task_id": "4013ad9b-efea-4ad2-a897-8b660838dbf3",
+      "request": {
+        "input": "da3caccd-e5b3-4f77-b23b-a0c2bdc13def",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "face_limit": 80000,
+        "texture_version": "v3.5-20260815"
+      },
+      "file": "raw_c.glb",
+      "bytes": 18410424,
+      "preview": "tripo_preview_c.webp",
+      "credits": 40
+    },
+    "b": {
+      "task_id": "40b571d3-781f-4f4f-82d0-2fc139f4ce2b",
+      "request": {
+        "input": "bcac27a2-a82d-4898-b569-fe8272f62ad9",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "face_limit": 80000,
+        "texture_version": "v3.5-20260815"
+      },
+      "file": "raw_b.glb",
+      "bytes": 16761784,
+      "preview": "tripo_preview_b.webp",
+      "credits": 40
+    },
+    "d": {
+      "task_id": "896ca2d9-34b1-4448-a6b3-a0d73acf46ad",
+      "request": {
+        "input": "751d59fa-685e-4af7-9368-93333a4c547a",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "face_limit": 80000,
+        "texture_version": "v3.5-20260815"
+      },
+      "file": "raw_d.glb",
+      "bytes": 17176968,
+      "preview": "tripo_preview_d.webp",
+      "credits": 40
+    },
+    "e": {
+      "task_id": "4749fc59-ccf2-4eab-bcfd-ca89a59de283",
+      "request": {
+        "input": "480c60a4-c860-4fb0-a1df-9c2a58805b31",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "face_limit": 80000,
+        "texture_version": "v3.5-20260815"
+      },
+      "file": "raw_e.glb",
+      "bytes": 15405920,
+      "preview": "tripo_preview_e.webp",
+      "credits": 40
+    }
+  }
+}

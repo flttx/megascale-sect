@@ -1,0 +1,196 @@
+{
+  "male": {
+    "rig": "533966ff-b7cc-48a6-8c4a-65e806c00f50",
+    "rigCredits": 25,
+    "clips": {
+      "flee_01": {
+        "preset": "preset:biped:flee_01",
+        "task": "86f6c39f-6e4c-4943-9ca3-ab3d87b30dc3",
+        "status": "success",
+        "credits": 10,
+        "bytes": 82396
+      },
+      "surf": {
+        "preset": "preset:biped:surf",
+        "task": "32685b88-b6f6-4de4-9ba9-c65bb30e5d7b",
+        "status": "success",
+        "credits": 10,
+        "bytes": 102744
+      },
+      "walk": {
+        "preset": "preset:biped:walk",
+        "task": "abfad3c8-6168-4c9e-b045-f0ad6fa31631",
+        "status": "success",
+        "credits": 10,
+        "bytes": 75820
+      },
+      "standing_relax": {
+        "preset": "preset:biped:standing_relax",
+        "task": "ba613096-07cc-4004-a94c-5fb3395af279",
+        "status": "success",
+        "credits": 10,
+        "bytes": 383676
+      },
+      "wait": {
+        "preset": "preset:biped:wait",
+        "task": "ddd1fefb-34c3-4f0d-8278-a50e1cd00d0e",
+        "status": "success",
+        "credits": 10,
+        "bytes": 149792
+      },
+      "run": {
+        "preset": "preset:biped:run",
+        "task": "532faf78-8fbf-4143-9543-b518d47e386f",
+        "status": "success",
+        "credits": 10,
+        "bytes": 54128
+      },
+      "idle": {
+        "preset": "preset:biped:idle",
+        "task": "bea930ec-2b1b-44e1-aba9-1940446c11d6",
+        "status": "success",
+        "credits": 10,
+        "bytes": 337976
+      },
+      "fall": {
+        "preset": "preset:biped:fall",
+        "task": "1faaea9c-6613-4275-9af3-f6d71d3ec05b",
+        "status": "success",
+        "credits": 10,
+        "bytes": 89248
+      },
+      "turn": {
+        "preset": "preset:biped:turn",
+        "task": "f104003f-f1e8-4832-8bea-de6984c04bff",
+        "status": "success",
+        "credits": 10,
+        "bytes": 106080
+      },
+      "look_around": {
+        "preset": "preset:biped:look_around",
+        "task": "4b6ff640-fdf5-41c4-a3b3-e91191e4ec95",
+        "status": "success",
+        "credits": 10,
+        "bytes": 343372
+      },
+      "jump": {
+        "preset": "preset:biped:jump",
+        "task": "707d5500-6e0d-4d60-9a04-ab7c348d0be0",
+        "status": "success",
+        "credits": 10,
+        "bytes": 73116
+      },
+      "jump_down": {
+        "preset": "preset:biped:jump_down",
+        "task": "0f6e80dd-c97e-4164-8440-b0e70a76afb3",
+        "status": "success",
+        "credits": 10,
+        "bytes": 103292
+      },
+      "flee_02": {
+        "preset": "preset:biped:flee_02",
+        "task": "ee8a2f81-8e96-42e9-9754-a80f6ffe610b",
+        "status": "success",
+        "credits": 10,
+        "bytes": 102592
+      }
+    }
+  },
+  "female": {
+    "rig": "fca6181d-2edc-4375-8fc7-d3df43b6ea2d",
+    "rigCredits": 25,
+    "clips": {
+      "run": {
+        "preset": "preset:biped:run",
+        "task": "a1b7037c-adc4-42b0-82f5-d3d350d4786e",
+        "status": "success",
+        "credits": 10,
+        "bytes": 54144
+      },
+      "surf": {
+        "preset": "preset:biped:surf",
+        "task": "80ceadff-0dc9-4505-8827-924bf4e1e9cb",
+        "status": "success",
+        "credits": 10,
+        "bytes": 102784
+      },
+      "turn": {
+        "preset": "preset:biped:turn",
+        "task": "71c2bcb5-07d4-454b-8391-81617c221630",
+        "status": "success",
+        "credits": 10,
+        "bytes": 106116
+      },
+      "flee_02": {
+        "preset": "preset:biped:flee_02",
+        "task": "4fe0e7fd-9bb2-4b2d-9cfa-618e0cda90d1",
+        "status": "success",
+        "credits": 10,
+        "bytes": 102636
+      },
+      "look_around": {
+        "preset": "preset:biped:look_around",
+        "task": "c6a8fdd8-5431-4a8b-8925-efefae6e64c9",
+        "status": "success",
+        "credits": 10,
+        "bytes": 343400
+      },
+      "fall": {
+        "preset": "preset:biped:fall",
+        "task": "e0588b9d-648c-43dd-97cc-6695934ddde5",
+        "status": "success",
+        "credits": 10,
+        "bytes": 89268
+      },
+      "standing_relax": {
+        "preset": "preset:biped:standing_relax",
+        "task": "208760af-ec58-44c0-8996-eead35d81d0d",
+        "status": "success",
+        "credits": 10,
+        "bytes": 383696
+      },
+      "flee_01": {
+        "preset": "preset:biped:flee_01",
+        "task": "4e9cd200-b239-4bfc-8c4c-7290414a3233",
+        "status": "success",
+        "credits": 10,
+        "bytes": 82428
+      },
+      "jump_down": {
+        "preset": "preset:biped:jump_down",
+        "task": "1561dcfe-e1d2-4ad7-b242-90892b0ade1a",
+        "status": "success",
+        "credits": 10,
+        "bytes": 103316
+      },
+      "idle": {
+        "preset": "preset:biped:idle",
+        "task": "ff3bfda6-527f-4d05-b7ab-2fb5b45280fd",
+        "status": "success",
+        "credits": 10,
+        "bytes": 338028
+      },
+      "walk": {
+        "preset": "preset:biped:walk",
+        "task": "2cbdcfd5-5af5-4074-9075-30c89b5a6156",
+        "status": "success",
+        "credits": 10,
+        "bytes": 75868
+      },
+      "jump": {
+        "preset": "preset:biped:jump",
+        "task": "853951aa-a27b-4ca5-a534-f61496cfee0f",
+        "status": "success",
+        "credits": 10,
+        "bytes": 73148
+      },
+      "wait": {
+        "preset": "preset:biped:wait",
+        "task": "36fd898c-0bda-4f75-bb2d-6c591fd3bfd7",
+        "status": "success",
+        "credits": 10,
+        "bytes": 149816
+      }
+    }
+  }
+}

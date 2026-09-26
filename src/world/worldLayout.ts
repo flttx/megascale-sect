@@ -1,3 +1,4 @@
+import { TERRAIN, terrainHeight } from './environment/t02r/terrain'
 import { walkableHeight } from './surfaces'
 
 export const LAYOUT = {
@@ -40,7 +41,44 @@ function layoutGroundHeight(x: number, z: number): number | null {
     return ((stairs.startZ - z) / (stairs.startZ - stairs.endZ)) * stairs.height
   }
   if (Math.abs(x) <= platform.width / 2 && z <= platform.frontZ && z >= platform.backZ) return platform.height
-  return null
+  return naturalGround(x, z)
+}
+
+/** Natural ground is walkable down to just above the cloud tops; below that there is nothing to stand on. */
+const TERRAIN_WALK_FLOOR = -60
+
+function naturalGround(x: number, z: number): number | null {
+  if (x < TERRAIN.minX || x > TERRAIN.maxX || z < TERRAIN.minZ || z > TERRAIN.maxZ || insideTowerFootprint(x, z)) return null
+  const h = terrainHeight(x, z)
+  return h >= TERRAIN_WALK_FLOOR ? h : null
+}
+
+/**
+ * Downhill gradient of the natural ground under (x, z), or null where a road, slab or structure is underfoot
+ * (those edges are steps, not slopes). `out` receives the horizontal fall-line direction scaled by rise/run.
+ */
+export function terrainGradient(x: number, z: number, fromY = Infinity, out = { x: 0, z: 0 }) {
+  const h = naturalGround(x, z)
+  if (h === null || layoutGroundHeight(x, z) !== h || groundHeight(x, z, fromY) !== h) return null
+  const e = 0.5
+  out.x = (terrainHeight(x - e, z) - terrainHeight(x + e, z)) / (2 * e)
+  out.z = (terrainHeight(x, z - e) - terrainHeight(x, z + e)) / (2 * e)
+  return out
+}
+
+/** Slope in degrees of the natural ground under (x, z); 0 on roads, slabs and structures. */
+export function terrainSlope(x: number, z: number, fromY = Infinity) {
+  const g = terrainGradient(x, z, fromY)
+  return g ? Math.atan(Math.hypot(g.x, g.z)) * 180 / Math.PI : 0
+}
+
+/** The six side towers stand on rotated square footings (see towerFootings in scatter.ts). */
+function insideTowerFootprint(x: number, z: number): boolean {
+  for (const { position: [px, , pz], rotation: [, ry], scaleMultiplier: m } of LAYOUT.towers) {
+    const dx = x - px, dz = z - pz, c = Math.cos(ry), s = Math.sin(ry)
+    if (Math.abs(dx * c - dz * s) < (48.8 * m + 4) / 2 + 0.6 && Math.abs(dx * s + dz * c) < (49.4 * m + 4) / 2 + 0.6) return true
+  }
+  return false
 }
 
 export function insideMainFootprint(x: number, z: number): boolean {

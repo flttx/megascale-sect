@@ -1,0 +1,113 @@
+{
+  "cliff": {
+    "report": {
+      "diff.webp": 880960,
+      "diff.1k.webp": 290364,
+      "nor.webp": 730018,
+      "nor.1k.webp": 240826,
+      "arm.webp": 2114048,
+      "arm.1k.webp": 521514,
+      "height.webp": 71724,
+      "height.1k.webp": 30870
+    },
+    "hasAO": true,
+    "heightRange": [
+      0.6384,
+      0.9282
+    ]
+  },
+  "rock_detail": {
+    "report": {
+      "diff.webp": 1002336,
+      "diff.1k.webp": 237856,
+      "nor.webp": 537178,
+      "nor.1k.webp": 118270,
+      "arm.webp": 2048836,
+      "arm.1k.webp": 518074,
+      "height.webp": 42586,
+      "height.1k.webp": 17718
+    },
+    "hasAO": true,
+    "heightRange": [
+      0.1057,
+      0.9592
+    ]
+  },
+  "moss": {
+    "report": {
+      "diff.webp": 688468,
+      "diff.1k.webp": 230296,
+      "nor.webp": 1437194,
+      "nor.1k.webp": 410594,
+      "arm.webp": 2112340,
+      "arm.1k.webp": 523438
+    },
+    "hasAO": true,
+    "heightRange": null
+  },
+  "grass": {
+    "report": {
+      "diff.webp": 1409900,
+      "diff.1k.webp": 422782,
+      "nor.webp": 1984268,
+      "nor.1k.webp": 553328,
+      "arm.webp": 1805340,
+      "arm.1k.webp": 480926
+    },
+    "hasAO": true,
+    "heightRange": null
+  },
+  "gravel": {
+    "report": {
+      "diff.webp": 1324278,
+      "diff.1k.webp": 356402,
+      "nor.webp": 1961796,
+      "nor.1k.webp": 505962,
+      "arm.webp": 2217396,
+      "arm.1k.webp": 585086
+    },
+    "hasAO": true,
+    "heightRange": null
+  },
+  "paving": {
+    "report": {
+      "diff.webp": 695534,
+      "diff.1k.webp": 186830,
+      "nor.webp": 327864,
+      "nor.1k.webp": 61536,
+      "arm.webp": 2120030,
+      "arm.1k.webp": 544896,
+      "height.webp": 27888,
+      "height.1k.webp": 11662
+    },
+    "hasAO": true,
+    "heightRange": [
+      0.1953,
+      0.9873
+    ]
+  },
+  "marble": {
+    "report": {
+      "diff.webp": 349136,
+      "diff.1k.webp": 120760,
+      "nor.webp": 229594,
+      "nor.1k.webp": 76498,
+      "arm.webp": 1365562,
+      "arm.1k.webp": 349746
+    },
+    "hasAO": false,
+    "heightRange": null
+  },
+  "roof_tiles": {
+    "report": {
+      "diff.webp": 763980,
+      "diff.1k.webp": 266698,
+      "nor.webp": 289010,
+      "nor.1k.webp": 98114,
+      "arm.webp": 2080250,
+      "arm.1k.webp": 488596
+    },
+    "hasAO": true,
+    "heightRange": null
+  }
+}

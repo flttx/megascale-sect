@@ -5,7 +5,8 @@ import { BoxGeometry, BufferGeometry, Euler, Group, InstancedMesh, Matrix4, Mesh
 import { LAYOUT } from '../../worldLayout'
 import { GrandStairs } from '../GrandStairs'
 import { environmentMaterial } from './materials'
-import { makeDistantRidge, makeRoad, makeTerrain, roadSamples } from './terrain'
+import { FAR_RING_RADII, makeDistantRidge, makeFarRing, makeRoad, makeTerrain, roadSamples } from './terrain'
+import { loadSurfaceTextures } from '../terrainTextures'
 import { makeScatter, towerFootings } from './scatter'
 
 export const T02R_ROCK_URL = '/assets/environment/t02r/hero-rocks.glb'
@@ -81,13 +82,17 @@ export function EnvironmentT02R() {
   const geometry = useMemo(makeTerrain, [])
   const material = useMemo(() => environmentMaterial('terrain'), [])
   const distant = useMemo(() => Array.from({ length: 4 }, (_, i) => makeDistantRidge(i)), [])
+  const ring = useMemo(() => FAR_RING_RADII.map((_, i) => makeFarRing(i)), [])
   const distantMaterial = useMemo(() => environmentMaterial('distant'), [])
+  // The scanned surface maps decode in a worker; until then the materials show flat per-layer tints.
+  useEffect(() => { loadSurfaceTextures().catch((error: unknown) => console.warn('[surfaces] texture load failed', error)) }, [])
   return <group name="ENV_T02R">
     <group name="Terrain"><mesh name="Continuous_Main_Terrain" geometry={geometry} material={material} /></group>
     <Terraces /><Roads />
     <group name="Cliffs" userData={{ strategy: 'Continuous shoulder / cliff face / talus heightfield with authored ridge branches' }} />
     <group name="HeroRocks"><Suspense fallback={null}><Rocks /></Suspense></group>
-    <group name="FarMountains">{distant.map((g, i) => <mesh key={i} name={`Mountain_Layer_${i}`} geometry={g} material={distantMaterial} userData={{ castShadow: false }} />)}</group>
+    <group name="FarMountains">{distant.map((g, i) => <mesh key={i} name={`Mountain_Layer_${i}`} geometry={g} material={distantMaterial} userData={{ castShadow: false }} />)}
+      {ring.map((g, i) => <mesh key={i} name={`Horizon_Ring_${i}`} geometry={g} material={distantMaterial} frustumCulled={false} userData={{ castShadow: false }} />)}</group>
     <group name="Materials" /><group name="Debug" />
   </group>
 }

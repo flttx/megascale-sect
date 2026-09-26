@@ -57,7 +57,9 @@ interface Plinth { site: SiteSpec; bottom: number }
 /** Road-side steles overhang sloping terrain; they stand on a masonry plinth level with the road. */
 function plinthFor(site: SiteSpec): Plinth | null {
   const [x, y, z] = site.position
-  if (groundHeight(x, z, y + 1) !== null) return null
+  // Standing on the road or a slab already; bare natural ground is what the plinth is for.
+  const ground = groundHeight(x, z, y + 1)
+  if (ground !== null && ground !== terrainHeight(x, z)) return null
   let low = Infinity
   for (const dx of [-2.2, 0, 2.2]) for (const dz of [-2.2, 0, 2.2]) low = Math.min(low, terrainHeight(x + dx, z + dz))
   return low < y - 0.3 && low > y - 8 ? { site, bottom: low - 0.8 } : null

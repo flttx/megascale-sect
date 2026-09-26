@@ -1,0 +1,60 @@
+{
+  "source": "polyhaven",
+  "id": "grey_roof_tiles",
+  "info": {
+    "type": 1,
+    "date_published": 1530078110,
+    "name": "Grey Roof Tiles",
+    "old_id": 142,
+    "categories": [
+      "roofing",
+      "outdoor",
+      "man made",
+      "clean"
+    ],
+    "authors": {
+      "Rob Tuytel": "All"
+    },
+    "dimensions": [
+      3000,
+      3000
+    ],
+    "max_resolution": [
+      8192,
+      8192
+    ],
+    "files_hash": "92e23429a38512689bd3b9746f0605897eda345e",
+    "tags": [
+      "grey",
+      "moss",
+      "damp",
+      "mosscovered",
+      "ceramic tiles",
+      "overlapping",
+      "weathered",
+      "overlapping tiles",
+      "roofing material",
+      "roof tiles",
+      "traditional roof tiles"
+    ],
+    "sponsors": [
+      "4714267"
+    ],
+    "description": "Free 8K texture of grey ceramic overlapping roof tiles, weathered and damp with moss patches, chipped edges and a gritty, low-gloss ceramic surface.",
+    "category_id": "6165a492-c53c-5b5f-96df-20c96a7763df",
+    "category": "Ceramic/Terracotta",
+    "attributes": {
+      "surface_use": "roof",
+      "condition": [
+        "weathered",
+        "mossy",
+        "damaged"
+      ],
+      "origin": "man_made",
+      "setting": "outdoor"
+    },
+    "img_version": "6977cacb",
+    "download_count": 38879,
+    "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/grey_roof_tiles.png?width=256&height=256&v=6977cacb"
+  }
+}

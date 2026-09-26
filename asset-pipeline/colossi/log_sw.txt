@@ -1,0 +1,10 @@
+[15:04:51] giant_sword front_seedream_v5_muiisyk1_2 text-to-image 7a23b9d0-409a-4d54-b2b7-538690b87f13
+[15:05:24] giant_sword front_seedream_v5_muiisyk1_2 -> front_seedream_v5_muiisyk1_2.jpg
+[15:05:58] giant_sword front_seedream_v5_muiisyk1_1 text-to-image 49907a08-d307-4818-bf86-9d7febc2ef5d
+[15:06:31] giant_sword front_seedream_v5_muiisyjk_0 text-to-image 2461aa21-f0d1-4237-9cb1-8de7c71df110
+[15:06:32] giant_sword front_seedream_v5_muiisyk1_1 -> front_seedream_v5_muiisyk1_1.jpg
+[15:07:02] giant_sword front_seedream_v5_muiisyjk_0 -> front_seedream_v5_muiisyjk_0.jpg
+[15:07:06] giant_sword front_seedream_v5_muiisyk2_3 text-to-image de561974-c451-4982-a692-600f229afac0
+[15:07:38] giant_sword front_seedream_v5_muiisyk2_3 -> front_seedream_v5_muiisyk2_3.jpg
+[15:12:05] giant_sword concept 0 FAILED POST /generation/text-to-image: HTTP 429 code=2000 You have exceeded the limit of generation Try again later. You can also check `Retry-After` header.
+[15:12:08] giant_sword concept 1 FAILED POST /generation/text-to-image: HTTP 429 code=2000 You have exceeded the limit of generation Try again later. You can also check `Retry-After` header.

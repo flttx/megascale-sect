@@ -1,0 +1,10 @@
+[15:08:48] guardian_b concept 0 FAILED POST /generation/text-to-image: HTTP 429 code=2000 You have exceeded the limit of generation Try again later. You can also check `Retry-After` header.
+[15:08:48] guardian_b concept 2 FAILED POST /generation/text-to-image: HTTP 429 code=2000 You have exceeded the limit of generation Try again later. You can also check `Retry-After` header.
+[15:08:53] guardian_b concept 1 FAILED POST /generation/text-to-image: HTTP 429 code=2000 You have exceeded the limit of generation Try again later. You can also check `Retry-After` header.
+[15:08:56] guardian_b q34_seedream_v5_muiiyx0h_0 text-to-image bb651bd5-5854-486b-b850-c04c3e570ae3
+[15:09:39] guardian_b q34_seedream_v5_muiiyx0h_0 -> q34_seedream_v5_muiiyx0h_0.jpg
+[15:13:23] guardian_b concept 1 FAILED POST /generation/text-to-image: HTTP 429 code=2000 You have exceeded the limit of generation Try again later. You can also check `Retry-After` header.
+[15:14:01] guardian_b front_chat_image_2_muij4ozu_0 text-to-image dd4e3c4f-befe-4165-a699-6dbe0688d990
+[15:15:31] guardian_b front_chat_image_2_muij4ozu_0 -> front_chat_image_2_muij4ozu_0.png
+[15:15:34] guardian_b front_chat_image_2_muij7g3b_1 text-to-image 3aa53255-57d0-44da-b0fa-dbbb823083fc
+[15:17:04] guardian_b front_chat_image_2_muij7g3b_1 -> front_chat_image_2_muij7g3b_1.png

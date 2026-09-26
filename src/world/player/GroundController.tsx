@@ -1,5 +1,31 @@
 import { Vector3 } from 'three'
-import { groundHeight, LAYOUT } from '../worldLayout'
+import { groundHeight, LAYOUT, terrainGradient } from '../worldLayout'
+
+/** Horizontal probe for slope checks, and the rise it may climb (45°) or drop (55°) over that distance. */
+const PROBE = 1.2
+const MAX_RISE = PROBE * Math.tan(Math.PI / 4)
+const MAX_DROP = PROBE * Math.tan((55 * Math.PI) / 180)
+/** Natural ground steeper than this (rise/run, ≈52°) cannot hold a stance: the player slides down it. */
+const SLIDE_GRADIENT = Math.tan((52 * Math.PI) / 180)
+const SLIDE_SPEED = 6
+const fall = { x: 0, z: 0 }, probeGradient = { x: 0, z: 0 }
+
+/**
+ * Whether a step from (x, z) to (nx, nz) lands on ground and stays within the climb and drop limits, measured
+ * from `here` (the ground underfoot, so a fall in progress is judged by the terrain, not the body).
+ */
+function canStep(x: number, z: number, nx: number, nz: number, y: number, here: number) {
+  const next = groundHeight(nx, nz, y)
+  if (next === null) return false
+  const dx = nx - x, dz = nz - z, length = Math.hypot(dx, dz)
+  if (length < 1e-6) return true
+  const ahead = groundHeight(x + (dx / length) * PROBE, z + (dz / length) * PROBE, y)
+  const target = ahead ?? next
+  if (target - here > MAX_RISE || here - target > MAX_DROP) return false
+  // Never walk onto ground too steep to stand on; sliding is only for being set down there.
+  const slope = terrainGradient(nx, nz, y, probeGradient)
+  return slope === null || Math.hypot(slope.x, slope.z) <= SLIDE_GRADIENT
+}
 
 export function stepGround(
   position: Vector3, velocity: Vector3, input: Vector3, yaw: number,
@@ -15,11 +41,28 @@ export function stepGround(
   velocity.x += (desired.x - velocity.x) * blend
   velocity.z += (desired.z - velocity.z) * blend
   if (desired.lengthSq() === 0 && Math.hypot(velocity.x, velocity.z) < 0.015) { velocity.x = 0; velocity.z = 0 }
+  // Too steep to stand on (e.g. set down on a cliff face): slide down the fall line.
+  const here = groundHeight(position.x, position.z, position.y) ?? position.y
+  const gradient = terrainGradient(position.x, position.z, position.y, fall)
+  const steepness = gradient ? Math.hypot(gradient.x, gradient.z) : 0
+  const sliding = gradient !== null && steepness > SLIDE_GRADIENT
+  if (sliding) {
+    velocity.x += (gradient.x / steepness * SLIDE_SPEED - velocity.x) * blend
+    velocity.z += (gradient.z / steepness * SLIDE_SPEED - velocity.z) * blend
+  }
   const nextX = position.x + velocity.x * delta
   const nextZ = position.z + velocity.z * delta
-  if (groundHeight(nextX, nextZ, position.y) !== null) {
+  const allowed = (nx: number, nz: number) => sliding ? groundHeight(nx, nz, position.y) !== null : canStep(position.x, position.z, nx, nz, position.y, here)
+  // Blocked moves slide along the obstacle (cliff edge, steep bank) instead of stopping dead.
+  if (allowed(nextX, nextZ)) {
     position.x = nextX
     position.z = nextZ
+  } else if (allowed(nextX, position.z)) {
+    position.x = nextX
+    velocity.z = 0
+  } else if (allowed(position.x, nextZ)) {
+    position.z = nextZ
+    velocity.x = 0
   } else {
     velocity.x = 0
     velocity.z = 0

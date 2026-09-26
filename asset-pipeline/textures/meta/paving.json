@@ -1,0 +1,54 @@
+{
+  "source": "polyhaven",
+  "id": "large_grey_tiles",
+  "info": {
+    "scale": "1.5M x 1.5M",
+    "type": 1,
+    "tags": [
+      "grey",
+      "tiles",
+      "large",
+      "uneven",
+      "weathered",
+      "damaged"
+    ],
+    "date_published": 1560299295,
+    "name": "Large Grey Tiles",
+    "old_id": 209,
+    "categories": [
+      "floor",
+      "man made",
+      "outdoor",
+      "dirty"
+    ],
+    "authors": {
+      "Rob Tuytel": "All"
+    },
+    "dimensions": [
+      3000,
+      3000
+    ],
+    "max_resolution": [
+      8192,
+      8192
+    ],
+    "files_hash": "cf5b8c253bf79d105a16fc0ab4285a6dcda67783",
+    "description": "Free 8K texture of large grey stone tiles with uneven, weathered surfaces, chipped edges, cracked joints and dirty, mossy crevices.",
+    "category_id": "ed387a11-4ceb-5ff1-ab45-46a821ddbd0e",
+    "category": "Stone/Slabs & Tiles/Flagstones",
+    "attributes": {
+      "surface_use": "floor",
+      "condition": [
+        "weathered",
+        "damaged",
+        "mossy",
+        "cracked"
+      ],
+      "origin": "man_made",
+      "setting": "outdoor"
+    },
+    "img_version": "69017dd3",
+    "download_count": 115724,
+    "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/large_grey_tiles.png?width=256&height=256&v=69017dd3"
+  }
+}

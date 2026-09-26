@@ -31,12 +31,13 @@
 - [x] 截图对比验证（`artifacts/sky*/`、`verify:visual`）
 - 遗留到 R2：远处石柱之间有一片高于云顶的平坦地形，云海在此被裁开，需在地形重建时把外围地面压到云海之下
 
-### R2 地形与世界构成 — pending
-- [ ] Poly Haven CC0 贴图（岩壁、苔藓、草地、石板、树皮）
-- [ ] 新山体高度场：主峰从云海升起，崖面三平面映射 + 岩层 + 坡度材质
-- [ ] 地形可行走（坡度限制），替换“看不见的墙”
-- [ ] Blender 程序化石柱（6 种）与浮空山（4 种），实例化布置
-- [ ] 远山分层剪影
+### R2 地形与世界构成 — in_progress
+- [x] Poly Haven / ambientCG CC0 贴图（岩壁、岩石细节、苔藓、草地、碎石、石板、汉白玉），worker 解码打包成 texture array
+- [x] 新山体高度场：主峰从云海升起，崖面带凹槽与台阶，三平面映射 + 黑色藻痕 / 铁锈斑 / 岩层 + 坡度与汇水材质
+- [x] 地形可行走：自然地面高于 −60 m 即可站立；上坡 45° / 下坡 55° 限制，受阻时沿边滑移；> 52° 陡坡滑落；陡坡处拒绝落剑
+- [ ] Blender 程序化石柱（6 种）与浮空山（4 种），实例化布置（资产已交付 `public/assets/environment/rocks/`，待接入）
+- [x] 远山分层剪影：4 层远山脊 + 3 圈 3–4.8 km 地平线山环，相机 far 8000
+- 移到 R5：跳跃 / 坠落救援、按碰撞体行走（亭台、香炉等目前只挡飞行）
 
 ### R3 巨物布景 — pending
 - [ ] 鲲：Tripo 建模 → Blender 骨骼与游动动画 → GLB；运行时沿路径绕山、破云
@@ -67,8 +68,9 @@
 | --- | --- | --- |
 | kun | Tripo 鲲模型 → Blender 骨骼动画 | `public/assets/colossi/kun.glb` |
 | colossi | Tripo 神像、巨剑 | `public/assets/colossi/*.glb`（已交付） |
-| rocks | Blender 程序化石柱、浮空山 | `public/assets/environment/pillars*.glb`、`islands*.glb` |
+| rocks | Blender 程序化石柱、浮空山、巨石 | `public/assets/environment/rocks/{pillars,islands,boulders}*.glb`（已交付） |
 | pines | Blender 程序化松树（针叶卡片） | `public/assets/vegetation/*.glb`（已交付） |
+| anim | Tripo 动作预设 → 重定向到 mixamo 骨架 | `public/assets/characters/{male,female}/anim.glb`（已交付） |
 
 ## 关键决策
 | 决策 | 理由 |
@@ -84,3 +86,5 @@
 | --- | --- | --- |
 | Blender 路径 `/d/Program Files/Blender Foundation/blender.exe` 不存在 | 1 | 实际在 `Blender 5.2/` 子目录 |
 | 新建 `progress.md` 覆盖了已提交的 `PROGRESS.md`（Windows 文件名不区分大小写） | 1 | 从 HEAD 恢复，会话日志改写进 `PROGRESS.md` 的“第二次重建”一节；不再单建 progress.md |
+| 地形在建筑切口外全是 NaN | 1 | `smax(h, -Infinity)` 算出 ∞−∞；smin 在 \|a−b\| ≥ k 时直接返回 min |
+| 从平台东缘走出后滑下悬崖直到云顶 | 1 | 踏上 52–55° 坡立即触发滑落；改为行走时不允许踏上会滑落的坡，滑落只用于被放到陡坡上 |

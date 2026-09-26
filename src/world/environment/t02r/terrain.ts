@@ -36,40 +36,114 @@ export function buildingDistance(x: number, z: number) {
   d = Math.min(d, rectDistance(x, z, 0, 55, 27, 10))
   return d
 }
-function ridge(x: number, z: number, cx: number, cz: number, sx: number, sz: number, h: number, skew = 0) {
-  const bend = 21 * Math.sin((z - cz) / 78) + 15 * noise(z / 110, cx / 300, 50)
-  const u = (x - cx + (z - cz) * skew + bend) / sx, v = (z - cz) / sz
-  const crest = 1 + .16 * noise(x / 76, z / 114, 46) + .10 * noise(x / 34, z / 71, 52)
-  return h * Math.exp(-(u * u * 1.8 + v * v * .95) * 1.5) * crest
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+/** Polynomial smooth minimum / maximum: blends two height fields over a band of width k. */
+function smin(a: number, b: number, k: number) {
+  if (Math.abs(a - b) >= k) return Math.min(a, b)
+  const t = clamp(0.5 + 0.5 * (b - a) / k); return b + (a - b) * t - k * t * (1 - t)
 }
-export function terrainHeight(x: number, z: number) {
-  // Authored mountain mass and branching ridges establish layout before noise.
-  const warpedX = x + noise(x / 95, z / 95, 2) * 38
-  const warpedZ = z + noise(x / 110, z / 80, 8) * 40
-  const mainDistance = rectDistance(warpedX, warpedZ, 0, -292, 195, 217)
-  const cliffWidth = 164 + noise(x / 130, z / 130, 9) * 43
-  const shoulder = 1 - smooth(0, 56, mainDistance)
-  const face = 1 - smooth(12, cliffWidth, mainDistance)
-  const scree = 1 - smooth(56, 285, mainDistance)
-  let h = -186 + shoulder * 22 + face * 106 + scree * 87
-  h = Math.max(h, -182 + ridge(x, z, -35, 66, 100, 210, 172, -0.16))
-  h = Math.max(h, -172 + ridge(x, z, -255, -565, 215, 235, 315, 0.34))
-  h = Math.max(h, -170 + ridge(x, z, 250, -610, 185, 240, 350, -0.43))
-  h = Math.max(h, -162 + ridge(x, z, -405, -245, 130, 270, 214, -0.22))
-  h = Math.max(h, -174 + ridge(x, z, 422, -355, 145, 220, 247, 0.28))
-  // Directional gullies, bedding shelves and secondary spurs; no uniform bumps.
-  const relief = smooth(-165, -65, h)
-  const medium = noise(x / 41, z / 57, 4) * 24 + noise((x + z * 0.3) / 19, z / 81, 6) * 11
-  const strata = (1 - Math.abs(noise(x / 27 + h / 66, z / 43, 59))) * 4
-  // Oblique erosional clefts open into talus rather than tracing terrace rings.
-  for (const side of [-1, 1]) {
-    for (const [cz, depth, span] of [[-135, 25, 15], [-255, 32, 19], [-395, 24, 16], [-505, 36, 20]]) {
-      const channel = (z - cz + (Math.abs(x) - 245) * (.33 * side + .18)) / span
-      const active = smooth(190, 240, Math.abs(x)) * (1 - smooth(330, 510, Math.abs(x)))
-      h -= Math.exp(-channel * channel) * depth * active
-    }
+const smax = (a: number, b: number, k: number) => -smin(-a, -b, k)
+/** Ridged value noise in 0..1: sharp crests where the noise crosses zero. */
+function ridged(x: number, z: number, seed: number, octaves = 3) {
+  let sum = 0, amplitude = 0.5, frequency = 1, weight = 1
+  for (let i = 0; i < octaves; i++) {
+    const n = (1 - Math.abs(noise(x * frequency, z * frequency, seed + i * 7))) ** 2 * weight
+    weight = clamp(n * 1.6)
+    sum += n * amplitude; amplitude *= 0.5; frequency *= 2.03
   }
-  h += (medium + strata) * relief + noise(x / 9, z / 13, 12) * 0.65 * relief
+  return sum / 0.875
+}
+
+/** Outer ground, far below the cloud sea; only rifts ever show it. */
+export const TERRAIN_BASE = -420
+
+/** Horizontal distance (m) from the summit massif: the platform rim, every tower pad and the approach spine. */
+function massifDistance(x: number, z: number) {
+  const wx = x + noise(x / 150, z / 150, 2) * 30 + noise(x / 43, z / 49, 3) * 10
+  const wz = z + noise(x / 160, z / 130, 8) * 30 + noise(x / 47, z / 41, 5) * 10
+  let d = rectDistance(wx, wz, 0, -290, 214, 238)
+  for (const tower of LAYOUT.towers) d = smin(d, Math.hypot(wx - tower.position[0], wz - tower.position[2]) - towerRadius(tower.scaleMultiplier) - 30, 40)
+  d = smin(d, rectDistance(wx, wz, 0, 62, 36, 118), 50)
+  // The warp may bend the rim, never cut into the slab, a tower pad or the road.
+  d = Math.min(d, rectDistance(x, z, 0, -290, 198, 233), rectDistance(x, z, 0, 62, 24, 116))
+  for (const tower of LAYOUT.towers) d = Math.min(d, Math.max(0, Math.hypot(x - tower.position[0], z - tower.position[2]) - towerRadius(tower.scaleMultiplier) - 14))
+  return Math.max(0, d)
+}
+
+// [from x, z, to x, z, crest at start, crest at end, flank gradient]
+const SPURS: [number, number, number, number, number, number, number][] = [
+  [-235, -240, -650, -165, 10, -330, 1.25],
+  [255, -395, 670, -475, 6, -345, 1.15],
+  // Saddles that climb from the summit's back corners into the two karst peaks.
+  [-232, -515, -318, -632, 2, 70, 1.45],
+  [236, -528, 330, -668, 0, 95, 1.45],
+  // The approach spine's nose, sinking into the clouds behind the spawn.
+  [0, 176, 26, 440, -3, -360, 1.05],
+]
+function spur(x: number, z: number, index: number) {
+  const [ax, az, bx, bz, ha, hb, gradient] = SPURS[index]
+  const vx = bx - ax, vz = bz - az, length = Math.hypot(vx, vz)
+  const along = ((x - ax) * vx + (z - az) * vz) / length
+  const lateral = Math.abs(((x - ax) * vz - (z - az) * vx) / length)
+  const beyond = Math.max(0, -along, along - length)
+  const t = clamp(along / length)
+  const crestRelief = 60 * (1 - 0.5 * t)
+  // Cheap reject: this spur cannot reach above the outer ground here.
+  if (lerp(ha, hb, t) + crestRelief - (lateral + beyond) * gradient * 0.7 < TERRAIN_BASE - 40) return -Infinity
+  const crest = lerp(ha, hb, t ** 1.25) + (ridged(along / 95, index * 3.7, 71 + index) - 0.55) * crestRelief
+  // Gullies score the flanks; the crest line wanders.
+  const flank = lateral + noise(along / 70, index, 81) * 16 + (1 - Math.abs(noise(along / 38, lateral / 90, 83))) * 9
+  return crest - Math.hypot(Math.max(0, flank), beyond) * gradient * (1 + 0.25 * noise(x / 90, z / 90, 85))
+}
+
+// [centre x, z, radius, summit]: sheer karst peaks framing the hall from the front, leaving the back view open.
+const PEAKS: [number, number, number, number][] = [
+  [-335, -662, 128, 250], [-455, -590, 72, 150],
+  [348, -704, 142, 320], [470, -618, 80, 185],
+]
+function peak(x: number, z: number, index: number) {
+  const [cx, cz, radius, summit] = PEAKS[index]
+  const dx = x - cx, dz = z - cz, distance = Math.hypot(dx, dz)
+  if (distance > radius * 1.7) return -Infinity
+  // Lobed plan from noise sampled around a circle, so it closes seamlessly.
+  const c = distance > 1e-3 ? dx / distance : 1, sn = distance > 1e-3 ? dz / distance : 0
+  const lobes = noise(c * 1.7 + index * 9, sn * 1.7, 31) * 0.24 + noise(c * 4.3 + index * 9, sn * 4.3, 37) * 0.09
+    + (ridged(c * 9 + index * 9, sn * 9, 43, 2) - 0.45) * 0.13 + noise(dx / 11, dz / 11, 47) * 0.025
+  const t = distance / (radius * (1 + lobes))
+  const cap = (1 - Math.min(t, 1) ** 2) * radius * 0.1 + ridged(dx / 45, dz / 45, 41 + index) * 14
+  // Stepped profile: ledges every ~20% of the drop where pines and moss can hold on.
+  const fall = smooth(0.6, 1.12, t), q = fall * 5, stepped = (Math.floor(q) + smooth(0.25, 0.75, q - Math.floor(q))) / 5
+  return summit + cap - (summit - TERRAIN_BASE + 20) * lerp(fall, stepped, 0.55)
+}
+
+/** Natural ground before the architectural cuts: summit massif, cliffs, spurs and peaks. */
+function naturalHeight(x: number, z: number) {
+  const forward = smooth(-75, 12, z)
+  const rise = smooth(-150, -480, z) * smooth(120, 280, Math.abs(x))
+  let top = lerp(24 + rise * 22, -1, forward) + noise(x / 61, z / 67, 4) * 3.5 + noise(x / 17, z / 23, 6) * 1.1
+  top -= smooth(150, 205, z) * (z - 150) * 0.3
+  let h = top
+  const d = massifDistance(x, z)
+  if (d > 0) {
+    const cliffHeight = 165 + noise(x / 170, z / 170, 9) * 55, cliffWidth = 40 + noise(x / 83, z / 83, 13) * 16
+    // Vertical flutes and buttresses: any xz offset of the rim distance becomes a rib running down the face.
+    const fluted = d + (ridged(x / 21, z / 21, 23, 2) - 0.45) * 14 * smooth(0, 18, d) + noise(x / 9, z / 9, 25) * 3 * smooth(0, 10, d)
+    const fall = smooth(0, cliffWidth, fluted)
+    // Rounded karst rim, near-vertical face, then a talus apron that runs on under the clouds.
+    h = top - cliffHeight * fall - Math.max(0, fluted - cliffWidth * 0.7) * 1.05
+    // Bedding ledges, strongest mid-face.
+    const step = 13 + noise(x / 200, z / 200, 21) * 3, k = h / step
+    const terrace = (Math.floor(k) + smooth(0.3, 0.7, k - Math.floor(k))) * step
+    h = lerp(h, terrace, 1.8 * fall * (1 - fall))
+  }
+  for (let i = 0; i < SPURS.length; i++) h = smax(h, spur(x, z, i), 30)
+  for (let i = 0; i < PEAKS.length; i++) h = smax(h, peak(x, z, i), 45)
+  const base = TERRAIN_BASE + noise(x / 260, z / 260, 17) * 28 + ridged(x / 180, z / 180, 19, 2) * 26
+  return smax(h, base, 30)
+}
+
+export function terrainHeight(x: number, z: number) {
+  let h = naturalHeight(x, z)
   // Explicit architectural cuts. Natural slopes extend beyond every slab edge.
   const platform = rectDistance(x, z, 0, -290, 191, 226)
   for (const tower of LAYOUT.towers) {
@@ -92,7 +166,7 @@ export function terrainHeight(x: number, z: number) {
     const apron = Math.max(0, distance - width / 2)
     const cuts = noise(x / 19, z / 29, 103) * 9 * smooth(12, 35, distance)
     const embankment = ramp - 0.7 - apron * (0.65 + 0.18 * Math.sin(z * 0.035)) + cuts
-    h += (Math.max(h, embankment - smooth(28, 120, distance) * 85) - h) * endBlend
+    h += (Math.max(h, embankment - smooth(22, 48, distance) * 300) - h) * endBlend
   }
   return h
 }
@@ -101,14 +175,20 @@ export function slopeAt(x: number, z: number) {
   const dz = (terrainHeight(x, z + 1) - terrainHeight(x, z - 1)) / 2
   return Math.atan(Math.hypot(dx, dz)) * 180 / Math.PI
 }
-function coordinates(min: number, max: number, denseMin: number, denseMax: number) {
+/** Grid lines from min to max; each [from, to, step] tier refines the spacing inside it (finest listed last). */
+function coordinates(min: number, max: number, tiers: [number, number, number][], coarse: number) {
   const values = [min]
-  for (let p = min; p < max;) { p = Math.min(max, p + (p >= denseMin && p < denseMax ? 3 : 8)); values.push(p) }
+  for (let p = min; p < max;) {
+    let step = coarse
+    for (const [a, b, s] of tiers) if (p >= a && p < b) step = s
+    p = Math.min(max, p + step); values.push(p)
+  }
   return values
 }
 export function heightMesh(xs: number[], zs: number[], height: (x: number, z: number) => number) {
-  const positions: number[] = [], indices: number[] = []
-  for (const z of zs) for (const x of xs) positions.push(x, height(x, z), z)
+  const positions = new Float32Array(xs.length * zs.length * 3), indices: number[] = []
+  let o = 0
+  for (const z of zs) for (const x of xs) { positions[o++] = x; positions[o++] = height(x, z); positions[o++] = z }
   for (let j = 0; j < zs.length - 1; j++) for (let i = 0; i < xs.length - 1; i++) {
     const a = j * xs.length + i, b = a + 1, c = a + xs.length, d = c + 1
     indices.push(a, c, b, b, c, d)
@@ -118,26 +198,88 @@ export function heightMesh(xs: number[], zs: number[], height: (x: number, z: nu
   return g
 }
 export function makeTerrain() {
-  const xs = coordinates(TERRAIN.minX, TERRAIN.maxX, -350, 350)
-  const zs = coordinates(TERRAIN.minZ, TERRAIN.maxZ, -560, 185)
+  // 3 m on the summit and its cliffs, 6 m over the spurs and peaks, 12 m for ground that stays under the clouds.
+  const xs = coordinates(TERRAIN.minX, TERRAIN.maxX, [[-720, 720, 6], [-360, 360, 3]], 12)
+  const zs = coordinates(TERRAIN.minZ, TERRAIN.maxZ, [[-900, 460, 6], [-600, 240, 3]], 12)
   // Add exact artificial edges to prevent triangles bridging over the roads/cuts.
   xs.push(-191, -15, -9, 0, 9, 15, 191); zs.push(-516, -65, 20, 45, 55, 65, 138, 150, 162)
-  return heightMesh([...new Set(xs)].sort((a, b) => a - b), [...new Set(zs)].sort((a, b) => a - b), terrainHeight)
+  const X = [...new Set(xs)].sort((a, b) => a - b), Z = [...new Set(zs)].sort((a, b) => a - b)
+  const g = heightMesh(X, Z, terrainHeight)
+  g.setAttribute('surfaceMask', new Float32BufferAttribute(surfaceMask(X, Z, g.getAttribute('position').array), 2))
+  return g
 }
+/**
+ * Per-vertex hints for the terrain shader: R = worn verges beside the road and the platform rim,
+ * G = concavity (hollows and cliff feet, where scree and soil collect), from the grid's own curvature.
+ */
+function surfaceMask(xs: number[], zs: number[], positions: ArrayLike<number>) {
+  const out = new Float32Array(xs.length * zs.length * 2), n = xs.length
+  const y = (i: number, j: number) => positions[(j * n + i) * 3 + 1]
+  const curvature = (h0: number, h1: number, h2: number, d0: number, d1: number) => ((h2 - h1) / d1 - (h1 - h0) / d0) / ((d0 + d1) / 2)
+  for (let j = 0; j < zs.length; j++) for (let i = 0; i < n; i++) {
+    const x = xs[i], z = zs[j], h = y(i, j)
+    let concave = 0
+    if (i > 0 && j > 0 && i < n - 1 && j < zs.length - 1) {
+      concave = curvature(y(i - 1, j), h, y(i + 1, j), x - xs[i - 1], xs[i + 1] - x) + curvature(y(i, j - 1), h, y(i, j + 1), z - zs[j - 1], zs[j + 1] - z)
+    }
+    const verge = Math.max(1 - smooth(9, 24, roadDistance(x, z)), (1 - smooth(0, 10, rectDistance(x, z, 0, -290, 191, 226))) * smooth(-1, 1, rectDistance(x, z, 0, -290, 191, 226)) * 0.55)
+    out[(j * n + i) * 2] = verge
+    out[(j * n + i) * 2 + 1] = smooth(0.015, 0.09, concave)
+  }
+  return out
+}
+
 export const DISTANT_RIDGE_LAYERS = 4
 /** Z extent of a distant ridge layer's mesh. */
-export const distantRidgeBand = (layer: number) => [-1050 - layer * 270, -1050 - layer * 270 + 26 * 18] as const
+export const distantRidgeBand = (layer: number) => [-1700 - layer * 380, -1100 - layer * 380] as const
+/** Serrated karst ranges behind the sect, rising from the cloud floor to 150–750 m. */
 export function distantRidgeHeight(layer: number, x: number, z: number) {
-  const center = -835 - layer * 270 + Math.sin(x / 230 + layer) * 38
-  const crest = 130 + layer * 45 + 95 * noise(x / 270, layer, 25) + 42 * noise(x / 110, layer, 31)
-  const cross = Math.exp(-Math.pow((z - center) / (90 + layer * 10), 2))
-  return -175 + crest * 1.8 * cross + 17 * noise(x / 53, z / 81, 33) * cross
+  const center = -1400 - layer * 380 + Math.sin(x / 230 + layer) * 45 + noise(x / 400, layer, 27) * 40
+  // Ends sink into the cloud sea so the 3.4 km strips never show a cut edge.
+  const crest = (0.35 + 0.65 * ridged(x / (300 - layer * 30), layer * 2.3, 25 + layer)) * (560 + 150 * layer) * (0.75 + 0.25 * noise(x / 900, layer, 29)) * (1 - smooth(1250, 1680, Math.abs(x)))
+  // Sharp-crested cross-section: steep faces fall to the cloud floor, gullied by lateral noise.
+  const across = Math.abs(z - center) / (120 + layer * 30) + (1 - Math.abs(noise(x / 60, z / 90, 33))) * 0.12
+  return TERRAIN_BASE + crest * Math.exp(-across * 2.1) + 22 * noise(x / 53, z / 81, 35) * Math.exp(-across)
 }
 export function makeDistantRidge(layer: number) {
   const xs = Array.from({ length: 341 }, (_, i) => -1700 + i * 10)
   const [minZ] = distantRidgeBand(layer)
-  const zs = Array.from({ length: 27 }, (_, i) => minZ + i * 18)
+  const zs = Array.from({ length: 31 }, (_, i) => minZ + i * 20)
   return heightMesh(xs, zs, (x, z) => distantRidgeHeight(layer, x, z))
+}
+
+export const FAR_RING_RADII = [3000, 3900, 4800] as const
+/**
+ * A ring of peaks around the whole horizon, 3–5 km out. Heights come from noise sampled on a circle, so the
+ * ring closes seamlessly; broad gaps leave open sky over the cloud sea in some directions.
+ */
+export function farRingHeight(layer: number, angle: number, radial: number) {
+  const c = Math.cos(angle), sn = Math.sin(angle), f = 5 + layer * 2
+  const open = smooth(-0.25, 0.3, noise(c * 1.3 + layer * 5, sn * 1.3, 91 + layer))
+  const crest = (0.3 + 0.7 * ridged(c * f + layer * 11, sn * f, 93 + layer)) * (1000 + layer * 300) * (0.25 + 0.75 * open)
+  const across = Math.abs(radial) / (260 + layer * 60) + (1 - Math.abs(noise(c * 40 + layer, radial / 120, 97))) * 0.15
+  return TERRAIN_BASE - 30 + crest * Math.exp(-across * 2)
+}
+export function makeFarRing(layer: number) {
+  const radius = FAR_RING_RADII[layer], segments = 900, rows = 22, width = 760
+  const positions = new Float32Array((segments + 1) * rows * 3), indices: number[] = []
+  let o = 0
+  for (let j = 0; j < rows; j++) {
+    const radial = (j / (rows - 1) - 0.5) * width
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      positions[o++] = Math.cos(angle) * (radius + radial)
+      positions[o++] = farRingHeight(layer, angle, radial)
+      positions[o++] = -290 + Math.sin(angle) * (radius + radial)
+    }
+  }
+  for (let j = 0; j < rows - 1; j++) for (let i = 0; i < segments; i++) {
+    const a = j * (segments + 1) + i, b = a + 1, c = a + segments + 1, d = c + 1
+    indices.push(a, b, c, b, d, c)
+  }
+  const g = new BufferGeometry()
+  g.setAttribute('position', new Float32BufferAttribute(positions, 3)); g.setIndex(indices); g.computeVertexNormals()
+  return g
 }
 export function makeRoad(shoulder = false) {
   const positions: number[] = [], indices: number[] = []

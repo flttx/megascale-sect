@@ -1,0 +1,69 @@
+{
+  "source": "polyhaven",
+  "id": "coast_sand_rocks_02",
+  "info": {
+    "date_published": 1646352000,
+    "name": "Coast Sand Rocks 02",
+    "type": 1,
+    "staging": null,
+    "authors": {
+      "Rob Tuytel": "All"
+    },
+    "dimensions": [
+      15000,
+      15000
+    ],
+    "sponsors": [
+      "540619",
+      "7937391",
+      "7934315",
+      "77433244"
+    ],
+    "categories": [
+      "outdoor",
+      "natural",
+      "terrain",
+      "aerial",
+      "rock",
+      "collection: smugglers_cove"
+    ],
+    "tags": [
+      "grass",
+      "rock face",
+      "rock",
+      "moss",
+      "rough",
+      "uneven",
+      "weathered",
+      "stones",
+      "cliff",
+      "ground",
+      "seaside",
+      "coastal"
+    ],
+    "max_resolution": [
+      8192,
+      8192
+    ],
+    "files_hash": "579892253d0d73a45eaee485135c35666bceb237",
+    "description": "Free 8K texture of weathered coastal sand-rock: rough, uneven rock faces with scattered stones, brown sandy soil and patchy green moss coverage.",
+    "category_id": "6f927474-95dd-5ec5-b756-e9299996aeee",
+    "category": "Stone/Rock & Cliffs/Coastal Rock",
+    "collections": [
+      "smugglers_cove"
+    ],
+    "attributes": {
+      "surface_use": "ground",
+      "condition": [
+        "weathered",
+        "mossy"
+      ],
+      "origin": "natural",
+      "setting": "outdoor",
+      "aerial": true
+    },
+    "img_version": "63f92b86",
+    "download_count": 545198,
+    "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/coast_sand_rocks_02.png?width=256&height=256&v=63f92b86"
+  }
+}

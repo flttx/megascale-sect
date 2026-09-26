@@ -1,0 +1,2 @@
+[15:23:33] giant_sword muted_seedream_v5_muijfbrd_2__m1 image-to-model d0058060-df37-4a20-8116-e4c4e984a2bd
+[15:24:57] giant_sword muted_seedream_v5_muijfbrd_2__m1 -> muted_seedream_v5_muijfbrd_2__m1.glb (11.3 MB)

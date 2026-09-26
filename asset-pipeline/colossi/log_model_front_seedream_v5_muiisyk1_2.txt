@@ -1,0 +1,2 @@
+[15:10:11] giant_sword front_seedream_v5_muiisyk1_2__m1 image-to-model b519130a-a090-4e32-bdf1-bc79cd45d94e
+[15:12:02] giant_sword front_seedream_v5_muiisyk1_2__m1 -> front_seedream_v5_muiisyk1_2__m1.glb (13.7 MB)

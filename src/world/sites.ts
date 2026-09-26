@@ -52,7 +52,8 @@ export interface PillarSite {
   /** Mean radius of the shaft. */
   radius: number
 }
-export const PILLAR_BASE_Y = -230
+/** Deep enough to root in the outer ground (TERRAIN_BASE), so no pillar floats inside a cloud rift. */
+export const PILLAR_BASE_Y = -440
 
 /** Highest ground (main terrain or distant ridges) inside a circle. */
 function groundMax(cx: number, cz: number, r: number) {

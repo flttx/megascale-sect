@@ -1,0 +1,2 @@
+[15:17:28] guardian_a front_chat_image_2_muij3e8v_1__m1 image-to-model 7f961987-79da-40ad-8f3e-d7b244da6f9b
+[15:19:07] guardian_a front_chat_image_2_muij3e8v_1__m1 -> front_chat_image_2_muij3e8v_1__m1.glb (21.0 MB)

@@ -16,3 +16,13 @@ asset-pipeline/*/*/work/
 asset-pipeline/*/textures/
 asset-pipeline/**/*.blend
 asset-pipeline/**/*.blend1
+# Rebuild pipeline scratch: previews, caches, raw meshes and logs are reproducible from the scripts and task locks.
+asset-pipeline/*/tmp/
+asset-pipeline/*/out/
+asset-pipeline/*/cache/
+asset-pipeline/**/__pycache__/
+asset-pipeline/**/*.log
+asset-pipeline/**/*.npz
+asset-pipeline/anim/**/*.glb
+asset-pipeline/kun/*.glb
+asset-pipeline/kun/*.png

@@ -1,0 +1,65 @@
+{
+  "source": "polyhaven",
+  "id": "rocky_trail",
+  "info": {
+    "name": "Rocky Trail",
+    "type": 1,
+    "authors": {
+      "Amal Kumar": "All"
+    },
+    "info": null,
+    "dimensions": [
+      2000,
+      2000
+    ],
+    "date_published": 1667260800,
+    "staging": null,
+    "sponsors": [
+      "20953239",
+      "7934315"
+    ],
+    "prepaid": true,
+    "categories": [
+      "outdoor",
+      "natural",
+      "terrain",
+      "rock",
+      "collection: pine_forest"
+    ],
+    "tags": [
+      "rough",
+      "uneven",
+      "stones",
+      "rock",
+      "gravel",
+      "chipped",
+      "rocks",
+      "nature",
+      "path",
+      "broken",
+      "cliff"
+    ],
+    "max_resolution": [
+      8192,
+      8192
+    ],
+    "files_hash": "28bcb1dab9a77017ed72c89762f695f3184c905b",
+    "description": "Free 8K texture of a rough, uneven rocky trail - compacted earth with mixed gravel, chipped stones and weathered rock in warm brown-gray tones, high detail.",
+    "category_id": "dd06ef8e-5807-534b-b7ac-19fb07264599",
+    "category": "Ground & Terrain/Rocky Ground/Rocky Paths & Trails",
+    "collections": [
+      "pine_forest"
+    ],
+    "attributes": {
+      "surface_use": "ground",
+      "condition": [
+        "weathered"
+      ],
+      "origin": "natural",
+      "setting": "outdoor"
+    },
+    "img_version": "ac905326",
+    "download_count": 114024,
+    "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/rocky_trail.png?width=256&height=256&v=ac905326"
+  }
+}

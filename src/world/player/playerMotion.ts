@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { groundHeight, LAYOUT } from '../worldLayout'
+import { groundHeight, LAYOUT, terrainSlope } from '../worldLayout'
 import { stepFlight } from './FlightController'
 import { stepGround } from './GroundController'
 
@@ -58,7 +58,8 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
   }
   if (runtime.phase === 'FLIGHT') {
     const surface = groundHeight(runtime.position.x, runtime.position.z, runtime.position.y)
-    if (surface === null) return '请飞到道路、平台或浮岛上方，再按 F 落地'
+    if (surface === null) return '请飞到地面、平台或浮岛上方，再按 F 落地'
+    if (terrainSlope(runtime.position.x, runtime.position.z, runtime.position.y) > 40) return '下方地势陡峭，请飞到平缓处再落地'
     runtime.destination.copy(runtime.position).setY(surface + FLIGHT_SEQUENCE.hover)
     runtime.velocity.set(0, 0, 0)
     changePhase(runtime, 'LANDING')

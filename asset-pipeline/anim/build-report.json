@@ -1,0 +1,492 @@
+{
+  "male": {
+    "heightM": 1.75,
+    "file": "public/assets/characters/male/anim.glb",
+    "bytes": 119632,
+    "clips": [
+      {
+        "name": "idle",
+        "frames": 121,
+        "duration": 4,
+        "loop": true,
+        "source": "idle",
+        "window": [
+          5,
+          125
+        ],
+        "loopSeamFixedDeg": 6.13,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.5474,
+          0.5481
+        ],
+        "footDrift": {
+          "Left": {
+            "contactFrames": 120,
+            "maxM": 0
+          },
+          "Right": {
+            "contactFrames": 120,
+            "maxM": 0
+          }
+        },
+        "footLockMaxCorrectionM": 0.0285
+      },
+      {
+        "name": "walk",
+        "frames": 57,
+        "duration": 1.8667,
+        "loop": true,
+        "source": "walk",
+        "window": [
+          0,
+          70
+        ],
+        "loopSeamFixedDeg": 0.05,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.5265,
+          0.5488
+        ],
+        "metresPerCycle": 2.8,
+        "unitsPerCycle": 1.6002,
+        "speedUnitsPerSec": 0.8572,
+        "speedMS": 1.5,
+        "playbackRate": 1.25,
+        "headingDeg": 0,
+        "footSlide": {
+          "Left": {
+            "contactFrames": 25,
+            "maxMS": 0,
+            "meanMS": 0
+          },
+          "Right": {
+            "contactFrames": 26,
+            "maxMS": 0,
+            "meanMS": 0
+          }
+        },
+        "trunkLeanDeg": 0.1,
+        "footLockMaxCorrectionM": 0.0239
+      },
+      {
+        "name": "run",
+        "frames": 16,
+        "duration": 0.5,
+        "loop": true,
+        "source": "run",
+        "window": [
+          11,
+          30
+        ],
+        "loopSeamFixedDeg": 12.76,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.464,
+          0.4996
+        ],
+        "metresPerCycle": 2.779,
+        "unitsPerCycle": 1.5882,
+        "speedUnitsPerSec": 3.1763,
+        "speedMS": 5.559,
+        "playbackRate": 1.25,
+        "headingDeg": 0.27,
+        "footSlide": {
+          "Left": {
+            "contactFrames": 3,
+            "maxMS": 0,
+            "meanMS": 0
+          },
+          "Right": {
+            "contactFrames": 3,
+            "maxMS": 0,
+            "meanMS": 0
+          }
+        },
+        "trunkLeanDeg": 33,
+        "footLockMaxCorrectionM": 0.0178
+      },
+      {
+        "name": "sprint",
+        "frames": 15,
+        "duration": 0.4667,
+        "loop": true,
+        "source": "flee_02+run",
+        "window": [
+          40,
+          57
+        ],
+        "loopSeamFixedDeg": 9.84,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.4717,
+          0.5002
+        ],
+        "metresPerCycle": 3.217,
+        "unitsPerCycle": 1.8384,
+        "speedUnitsPerSec": 3.9394,
+        "speedMS": 6.894,
+        "playbackRate": 1.214,
+        "headingDeg": -0.08,
+        "footSlide": {
+          "Left": {
+            "contactFrames": 3,
+            "maxMS": 0,
+            "meanMS": 0
+          },
+          "Right": {
+            "contactFrames": 2,
+            "maxMS": 0,
+            "meanMS": 0
+          }
+        },
+        "trunkLeanDeg": 35.1,
+        "footLockMaxCorrectionM": 0.0444,
+        "armsFrom": {
+          "source": "run",
+          "window": [
+            11,
+            30
+          ],
+          "phase": {
+            "legs": 12,
+            "run": 13
+          }
+        },
+        "extraLeanDeg": 12
+      },
+      {
+        "name": "jump",
+        "frames": 16,
+        "duration": 0.5,
+        "loop": false,
+        "source": "jump_down",
+        "window": [
+          22,
+          45
+        ],
+        "minFootAboveRest": -0.0002,
+        "hipsY": [
+          0.3878,
+          0.5665
+        ],
+        "liftOff": 0.2333,
+        "platform": 0.5258
+      },
+      {
+        "name": "fall",
+        "frames": 37,
+        "duration": 1.2,
+        "loop": true,
+        "source": "jump_down",
+        "window": [
+          48,
+          55
+        ],
+        "minFootAboveRest": 0.099,
+        "hipsY": [
+          0.5465,
+          0.5465
+        ]
+      },
+      {
+        "name": "land",
+        "frames": 16,
+        "duration": 0.5,
+        "loop": false,
+        "source": "jump_down",
+        "window": [
+          62,
+          95
+        ],
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.3487,
+          0.5762
+        ],
+        "touchdown": 0.0333,
+        "ground": 0.0198,
+        "crouchKept": 0.55
+      },
+      {
+        "name": "stand_on_sword",
+        "frames": 31,
+        "duration": 1,
+        "loop": true,
+        "source": "surf",
+        "window": [
+          58,
+          88
+        ],
+        "loopSeamFixedDeg": 5.12,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.44,
+          0.4632
+        ],
+        "footDrift": {
+          "Left": {
+            "contactFrames": 30,
+            "maxM": 0
+          },
+          "Right": {
+            "contactFrames": 30,
+            "maxM": 0
+          }
+        },
+        "footLockMaxCorrectionM": 0.0081,
+        "stance": {
+          "straighten": 0.75,
+          "chestYawDeg": 35,
+          "headPitchDeg": 10,
+          "raiseU": 0.03
+        }
+      }
+    ]
+  },
+  "female": {
+    "heightM": 1.7,
+    "file": "public/assets/characters/female/anim.glb",
+    "bytes": 118096,
+    "clips": [
+      {
+        "name": "idle",
+        "frames": 121,
+        "duration": 4,
+        "loop": true,
+        "source": "idle",
+        "window": [
+          5,
+          125
+        ],
+        "loopSeamFixedDeg": 6.13,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.549,
+          0.5497
+        ],
+        "footDrift": {
+          "Left": {
+            "contactFrames": 120,
+            "maxM": 0
+          },
+          "Right": {
+            "contactFrames": 120,
+            "maxM": 0
+          }
+        },
+        "footLockMaxCorrectionM": 0.0344
+      },
+      {
+        "name": "walk",
+        "frames": 54,
+        "duration": 1.7667,
+        "loop": true,
+        "source": "walk",
+        "window": [
+          0,
+          70
+        ],
+        "loopSeamFixedDeg": 0.05,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.528,
+          0.5496
+        ],
+        "metresPerCycle": 2.637,
+        "unitsPerCycle": 1.551,
+        "speedUnitsPerSec": 0.8779,
+        "speedMS": 1.492,
+        "playbackRate": 1.321,
+        "headingDeg": 0,
+        "footSlide": {
+          "Left": {
+            "contactFrames": 23,
+            "maxMS": 0,
+            "meanMS": 0
+          },
+          "Right": {
+            "contactFrames": 24,
+            "maxMS": 0,
+            "meanMS": 0
+          }
+        },
+        "trunkLeanDeg": 0.1,
+        "footLockMaxCorrectionM": 0.0233
+      },
+      {
+        "name": "run",
+        "frames": 15,
+        "duration": 0.4667,
+        "loop": true,
+        "source": "run",
+        "window": [
+          11,
+          30
+        ],
+        "loopSeamFixedDeg": 12.76,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.4676,
+          0.5023
+        ],
+        "metresPerCycle": 2.617,
+        "unitsPerCycle": 1.5393,
+        "speedUnitsPerSec": 3.2986,
+        "speedMS": 5.608,
+        "playbackRate": 1.339,
+        "headingDeg": 0.27,
+        "footSlide": {
+          "Left": {
+            "contactFrames": 3,
+            "maxMS": 0,
+            "meanMS": 0
+          },
+          "Right": {
+            "contactFrames": 3,
+            "maxMS": 0,
+            "meanMS": 0
+          }
+        },
+        "trunkLeanDeg": 33,
+        "footLockMaxCorrectionM": 0.0284
+      },
+      {
+        "name": "sprint",
+        "frames": 15,
+        "duration": 0.4667,
+        "loop": true,
+        "source": "flee_02+run",
+        "window": [
+          40,
+          57
+        ],
+        "loopSeamFixedDeg": 9.84,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.4722,
+          0.4999
+        ],
+        "metresPerCycle": 3.029,
+        "unitsPerCycle": 1.7819,
+        "speedUnitsPerSec": 3.8183,
+        "speedMS": 6.491,
+        "playbackRate": 1.214,
+        "headingDeg": -0.08,
+        "footSlide": {
+          "Left": {
+            "contactFrames": 2,
+            "maxMS": 0,
+            "meanMS": 0
+          },
+          "Right": {
+            "contactFrames": 2,
+            "maxMS": 0,
+            "meanMS": 0
+          }
+        },
+        "trunkLeanDeg": 35.1,
+        "footLockMaxCorrectionM": 0.0356,
+        "armsFrom": {
+          "source": "run",
+          "window": [
+            11,
+            30
+          ],
+          "phase": {
+            "legs": 12,
+            "run": 13
+          }
+        },
+        "extraLeanDeg": 12
+      },
+      {
+        "name": "jump",
+        "frames": 16,
+        "duration": 0.5,
+        "loop": false,
+        "source": "jump_down",
+        "window": [
+          22,
+          45
+        ],
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.3873,
+          0.5665
+        ],
+        "liftOff": 0.2667,
+        "platform": 0.515
+      },
+      {
+        "name": "fall",
+        "frames": 37,
+        "duration": 1.2,
+        "loop": true,
+        "source": "jump_down",
+        "window": [
+          48,
+          55
+        ],
+        "minFootAboveRest": 0.1041,
+        "hipsY": [
+          0.5465,
+          0.5465
+        ]
+      },
+      {
+        "name": "land",
+        "frames": 16,
+        "duration": 0.5,
+        "loop": false,
+        "source": "jump_down",
+        "window": [
+          62,
+          95
+        ],
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.3513,
+          0.5717
+        ],
+        "touchdown": 0.0333,
+        "ground": 0.0227,
+        "crouchKept": 0.55
+      },
+      {
+        "name": "stand_on_sword",
+        "frames": 31,
+        "duration": 1,
+        "loop": true,
+        "source": "surf",
+        "window": [
+          58,
+          88
+        ],
+        "loopSeamFixedDeg": 5.12,
+        "minFootAboveRest": 0,
+        "hipsY": [
+          0.4447,
+          0.4673
+        ],
+        "footDrift": {
+          "Left": {
+            "contactFrames": 30,
+            "maxM": 0
+          },
+          "Right": {
+            "contactFrames": 30,
+            "maxM": 0
+          }
+        },
+        "footLockMaxCorrectionM": 0.0134,
+        "stance": {
+          "straighten": 0.75,
+          "chestYawDeg": 35,
+          "headPitchDeg": 10,
+          "raiseU": 0.03
+        }
+      }
+    ]
+  }
+}

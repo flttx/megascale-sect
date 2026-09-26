@@ -1,0 +1,60 @@
+{
+  "source": "polyhaven",
+  "id": "forrest_ground_01",
+  "info": {
+    "date_published": 1552956906,
+    "sponsors": [
+      "59361351"
+    ],
+    "old_id": 195,
+    "categories": [
+      "terrain",
+      "outdoor",
+      "natural"
+    ],
+    "type": 1,
+    "authors": {
+      "Rob Tuytel": "All"
+    },
+    "dimensions": [
+      2000,
+      2000
+    ],
+    "name": "Forest Ground 01",
+    "max_resolution": [
+      8192,
+      8192
+    ],
+    "files_hash": "ea3ef3539e362d9a9ffa409ecd467d08028569d5",
+    "tags": [
+      "grass",
+      "twigs",
+      "forest",
+      "leaves",
+      "sticks",
+      "foliage",
+      "dead grass",
+      "plant litter",
+      "underbrush",
+      "underbrush",
+      "organic",
+      "dry grass",
+      "dry leaves"
+    ],
+    "description": "Free 8K texture of forest floor with dry grass, leaf litter, scattered twigs and mossy soil, detailed surface relief and natural earthy tones.",
+    "category_id": "b9a51c27-1499-5f4d-b28f-0d96ef8e0319",
+    "category": "Ground & Terrain/Forest Floor/Leaf Litter",
+    "attributes": {
+      "surface_use": "ground",
+      "origin": "natural",
+      "setting": "outdoor",
+      "condition": [
+        "dirty",
+        "mossy"
+      ]
+    },
+    "img_version": "90f311a5",
+    "download_count": 320645,
+    "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/forrest_ground_01.png?width=256&height=256&v=90f311a5"
+  }
+}

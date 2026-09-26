@@ -28,10 +28,10 @@ function landmarkSurfaces() {
   return { walkables, colliders }
 }
 
-/** Every pillar and island in one merged mesh: grass settles on the flat tops, karst rock on the faces. */
+/** Every pillar and island in one merged mesh, in the same scanned karst stone as the boulders (moss gathers on ledges). */
 function RockField() {
   const geometry = useMemo(buildRockField, [])
-  const material = useMemo(() => { const m = environmentMaterial('terrain'); m.vertexColors = true; return m }, [])
+  const material = useMemo(() => environmentMaterial('rock'), [])
   useEffect(() => () => { geometry.dispose(); material.dispose() }, [geometry, material])
   return <mesh geometry={geometry} material={material} />
 }

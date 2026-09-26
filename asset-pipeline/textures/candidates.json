@@ -1,0 +1,10 @@
+{
+ "cliff": ["cliff_side","rock_face_03","rock_face","rock_06","quarry_wall_02","quarry_wall","dark_rock","marble_cliff_03","marble_cliff_04","marble_cliff_05","marble_cliff_06","worn_rock_natural_01","tiger_rock","sandstone_cracks","aerial_rocks_02","rock_wall_02","seaside_rock","coast_sand_rocks_02","rock_3","dark_rock_02","marble_cliff_01","marble_cliff_02","rock_face_04","rock_surface"],
+ "rock_detail": ["rock_01","rock_04","rock_05","rock_08","rock_2","rock_boulder_cracked","rock_boulder_dry","dry_riverbed_rock","marble_rock_01","marble_rock_02","marble_rock_03","lichen_rock","rock_pitted_mossy","gray_rocks"],
+ "moss": ["mossy_rock","forest_leaves_02","aerial_grass_rock","brown_mud_leaves_01","aerial_rocks_01","aerial_rocks_04","coast_land_rocks_01","rocky_terrain","rocky_terrain_02","concrete_moss"],
+ "grass": ["leafy_grass","sparse_grass","grass_ground","forrest_ground_01","forest_ground_04","withered_grass","grass_path_2","forrest_ground_03","forest_leaves_03","dirt_floor"],
+ "gravel": ["gravel_stones","gravel_floor_02","rocky_trail","rocky_trail_02","stony_dirt_path","gravelly_sand","dry_ground_rocks","rocks_ground_02","concrete_rock_path","grass_path_3","gravel_ground_01","ground_grey","rock_path","sandy_gravel_02","gravel","rocky_gravel","gravel_floor"],
+ "paving": ["large_grey_tiles","pavement_01","stone_pathway","rock_tile_floor","rectangular_paving","stone_pavers","monastery_stone_floor","stone_tiles_02","granite_tile","slab_tiles","cobblestone_large_01","grey_stone_path","stone_tiles","square_floor","stone_pathway_02","rock_tile_floor_02","mossy_cobblestone","medieval_blocks_05","granite_tile_04","slate_driveway","patterned_slate_tiles","floor_pattern_02"],
+ "marble": ["marble_01","marble_tiles","floor_tiles_06","floor_tiles_02","grey_cartago_02","granite_tile_03","granite_tile_02","marble_rock_03"],
+ "roof_tiles": ["grey_roof_tiles","roof_tiles_14","ceramic_roof_01","clay_roof_tiles_02","clay_roof_tiles_03","roof_09","roof_07","roof_3","roof_tiles","grey_roof_01","roof_slates_03","clay_roof_tiles","grey_roof_tiles_02"]
+}

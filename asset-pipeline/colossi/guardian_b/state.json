@@ -1,0 +1,93 @@
+{
+  "concepts": {
+    "q34_seedream_v5_muiiyx0h_0": {
+      "task_id": "bb651bd5-5854-486b-b850-c04c3e570ae3",
+      "variant": "q34",
+      "model": "seedream_v5",
+      "ref": null,
+      "file": "q34_seedream_v5_muiiyx0h_0.jpg",
+      "at": "2026-09-26T15:09:39.579Z"
+    },
+    "front_chat_image_2_muij4ozu_0": {
+      "task_id": "dd4e3c4f-befe-4165-a699-6dbe0688d990",
+      "variant": "front",
+      "model": "chat_image_2",
+      "ref": null,
+      "file": "front_chat_image_2_muij4ozu_0.png",
+      "at": "2026-09-26T15:15:31.510Z"
+    },
+    "front_chat_image_2_muij7g3b_1": {
+      "task_id": "3aa53255-57d0-44da-b0fa-dbbb823083fc",
+      "variant": "front",
+      "model": "chat_image_2",
+      "ref": null,
+      "file": "front_chat_image_2_muij7g3b_1.png",
+      "at": "2026-09-26T15:17:04.185Z"
+    }
+  },
+  "models": {
+    "q34_seedream_v5_muiiyx0h_0__m1": {
+      "task_id": "e2f620ba-8186-409c-ac37-5b37b17d8b6f",
+      "concept": "q34_seedream_v5_muiiyx0h_0",
+      "request": {
+        "input": "bb651bd5-5854-486b-b850-c04c3e570ae3",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "geometry_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "delight": true,
+        "face_limit": 58000,
+        "texture_alignment": "original_image"
+      },
+      "file": "q34_seedream_v5_muiiyx0h_0__m1.glb",
+      "bytes": 20379072,
+      "preview": "q34_seedream_v5_muiiyx0h_0__m1_preview.webp",
+      "credits": 60,
+      "at": "2026-09-26T15:13:42.087Z"
+    },
+    "front_chat_image_2_muij4ozu_0__m1": {
+      "task_id": "2129153f-9703-4aa9-b44e-8babb6e11eaf",
+      "concept": "front_chat_image_2_muij4ozu_0",
+      "request": {
+        "input": "dd4e3c4f-befe-4165-a699-6dbe0688d990",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "geometry_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "delight": true,
+        "face_limit": 58000,
+        "texture_alignment": "original_image"
+      },
+      "file": "front_chat_image_2_muij4ozu_0__m1.glb",
+      "bytes": 19459224,
+      "preview": "front_chat_image_2_muij4ozu_0__m1_preview.webp",
+      "credits": 60,
+      "at": "2026-09-26T15:19:02.921Z"
+    },
+    "front_chat_image_2_muij7g3b_1__m1": {
+      "task_id": "8fbffc8f-6adc-4031-b985-a813cdba8d21",
+      "concept": "front_chat_image_2_muij7g3b_1",
+      "request": {
+        "input": "3aa53255-57d0-44da-b0fa-dbbb823083fc",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "geometry_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "delight": true,
+        "face_limit": 58000,
+        "texture_alignment": "original_image"
+      },
+      "file": "front_chat_image_2_muij7g3b_1__m1.glb",
+      "bytes": 20822196,
+      "preview": "front_chat_image_2_muij7g3b_1__m1_preview.webp",
+      "credits": 60,
+      "at": "2026-09-26T15:25:15.685Z"
+    }
+  }
+}

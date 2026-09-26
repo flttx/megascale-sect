@@ -1,0 +1,2 @@
+[15:17:29] guardian_a q34_seedream_v5_muiiyzkr_0__m1 image-to-model c887bd18-e4d9-4653-b61b-e2710277232c
+[15:19:13] guardian_a q34_seedream_v5_muiiyzkr_0__m1 -> q34_seedream_v5_muiiyzkr_0__m1.glb (21.2 MB)

@@ -1,0 +1,64 @@
+{
+  "source": "polyhaven",
+  "id": "marble_cliff_05",
+  "info": {
+    "type": 1,
+    "name": "Marble Cliff 05",
+    "categories": [
+      "aerial",
+      "rock",
+      "natural",
+      "outdoor"
+    ],
+    "tags": [
+      "rough",
+      "weathered",
+      "uneven",
+      "rock",
+      "chipped",
+      "stone",
+      "marble",
+      "striated",
+      "veined",
+      "fractured",
+      "cracked",
+      "cliff",
+      "craggy",
+      "fissured",
+      "striations",
+      "rock face",
+      "rock formation",
+      "exposed rock"
+    ],
+    "description": "Free 8K marble cliff texture with pale beige and gray tones, dense veining and striations, heavy weathering, deep cracks and chips, rough, uneven surface.",
+    "authors": {
+      "Amal Kumar": "All"
+    },
+    "max_resolution": [
+      8192,
+      8192
+    ],
+    "dimensions": [
+      20002.0694732666,
+      20001.800537109375
+    ],
+    "files_hash": "d68002075e784ddf27fe0a8e552466329fb7e81c",
+    "date_published": 1779753600,
+    "staging": null,
+    "category_id": "19a0b774-8b0a-5853-a205-8f019fe00ae9",
+    "category": "Stone/Rock & Cliffs/Marble & Metamorphic",
+    "attributes": {
+      "condition": [
+        "weathered",
+        "cracked",
+        "damaged"
+      ],
+      "origin": "natural",
+      "setting": "outdoor",
+      "aerial": true
+    },
+    "img_version": "27c0b64d",
+    "download_count": 13777,
+    "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/marble_cliff_05.png?width=256&height=256&v=27c0b64d"
+  }
+}

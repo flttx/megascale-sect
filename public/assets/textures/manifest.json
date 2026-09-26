@@ -1,0 +1,102 @@
+{
+  "cliff": {
+    "id": "marble_cliff_05",
+    "source": "polyhaven",
+    "scaleMeters": 16,
+    "sourceMeters": 20,
+    "maps": [
+      "diff",
+      "nor",
+      "arm",
+      "height"
+    ],
+    "lowSuffix": ".1k"
+  },
+  "rock_detail": {
+    "id": "rock_boulder_dry",
+    "source": "polyhaven",
+    "scaleMeters": 2,
+    "sourceMeters": 1.8,
+    "maps": [
+      "diff",
+      "nor",
+      "arm",
+      "height"
+    ],
+    "lowSuffix": ".1k"
+  },
+  "moss": {
+    "id": "coast_sand_rocks_02",
+    "source": "polyhaven",
+    "scaleMeters": 12,
+    "sourceMeters": 15,
+    "maps": [
+      "diff",
+      "nor",
+      "arm"
+    ],
+    "lowSuffix": ".1k"
+  },
+  "grass": {
+    "id": "forrest_ground_01",
+    "source": "polyhaven",
+    "scaleMeters": 2,
+    "sourceMeters": 2,
+    "maps": [
+      "diff",
+      "nor",
+      "arm"
+    ],
+    "lowSuffix": ".1k"
+  },
+  "gravel": {
+    "id": "rocky_trail",
+    "source": "polyhaven",
+    "scaleMeters": 2,
+    "sourceMeters": 2,
+    "maps": [
+      "diff",
+      "nor",
+      "arm"
+    ],
+    "lowSuffix": ".1k"
+  },
+  "paving": {
+    "id": "large_grey_tiles",
+    "source": "polyhaven",
+    "scaleMeters": 3,
+    "sourceMeters": 3,
+    "maps": [
+      "diff",
+      "nor",
+      "arm",
+      "height"
+    ],
+    "lowSuffix": ".1k"
+  },
+  "marble": {
+    "id": "Marble019",
+    "source": "ambientcg",
+    "scaleMeters": 1,
+    "maps": [
+      "diff",
+      "nor",
+      "arm"
+    ],
+    "lowSuffix": ".1k",
+    "aoIsWhite": true,
+    "normalDerivedFromHeight": true
+  },
+  "roof_tiles": {
+    "id": "grey_roof_tiles",
+    "source": "polyhaven",
+    "scaleMeters": 3,
+    "sourceMeters": 3,
+    "maps": [
+      "diff",
+      "nor",
+      "arm"
+    ],
+    "lowSuffix": ".1k"
+  }
+}
