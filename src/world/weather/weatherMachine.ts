@@ -95,6 +95,8 @@ export function applyWeather() {
   wash(a.fogColor, b.desat * 0.9, b.darken * 0.7); wash(a.cloudLit, b.desat * 0.8, b.darken * 0.9); wash(a.cloudShade, b.desat * 0.6, b.darken * 1.1)
   wash(a.hemiSky, b.desat * 0.7, b.darken * 0.6)
   a.wind.copy(BASE_WIND).multiplyScalar(b.wind)
+  a.haze = 1 + (b.fogMul - 1) * 0.8 + b.overcast * 0.6
+  a.skyDesat = b.desat; a.skyDarken = b.darken; a.flash = flash
   if (flash > 0) {
     a.hemiIntensity += flash * 2.4
     a.exposure += flash * 0.35

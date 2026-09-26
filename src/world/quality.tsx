@@ -16,12 +16,14 @@ export interface QualityPreset {
   msaa: number
   ao: boolean; bloom: boolean; godRays: boolean
   cloudLayers: number; cloudPuffs: number
+  /** Ray-march steps for the post-process volumetric cloud sea; 0 keeps the layered planes. */
+  volumetricClouds: number
 }
 
 export const QUALITY_PRESETS: Record<QualityLevel, QualityPreset> = {
-  low: { label: '流畅', dpr: [0.7, 1], shadowCascades: 0, shadowMapSize: 1024, msaa: 0, ao: false, bloom: false, godRays: false, cloudLayers: 2, cloudPuffs: 24 },
-  mid: { label: '均衡', dpr: [0.85, 1.25], shadowCascades: 3, shadowMapSize: 2048, msaa: 2, ao: false, bloom: true, godRays: true, cloudLayers: 3, cloudPuffs: 40 },
-  high: { label: '极致', dpr: [1, 1.5], shadowCascades: 4, shadowMapSize: 2048, msaa: 4, ao: true, bloom: true, godRays: true, cloudLayers: 3, cloudPuffs: 48 },
+  low: { label: '流畅', dpr: [0.7, 1], shadowCascades: 0, shadowMapSize: 1024, msaa: 0, ao: false, bloom: false, godRays: false, cloudLayers: 2, cloudPuffs: 24, volumetricClouds: 0 },
+  mid: { label: '均衡', dpr: [0.85, 1.25], shadowCascades: 3, shadowMapSize: 2048, msaa: 2, ao: false, bloom: true, godRays: true, cloudLayers: 3, cloudPuffs: 40, volumetricClouds: 40 },
+  high: { label: '极致', dpr: [1, 1.5], shadowCascades: 4, shadowMapSize: 2048, msaa: 4, ao: true, bloom: true, godRays: true, cloudLayers: 3, cloudPuffs: 48, volumetricClouds: 64 },
 }
 
 /**

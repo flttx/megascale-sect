@@ -1,4 +1,5 @@
 import { Color, MathUtils, Vector2, Vector3 } from 'three'
+import { sunTransmittance } from './skyModel'
 
 /** Height (m) where the height fog is at its base density; weather lifts it every frame. */
 const FOG_BASE = -110
@@ -20,6 +21,10 @@ export const atmosphere = {
   /** Solid cloud veil over the whole sky (weather); hides sun disk, moon and stars. */
   overcast: 0,
   stars: 0, exposure: 1,
+  /** Aerosol (Mie) multiplier for the sky model: 1 on a clear day, higher in mist and rain. */
+  haze: 1,
+  /** Weather wash applied inside the sky-view LUT (grey-out, darkening, lightning). */
+  skyDesat: 0, skyDarken: 0, flash: 0,
   /** 0 by day → 1 at night; lamps, emissives and night ambience key off it (already > 0 at dusk). */
   night: 0,
   wind: new Vector2(4, -1.5),
@@ -37,15 +42,17 @@ interface Key {
 }
 // Palette follows the concept art: pale cerulean sky, white-gold light, blue-grey mist.
 const KEYS: Key[] = [
-  { at: -0.3, zenith: '#03060f', horizon: '#111a2c', ground: '#0b1120', sun: '#000000', sunI: 0, hemiSky: '#3d5080', hemiGround: '#0d121c', hemiI: 0.5, env: 0.45, fog: '#141c2c', fogD: 0.0011, cloudLit: '#3a4865', cloudShade: '#141b2b', stars: 1, exposure: 1.35 },
-  { at: -0.08, zenith: '#111c38', horizon: '#57466a', ground: '#1f2233', sun: '#ff6a3a', sunI: 0, hemiSky: '#4d5a86', hemiGround: '#15151e', hemiI: 0.42, env: 0.45, fog: '#3b3d55', fogD: 0.0012, cloudLit: '#8a6f86', cloudShade: '#2b2d44', stars: 0.55, exposure: 1.25 },
-  { at: 0.02, zenith: '#34568f', horizon: '#f09a62', ground: '#5a4c52', sun: '#ff8a4a', sunI: 2.4, hemiSky: '#9aa7c8', hemiGround: '#4a3a36', hemiI: 0.3, env: 0.38, fog: '#c09888', fogD: 0.001, cloudLit: '#ffc49a', cloudShade: '#7a7088', stars: 0.05, exposure: 1.1 },
-  { at: 0.18, zenith: '#3f74bb', horizon: '#e8cfb4', ground: '#6e6c6c', sun: '#ffd3a1', sunI: 4.0, hemiSky: '#c9d8f0', hemiGround: '#6c6358', hemiI: 0.32, env: 0.42, fog: '#cfcac6', fogD: 0.0009, cloudLit: '#fff1df', cloudShade: '#9ea5b8', stars: 0, exposure: 1.08 },
-  { at: 0.45, zenith: '#3b77c9', horizon: '#c9dbee', ground: '#6f7984', sun: '#fff1dc', sunI: 4.4, hemiSky: '#d3e2f6', hemiGround: '#5f646c', hemiI: 0.3, env: 0.42, fog: '#bccfe2', fogD: 0.0008, cloudLit: '#ffffff', cloudShade: '#aab8cb', stars: 0, exposure: 1.05 },
-  { at: 1, zenith: '#3571c4', horizon: '#c6d9ed', ground: '#727c87', sun: '#fff6ea', sunI: 4.6, hemiSky: '#d6e4f8', hemiGround: '#62676f', hemiI: 0.3, env: 0.42, fog: '#b8cce1', fogD: 0.00078, cloudLit: '#ffffff', cloudShade: '#adbbce', stars: 0, exposure: 1.02 },
+  { at: -0.3, zenith: '#03060f', horizon: '#111a2c', ground: '#0b1120', sun: '#000000', sunI: 0, hemiSky: '#3d5080', hemiGround: '#0d121c', hemiI: 0.8, env: 0.6, fog: '#141c2c', fogD: 0.00066, cloudLit: '#3a4865', cloudShade: '#141b2b', stars: 1, exposure: 2.1 },
+  { at: -0.08, zenith: '#111c38', horizon: '#57466a', ground: '#1f2233', sun: '#ff6a3a', sunI: 0, hemiSky: '#4d5a86', hemiGround: '#15151e', hemiI: 0.42, env: 0.45, fog: '#3b3d55', fogD: 0.00072, cloudLit: '#8a6f86', cloudShade: '#2b2d44', stars: 0.55, exposure: 1.6 },
+  { at: 0.02, zenith: '#34568f', horizon: '#f09a62', ground: '#5a4c52', sun: '#ff8a4a', sunI: 2.4, hemiSky: '#9aa7c8', hemiGround: '#4a3a36', hemiI: 0.3, env: 0.38, fog: '#a9a0b0', fogD: 0.0006, cloudLit: '#ffc49a', cloudShade: '#7a7088', stars: 0.05, exposure: 1.1 },
+  { at: 0.18, zenith: '#3f74bb', horizon: '#e8cfb4', ground: '#6e6c6c', sun: '#ffd3a1', sunI: 4.0, hemiSky: '#c9d8f0', hemiGround: '#6c6358', hemiI: 0.32, env: 0.42, fog: '#c6c8ce', fogD: 0.00054, cloudLit: '#fff1df', cloudShade: '#9ea5b8', stars: 0, exposure: 1.08 },
+  { at: 0.45, zenith: '#3b77c9', horizon: '#c9dbee', ground: '#6f7984', sun: '#fff1dc', sunI: 4.4, hemiSky: '#d3e2f6', hemiGround: '#5f646c', hemiI: 0.3, env: 0.42, fog: '#bccfe2', fogD: 0.00048, cloudLit: '#ffffff', cloudShade: '#aab8cb', stars: 0, exposure: 1.05 },
+  { at: 1, zenith: '#3571c4', horizon: '#c6d9ed', ground: '#727c87', sun: '#fff6ea', sunI: 4.6, hemiSky: '#d6e4f8', hemiGround: '#62676f', hemiI: 0.3, env: 0.42, fog: '#b8cce1', fogD: 0.00047, cloudLit: '#ffffff', cloudShade: '#adbbce', stars: 0, exposure: 1.02 },
 ]
 const PARSED = KEYS.map((k) => ({ ...k, c: Object.fromEntries((['zenith', 'horizon', 'ground', 'sun', 'hemiSky', 'hemiGround', 'fog', 'cloudLit', 'cloudShade'] as const).map((name) => [name, new Color(k[name])])) }))
 const MAX_ELEVATION = MathUtils.degToRad(64)
+const ZENITH_T = sunTransmittance(1, 1, new Color())
+const sunT = new Color()
 
 /** Sun path: rises in the east (+x) at 06:00, peaks south (+z) at noon, sets west (−x) at 18:00. */
 export function sunDirectionAt(hours: number, target: Vector3) {
@@ -66,7 +73,11 @@ export function updateAtmosphere(hours: number) {
   const k0 = PARSED[i], k1 = PARSED[i + 1]
   const t = MathUtils.smoothstep(y, k0.at, k1.at)
   const mix = (name: keyof typeof k0.c, target: Color) => target.copy(k0.c[name]).lerp(k1.c[name], t)
-  mix('zenith', a.zenith); mix('horizon', a.horizon); mix('ground', a.ground); mix('sun', a.sunColor)
+  mix('zenith', a.zenith); mix('horizon', a.horizon); mix('ground', a.ground)
+  // Sun hue from the air mass it shines through (normalised to the zenith sun); brightness stays in KEYS.
+  sunTransmittance(y, 1, sunT)
+  sunT.setRGB(sunT.r / ZENITH_T.r, sunT.g / ZENITH_T.g, sunT.b / ZENITH_T.b)
+  a.sunColor.copy(sunT.multiplyScalar(1 / Math.max(sunT.r, sunT.g, sunT.b, 1e-4)))
   mix('hemiSky', a.hemiSky); mix('hemiGround', a.hemiGround); mix('fog', a.fogColor)
   mix('cloudLit', a.cloudLit); mix('cloudShade', a.cloudShade)
   const lerp = (key: 'sunI' | 'hemiI' | 'env' | 'fogD' | 'stars' | 'exposure') => MathUtils.lerp(k0[key], k1[key], t)
@@ -74,6 +85,7 @@ export function updateAtmosphere(hours: number) {
   a.fogDensity = lerp('fogD'); a.fogBase = FOG_BASE; a.stars = lerp('stars'); a.exposure = lerp('exposure')
   a.moonIntensity = MathUtils.smoothstep(-y, -0.02, 0.2) * 0.9
   a.night = 1 - MathUtils.smoothstep(y, -0.1, 0.1)
+  a.haze = 1; a.skyDesat = 0; a.skyDarken = 0; a.flash = 0
   if (lastEnvSun.angleTo(a.sunDirection) > MathUtils.degToRad(1.5)) { lastEnvSun.copy(a.sunDirection); a.envVersion++ }
 }
 updateAtmosphere(atmosphere.hours)

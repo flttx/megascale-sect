@@ -5,6 +5,7 @@ import { terrainHeight } from '../environment/t02r/terrain'
 import { ISLANDS } from '../sites'
 import { atmosphere } from '../sky/atmosphere'
 import { CLOUD_SEA_Y } from '../sky/CloudSea'
+import { fogUniforms } from '../sky/fog'
 import { FOG_GLSL, NOISE_GLSL } from '../sky/glsl'
 
 /**
@@ -21,8 +22,7 @@ const FALLS: [string, number, number][] = [
 
 const uniforms = {
   uTime: new Uniform(0), uColor: new Uniform(new Color()), uNight: new Uniform(0),
-  fogTint: new Uniform(atmosphere.fogColor), fogSunColor: new Uniform(atmosphere.sunColor), fogSunDir: new Uniform(atmosphere.sunDirection),
-  fogDensity: new Uniform(0), fogFalloff: new Uniform(0), fogBase: new Uniform(0),
+  ...fogUniforms,
 }
 
 const FOG_APPLY = /* glsl */ `
@@ -136,12 +136,11 @@ export function Waterfalls() {
   useFrame((_, delta) => {
     uniforms.uTime.value += Math.min(delta, 0.1)
     // Lit by the sky: pale by day, warm at dusk, dim silver-blue at night.
-    uniforms.uColor.value.copy(atmosphere.fogColor).lerp(atmosphere.sunColor, 0.18).multiplyScalar(1.1 - atmosphere.night * 0.35)
+    uniforms.uColor.value.copy(atmosphere.fogColor).lerp(atmosphere.sunColor, 0.18 * (1 - atmosphere.night)).multiplyScalar(1.1 - atmosphere.night * 0.35)
     uniforms.uColor.value.r = Math.min(uniforms.uColor.value.r + 0.08, 1.2)
     uniforms.uColor.value.g = Math.min(uniforms.uColor.value.g + 0.1, 1.2)
     uniforms.uColor.value.b = Math.min(uniforms.uColor.value.b + 0.12, 1.2)
     uniforms.uNight.value = atmosphere.night
-    uniforms.fogDensity.value = atmosphere.fogDensity; uniforms.fogFalloff.value = atmosphere.fogFalloff; uniforms.fogBase.value = atmosphere.fogBase
   })
   falls.renderOrder = 2; spray.renderOrder = 3
   return <><primitive object={falls} /><primitive object={spray} /></>

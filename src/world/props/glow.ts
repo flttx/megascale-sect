@@ -1,6 +1,6 @@
 import { AdditiveBlending, Color, PlaneGeometry, ShaderMaterial, Uniform } from 'three'
 import type { MeshStandardMaterial } from 'three'
-import { atmosphere } from '../sky/atmosphere'
+import { fogUniforms } from '../sky/fog'
 import { FOG_GLSL } from '../sky/glsl'
 import type { GlowSpec } from './propCatalog'
 
@@ -43,8 +43,7 @@ export function makeGlowSpriteMaterial() {
     transparent: true, depthWrite: false, blending: AdditiveBlending, toneMapped: false,
     uniforms: {
       uIntensity: new Uniform(0), uTime: new Uniform(0), uColor: new Uniform(new Color('#ffb266')),
-      fogTint: new Uniform(atmosphere.fogColor), fogSunColor: new Uniform(atmosphere.sunColor), fogSunDir: new Uniform(atmosphere.sunDirection),
-      fogDensity: new Uniform(0), fogFalloff: new Uniform(0), fogBase: new Uniform(0),
+      ...fogUniforms,
     },
     vertexShader: /* glsl */ `
       varying vec2 vUv; varying vec3 vWorld; varying float vSeed;
@@ -74,9 +73,8 @@ export function makeGlowSpriteMaterial() {
 
 export const glowQuad = new PlaneGeometry(1, 1)
 
-/** Per-frame fog uniforms, mirroring CloudSea. */
+/** Per-frame lantern flicker and brightness (fog uniforms are shared and synced centrally). */
 export function syncGlowFog(material: ShaderMaterial, time: number, intensity: number) {
   const u = material.uniforms
   u.uTime.value = time; u.uIntensity.value = intensity
-  u.fogDensity.value = atmosphere.fogDensity; u.fogFalloff.value = atmosphere.fogFalloff; u.fogBase.value = atmosphere.fogBase
 }

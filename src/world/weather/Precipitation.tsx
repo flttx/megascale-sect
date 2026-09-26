@@ -163,7 +163,7 @@ export function Precipitation() {
       s.geometry.instanceCount = Math.round(s.geometry.attributes.aSeed.count * Math.min(1, b.snow))
       su.uTime.value = state.clock.elapsedTime % 3000
       su.uOpacity.value = 0.9 * Math.min(1, b.snow * 3)
-      ;(su.uColor.value as Color).copy(light).multiplyScalar(1.5).add(fogPart.copy(a.sunColor).multiplyScalar(0.25))
+      ;(su.uColor.value as Color).copy(light).multiplyScalar(1.5).add(fogPart.copy(a.sunColor).multiplyScalar(0.25 * (1 - a.night)))
     }
   })
 

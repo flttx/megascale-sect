@@ -1,20 +1,15 @@
 import { AdditiveBlending, DoubleSide, ShaderMaterial, Uniform } from 'three'
 import type { Side } from 'three'
 import { atmosphere } from '../sky/atmosphere'
+import { fogUniforms } from '../sky/fog'
 import { FOG_GLSL } from '../sky/glsl'
 
 /**
  * Additive glow materials (orb halos, light pillars, array glyphs, shockwave). They don't write depth,
  * so the post-process height fog skips them: each fades itself by the same analytic fog instead.
  */
-export const fogUniforms = () => ({
-  fogTint: new Uniform(atmosphere.fogColor), fogSunColor: new Uniform(atmosphere.sunColor), fogSunDir: new Uniform(atmosphere.sunDirection),
-  fogDensity: new Uniform(0), fogFalloff: new Uniform(0), fogBase: new Uniform(0),
-})
-
 export function syncGlow(material: ShaderMaterial, time: number) {
   const u = material.uniforms
-  u.fogDensity.value = atmosphere.fogDensity; u.fogFalloff.value = atmosphere.fogFalloff; u.fogBase.value = atmosphere.fogBase
   if (u.uTime) u.uTime.value = time
   // Glows read brighter at night; keep them from blowing out in daylight.
   if (u.uNight) u.uNight.value = atmosphere.night
@@ -31,7 +26,7 @@ float glowFade(vec3 world) {
 export function glowMaterial(name: string, vertexShader: string, fragmentShader: string, uniforms: Record<string, Uniform> = {}, side: Side = DoubleSide) {
   return new ShaderMaterial({
     name, vertexShader, fragmentShader: `${FOG_FADE}\n${fragmentShader}`,
-    uniforms: { ...fogUniforms(), uTime: new Uniform(0), uNight: new Uniform(0), ...uniforms },
+    uniforms: { ...fogUniforms, uTime: new Uniform(0), uNight: new Uniform(0), ...uniforms },
     transparent: true, depthWrite: false, blending: AdditiveBlending, side, toneMapped: false,
     polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
   })

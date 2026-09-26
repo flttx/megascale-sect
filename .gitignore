@@ -9,3 +9,10 @@ artifacts/
 # Tripo raw downloads (~15 MB each) are reproducible from manifest.lock.json task ids.
 asset-pipeline/tripo/*/raw.glb
 asset-pipeline/tripo/*/v1/
+# Rebuild pipelines: raw Tripo/Blender intermediates are large and reproducible.
+asset-pipeline/*/*/raw/
+asset-pipeline/*/raw/
+asset-pipeline/*/*/work/
+asset-pipeline/*/textures/
+asset-pipeline/**/*.blend
+asset-pipeline/**/*.blend1

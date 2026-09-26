@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Mesh, ShaderMaterial, Uniform, Vector3 } from 'three'
 import { worldEvents } from '../events'
-import { atmosphere } from '../sky/atmosphere'
+import { fogUniforms } from '../sky/fog'
 import { FOG_GLSL } from '../sky/glsl'
 
 /*
@@ -65,8 +65,7 @@ function boltMaterial(name: string, width: number, core: number) {
     name, vertexShader: vertex, fragmentShader: fragment, transparent: true, depthWrite: false, fog: false, blending: AdditiveBlending, side: DoubleSide,
     uniforms: {
       uWidth: new Uniform(width), uColor: new Uniform(new Color('#cfdcff')), uIntensity: new Uniform(0), uCore: new Uniform(core),
-      fogTint: new Uniform(atmosphere.fogColor), fogSunColor: new Uniform(atmosphere.sunColor), fogSunDir: new Uniform(atmosphere.sunDirection),
-      fogDensity: new Uniform(0), fogFalloff: new Uniform(0), fogBase: new Uniform(0),
+      ...fogUniforms,
     },
   })
 }
@@ -142,7 +141,6 @@ export function Lightning() {
     for (const [mesh, gain] of [[bolt.mesh, 14], [bolt.halo, 0.9]] as const) {
       const u = mesh.material.uniforms
       u.uIntensity.value = intensity * gain
-      u.fogDensity.value = atmosphere.fogDensity; u.fogFalloff.value = atmosphere.fogFalloff; u.fogBase.value = atmosphere.fogBase
     }
   })
 

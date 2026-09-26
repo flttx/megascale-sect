@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { BackSide, Mesh, PMREMGenerator, Scene, ShaderMaterial, SphereGeometry, Uniform, type WebGLRenderTarget } from 'three'
+import { BackSide, Color, Mesh, PMREMGenerator, Scene, ShaderMaterial, SphereGeometry, Uniform, type WebGLRenderTarget } from 'three'
 import { atmosphere } from './atmosphere'
+import { fogUniforms, syncFogUniforms } from './fog'
 import { FOG_GLSL, NOISE_GLSL } from './glsl'
+import { SKY_SUN, skyLut } from './skyModel'
 
 const vertexShader = /* glsl */ `
 varying vec3 vDir;
@@ -13,7 +15,7 @@ void main() {
 
 const fragmentShader = /* glsl */ `
 varying vec3 vDir;
-uniform vec3 uZenith; uniform vec3 uHorizon; uniform vec3 uGround;
+uniform vec3 uGround;
 uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uSunIntensity;
 uniform vec3 uMoonDir; uniform float uMoonIntensity; uniform float uStars;
 uniform vec3 uCloudLit; uniform vec3 uCloudShade; uniform float uCloudCover; uniform float uOvercast; uniform vec2 uWind;
@@ -23,15 +25,16 @@ ${FOG_GLSL}
 void main() {
   vec3 dir = normalize(vDir);
   float h = dir.y;
-  vec3 col = mix(uHorizon, uZenith, pow(clamp(h, 0.0, 1.0), 0.5));
+  // Physical sky (Rayleigh/Mie single scattering incl. the sun's aureole) from the shared LUT.
+  vec3 col = skyView(vec3(dir.x, max(h, 0.0), dir.z));
   // Below the horizon the camera looks onto the far cloud sea; the IBL capture keeps a darker ground so
   // downward faces are not over-filled.
-  vec3 below = uEnvPass > 0.5 ? uGround : mix(mix(uCloudShade, uCloudLit, 0.6), uHorizon, 0.35);
+  vec3 below = uEnvPass > 0.5 ? uGround : mix(mix(uCloudShade, uCloudLit, 0.6), col, 0.45);
   col = mix(col, below, smoothstep(0.0, -0.14, h));
 
   float sunUp = smoothstep(-0.1, 0.04, uSunDir.y) * (1.0 - uOvercast * 0.85);
   float mu = max(dot(dir, uSunDir), 0.0);
-  col += uSunColor * sunUp * (pow(mu, 6.0) * 0.18 + pow(mu, 48.0) * 0.45 + pow(mu, 700.0) * 1.6);
+  col += uSunColor * sunUp * pow(mu, 700.0) * 1.6;
 
   // Stars: one candidate per 3D cell on the view sphere, faded toward the horizon.
   if (uStars > 0.001) {
@@ -74,8 +77,9 @@ void main() {
   float disk = smoothstep(0.99975, 0.99988, mu) * step(-0.01, h);
   col += uSunColor * sunUp * disk * mix(38.0, 3.0, uEnvPass);
 
-  // Blend into the post-process fog colour at the horizon so terrain and sky meet seamlessly.
-  col = mix(col, fogColorFor(dir), (1.0 - smoothstep(0.0, 0.16, abs(h + 0.01))) * 0.9);
+  // Veil the horizon band with the same fog the post pass lays over distant terrain, so they meet seamlessly.
+  float veil = heightFog(cameraPosition, dir, 7000.0) * (1.0 - smoothstep(0.02, 0.3, h));
+  col = mix(col, fogColorFor(dir), veil);
   gl_FragColor = vec4(col, 1.0);
 }`
 
@@ -84,17 +88,22 @@ export function createSkyMaterial() {
     name: 'SkyDome',
     vertexShader, fragmentShader, side: BackSide, depthWrite: false, depthTest: false, fog: false,
     uniforms: {
-      uZenith: new Uniform(atmosphere.zenith), uHorizon: new Uniform(atmosphere.horizon), uGround: new Uniform(atmosphere.ground),
+      uGround: new Uniform(atmosphere.ground),
       uSunDir: new Uniform(atmosphere.sunDirection), uSunColor: new Uniform(atmosphere.sunColor), uSunIntensity: new Uniform(0),
       uMoonDir: new Uniform(atmosphere.moonDirection), uMoonIntensity: new Uniform(0), uStars: new Uniform(0),
       uCloudLit: new Uniform(atmosphere.cloudLit), uCloudShade: new Uniform(atmosphere.cloudShade), uCloudCover: new Uniform(0.5), uOvercast: new Uniform(0),
       uWind: new Uniform(atmosphere.wind), uTime: new Uniform(0), uEnvPass: new Uniform(0),
-      fogTint: new Uniform(atmosphere.fogColor), fogSunColor: new Uniform(atmosphere.sunColor), fogSunDir: new Uniform(atmosphere.sunDirection),
-      fogDensity: new Uniform(0), fogFalloff: new Uniform(0), fogBase: new Uniform(0),
+      ...fogUniforms,
     },
   })
   return material
 }
+
+/** Moon radiance scale for the LUT: bright enough to give the night sky its blue, far below the sun. */
+const MOON_SKY = 1.1
+const moonLight = new Color()
+/** Share of direct sunlight the weather blocks, recovered from the dimmed sun colour. */
+const weatherDim = () => 1 - Math.max(atmosphere.sunColor.r, atmosphere.sunColor.g, atmosphere.sunColor.b)
 
 /** Camera-centred sky sphere; also renders itself into a PMREM cube for image-based lighting. */
 export function SkyDome() {
@@ -124,6 +133,13 @@ export function SkyDome() {
 
   useFrame((_, delta) => {
     const u = material.uniforms, a = atmosphere
+    // The LUT feeds the dome, the IBL capture below, the fog and the cloud sea; refresh it first.
+    skyLut.update(gl, {
+      sunDirection: a.sunDirection, moonDirection: a.moonDirection,
+      sunE: SKY_SUN * (1 - weatherDim()), moonE: moonLight.copy(a.moonColor).multiplyScalar(a.moonIntensity * MOON_SKY),
+      haze: a.haze, desat: a.skyDesat, darken: a.skyDarken, flash: a.flash,
+    })
+    syncFogUniforms()
     u.uTime.value += delta
     u.uMoonIntensity.value = a.moonIntensity
     u.uStars.value = a.stars

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { DoubleSide, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PlaneGeometry, Quaternion, ShaderMaterial, Uniform, Vector3 } from 'three'
 import { atmosphere } from './atmosphere'
+import { fogUniforms } from './fog'
 import { FOG_GLSL, NOISE_GLSL } from './glsl'
 import { hash, terrainHeight } from '../environment/t02r/terrain'
 import { useWorldStore } from '../store'
@@ -14,8 +15,7 @@ const LAYER_Y = [CLOUD_SEA_Y - 34, CLOUD_SEA_Y - 17, CLOUD_SEA_Y]
 const sharedUniforms = () => ({
   uTime: new Uniform(0), uCover: new Uniform(0.5), uWind: new Uniform(atmosphere.wind),
   uLit: new Uniform(atmosphere.cloudLit), uShade: new Uniform(atmosphere.cloudShade),
-  fogTint: new Uniform(atmosphere.fogColor), fogSunColor: new Uniform(atmosphere.sunColor), fogSunDir: new Uniform(atmosphere.sunDirection),
-  fogDensity: new Uniform(0), fogFalloff: new Uniform(0), fogBase: new Uniform(0),
+  ...fogUniforms,
 })
 
 const seaVertex = /* glsl */ `
@@ -87,12 +87,13 @@ void main() {
 }`
 
 interface Puff { position: [number, number, number]; size: [number, number] }
-function puffs(count: number): Puff[] {
+/** `banks` false (volumetric sea active) keeps only the far backdrop cumulus. */
+function puffs(count: number, banks: boolean): Puff[] {
   const out: Puff[] = []
   // Low banks hugging the mountain's flanks, where the cloud sea meets the cliffs.
   // Candidates whose footprint would cut into the slope are rejected: billboards have no soft depth edge.
   const low = Math.round(count * 0.65)
-  for (let i = 0; out.length < low && i < low * 12; i++) {
+  for (let i = 0; banks && out.length < low && i < low * 12; i++) {
     const angle = hash(i, 3, 91) * Math.PI * 2, radius = 360 + hash(i, 7, 92) * 560
     const w = 150 + hash(i, 11, 93) * 190, h = w * (0.42 + hash(i, 17, 95) * 0.2)
     const x = Math.cos(angle) * radius * 1.1, z = -290 + Math.sin(angle) * radius, y = CLOUD_SEA_Y - 5 + hash(i, 13, 94) * 60
@@ -100,7 +101,8 @@ function puffs(count: number): Puff[] {
     if (ground < y - h * 0.3) out.push({ position: [x, y, z], size: [w, h] })
   }
   // Towering backdrop cumulus behind the main hall, as in the concept art.
-  for (let i = 0; out.length < count; i++) {
+  const total = banks ? count : count - low
+  for (let i = 0; out.length < total; i++) {
     const angle = -Math.PI / 2 + (hash(i, 19, 96) - 0.5) * Math.PI * 1.5, radius = 1250 + hash(i, 23, 97) * 700
     const w = 420 + hash(i, 29, 98) * 480
     out.push({ position: [Math.cos(angle) * radius, 120 + hash(i, 31, 99) * 420, -300 + Math.sin(angle) * radius], size: [w, w * (0.5 + hash(i, 37, 100) * 0.25)] })
@@ -112,12 +114,14 @@ function syncFog(material: ShaderMaterial, delta: number) {
   const u = material.uniforms
   u.uTime.value += delta
   u.uCover.value = atmosphere.cloudCover
-  u.fogDensity.value = atmosphere.fogDensity; u.fogFalloff.value = atmosphere.fogFalloff; u.fogBase.value = atmosphere.fogBase
 }
 
 export function CloudSea() {
   const quality = useWorldStore((state) => state.quality)
-  const { cloudLayers, cloudPuffs } = QUALITY_PRESETS[quality]
+  const { cloudLayers: presetLayers, cloudPuffs, volumetricClouds } = QUALITY_PRESETS[quality]
+  // The post-process volumetric sea replaces the planes and flank banks where the preset affords it.
+  const cloudLayers = volumetricClouds > 0 ? 0 : presetLayers
+  const banks = volumetricClouds === 0
   const layers = useMemo(() => LAYER_Y.slice(LAYER_Y.length - cloudLayers).map((y, i, all) => {
     const material = new ShaderMaterial({
       name: `CloudSea_${i}`, vertexShader: seaVertex, fragmentShader: seaFragment,
@@ -132,7 +136,7 @@ export function CloudSea() {
   }), [cloudLayers])
 
   const bank = useMemo(() => {
-    const items = puffs(cloudPuffs)
+    const items = puffs(cloudPuffs, banks)
     const material = new ShaderMaterial({
       name: 'CloudPuffs', vertexShader: puffVertex, fragmentShader: puffFragment, uniforms: sharedUniforms(),
       transparent: true, depthWrite: false, fog: false,
@@ -143,7 +147,7 @@ export function CloudSea() {
     mesh.geometry.setAttribute('aSeed', new InstancedBufferAttribute(Float32Array.from(items, (_, i) => hash(i, 41, 101)), 1))
     mesh.name = 'CloudPuffs'; mesh.frustumCulled = false; mesh.renderOrder = 20
     return mesh
-  }, [cloudPuffs])
+  }, [cloudPuffs, banks])
 
   useEffect(() => () => layers.forEach((mesh) => { mesh.geometry.dispose(); (mesh.material as ShaderMaterial).dispose() }), [layers])
   useEffect(() => () => { bank.geometry.dispose(); (bank.material as ShaderMaterial).dispose() }, [bank])
