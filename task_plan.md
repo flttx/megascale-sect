@@ -60,11 +60,12 @@
 - [x] 角色动作：冲刺摆臂与前倾、起跳收腿、支撑相占比随速度变化（Mixamo 动作片段未接入，沿用程序姿态）
 - [x] 独立审查修正：镜头臂长 / 滞后 / 模式切换的跳变，铁链空气墙，空中落进碰撞体，飞行穿细杆，空中召剑与状态残留，拍照时速度线
 
-### R5b 动作片段接入 — pending
-- [ ] 加载 anim.glb（idle / walk / run / sprint / jump / fall / land），AnimationMixer 按速度混合步态，相位按实际位移同步（零滑步），各片段按左脚支撑中点对齐
-- [ ] 程序姿态改为叠加层（落地缓冲、召剑、御剑、呼吸），平滑只作用于叠加量，不再低通片段
-- [ ] 空中：起跳从 liftOff 播 jump，下落转 fall，着地播 land
-- [ ] footPlant 用片段相位判定支撑；更新 verify:optimization 资源断言；落脚误差 < 0.13 m
+### R5b 动作片段接入 — complete
+- [x] 加载 anim.glb（idle / walk / run / sprint / jump / fall / land），按速度混合步态，相位按实际位移同步（零滑步），各片段按左脚支撑中点对齐。实现时没有用 AnimationMixer，改为手动采样插值器，原因见 findings.md
+- [x] 程序姿态改为叠加层（落地缓冲、召剑、御剑、呼吸），平滑只作用于叠加量，不再低通片段
+- [x] 空中：起跳从 liftOff 播 jump，下落转 fall，着地播 land
+- [x] footPlant 用片段相位判定支撑；更新 verify:optimization 资源断言；落脚误差 0.0185 m（目标 < 0.13 m）
+- [x] 飞行黑帧（剑尾拖光 pow 产生 NaN）修复；独立审查修正：落地后起跳 / 召剑的 land 跳变、fall 时钟冻结、断言空转、同类 NaN
 
 ### R6 集成与验证 — pending
 - [ ] 交互点、灵光按新地形重新落位

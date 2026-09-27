@@ -17,8 +17,9 @@ try {
   await page.getByRole('button', { name: /进入仙宗/ }).click()
   report.readyMs = Date.now() - start
   report.assets = await page.evaluate(() => performance.getEntriesByType('resource').filter((r) => r.name.includes('/characters/')).map((r) => ({ name: r.name.split('/').slice(-2).join('/'), bytes: r.encodedBodySize, durationMs: r.duration })))
-  assert.equal(report.assets.length, 4)
-  assert.ok(report.assets.every((r) => r.name.endsWith('.optimized.glb')))
+  // Per character: optimized rig and sword, plus the small baked-clip file.
+  assert.equal(report.assets.length, 6)
+  assert.ok(report.assets.every((r) => r.name.endsWith('.optimized.glb') || r.name.endsWith('/anim.glb')))
   assert.ok(report.assets.reduce((n, r) => n + r.bytes, 0) < 12000000)
   await page.waitForTimeout(500)
   await page.keyboard.down('Alt')
@@ -42,6 +43,7 @@ try {
   assert.ok(report.footPlant.averageErrorM < 0.13, 'Stance anchors must constrain feet')
   await page.waitForTimeout(900)
   const stopped = await state()
+  assert.equal(typeof stopped.stride, 'number', 'Snapshot must expose the clip layer stride')
   await page.waitForTimeout(400)
   assert.equal((await state()).stride, stopped.stride, 'Gait must stop when position stops')
   report.switches = []

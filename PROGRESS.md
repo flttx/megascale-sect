@@ -66,6 +66,15 @@
     - 状态：空中按 F 由飞剑直接接住；换阶段时清掉跳跃预输入；拍照时速度线立即消失。
     - 复验：tsc、build、verify:optimization、verify:navigation、verify:interact（37/37）、verify:smoke、verify:characters、verify:riding-pose 通过；探针逐帧记录镜头距离，召剑、落地、冲刺停步时每帧最大变化 0.09 / 0.07 / 0.03 m。
     - 二次审查修正：飞剑停在碰撞体外扩区内（或落进碰撞体）时不再卡死，本步改测裸碰撞体或不测，可以飞出；非跟随镜头的每一帧都重置跟随镜头，退出拍照不会从旧位置缓入；下台阶和沿坡滑落时躯干也要避开下方的道具；镜头重置帧的肩偏移直接到位。复验：tsc、build、verify:navigation、verify:interact（37/37）、verify:smoke、verify:characters 通过；Node 探针中，从外扩区和碰撞体内部向外飞 1 s 分别飞出 42 m / 36.5 m，从外侧飞入停在外扩边缘（11 m）。
+- 2026-09-27 R5b（动作片段）：
+  - **片段**：两位主角接入 Blender 重定向的 anim.glb（idle / walk / run / sprint / jump / fall / land，各约 118 KB）。没有用 AnimationMixer，改为手动采样插值器，按权重累加到骨骼；剩余份额回到静止姿态。
+  - **步态**：按实测地面速度混合 idle / walk / run / sprint，四个片段共用一个步态相位，相位由实际位移推进，各片段按左脚支撑中点对齐。推墙时原地站立，不会空跑；超过冲刺原生速度后步幅按 √(v / v₀) 加长。
+  - **支撑相**：支撑占比由片段混合得出，footPlant 与片段共用步相。落脚平均误差 0.07 → 0.0185 m。
+  - **空中**：jump 从离地点开始播，接 fall 循环，按滞空时间播放轻重不同的 land；跑动中落地会压掉 land。跃上飞剑时补播下蹲，与登剑时序对齐。
+  - **叠加层**：召剑、御剑、落地蹲伏和呼吸叠加在片段姿态上，平滑只作用于叠加量；原来的程序摆臂、摆腿全部删除。背剑跟随胸椎运动。
+  - **飞行黑帧**：飞行中约 2/3 的帧整屏全黑（旧问题）。根因是剑尾拖光着色器对越界的 uv 做 pow，D3D 上得到 NaN，再被 Bloom 扩散到整屏。先 clamp 后修复，飞行采样 10/10 帧正常。
+  - **审查修正**：落地后立刻起跳或召剑时，land 片段不再一帧清零，改为淡出（Hips 每帧最大转角 0.076 rad）；被剑接住时 fall 不再定格；verify:optimization 的步态断言不会空转通过；SwordWake 与钟声波纹里同类的 pow 改为先 clamp 或手动平方；片段参数为 0 时直接报错。
+  - **验证**：tsc、build 通过；verify:optimization（落脚平均误差 0.0185 m，最大 0.31 m，50 个锁定采样）、verify:characters、verify:riding-pose、verify:smoke、verify:interact（37/37）通过；审查修正前另跑过 verify:navigation 与 verify:perf（最差 390 次调用），均通过。
 
 ## 生产级重建（2026-09）
 

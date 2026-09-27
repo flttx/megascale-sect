@@ -77,7 +77,9 @@ export function Player() {
       elapsed: runtime.current.elapsed, ready: runtime.current.ready,
       sword: avatar.current?.getObjectByName(`Sword_${useWorldStore.getState().character}`)?.name,
       telemetry: useWorldStore.getState().telemetry,
-      fov: camera.fov, bank: runtime.current.bank, velocity: runtime.current.velocity.toArray(), stride: runtime.current.stride,
+      fov: camera.fov, bank: runtime.current.bank, velocity: runtime.current.velocity.toArray(),
+      stride: avatar.current?.getObjectByName(`Character_${useWorldStore.getState().character}`)?.userData.clips?.().stride,
+      clips: avatar.current?.getObjectByName(`Character_${useWorldStore.getState().character}`)?.userData.clips?.(),
       cameraDistance: camera.position.distanceTo(runtime.current.position),
       characterReady: useWorldStore.getState().characterReady, audio: playerAudio.snapshot(),
       yaw: runtime.current.yaw, pitch: runtime.current.pitch,
@@ -115,7 +117,7 @@ export function Player() {
     const controlling = store.started && store.locked && state.ready && store.cameraMode === 'player'
     if (!controlling) input.current.set(0, 0, 0)
     if (store.started && store.locked && state.ready) stepPlayer(state, input.current, current.has('shift'), delta)
-    else { state.time += delta; state.velocity.set(0, 0, 0); state.gait *= Math.exp(-14 * delta) }
+    else { state.time += delta; state.velocity.set(0, 0, 0) }
     playerAudio.update(state, store.started && store.locked && state.ready, store.soundEnabled)
     if (store.phase !== state.phase) store.setPhase(state.phase)
     if (avatar.current) {

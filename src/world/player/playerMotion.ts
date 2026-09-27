@@ -19,7 +19,7 @@ export type PlayerRuntime = {
   position: Vector3; velocity: Vector3; phase: PlayerPhase; elapsed: number; time: number;
   yaw: number; pitch: number; facing: number; sequenceYaw: number; origin: Vector3; destination: Vector3;
   bank: number; climb: number; ready: boolean;
-  stride: number; gait: number; runMix: number; rideMix: number; impact: number; braking: boolean; boostMix: number;
+  rideMix: number; impact: number; braking: boolean; boostMix: number;
   /** Jump press still waiting for footing (s); off the ground on foot; its smoothed weight; landing crouch 0…1. */
   jumpBuffer: number; inAir: boolean; air: number; landing: number;
 }
@@ -29,7 +29,7 @@ export function createPlayerRuntime(): PlayerRuntime {
     position: new Vector3(...LAYOUT.spawn.position), velocity: new Vector3(), phase: 'GROUND',
     elapsed: 0, time: 0, yaw: 0, pitch: 0.1, facing: 0, sequenceYaw: 0,
     origin: new Vector3(), destination: new Vector3(), bank: 0, climb: 0, ready: false,
-    stride: 0, gait: 0, runMix: 0, rideMix: 0, impact: 0, braking: false, boostMix: 0,
+    rideMix: 0, impact: 0, braking: false, boostMix: 0,
     jumpBuffer: 0, inAir: false, air: 0, landing: 0,
   }
 }
@@ -104,19 +104,12 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
   const { position, velocity } = runtime
   switch (runtime.phase) {
     case 'GROUND': {
-      const x = position.x, z = position.z
       runtime.jumpBuffer = Math.max(0, runtime.jumpBuffer - delta)
       const touchdown = stepGround(position, velocity, input, runtime.yaw, boosting, runtime.jumpBuffer > 0, delta)
       if (!runtime.inAir && velocity.y > 0) runtime.jumpBuffer = 0
       runtime.inAir = velocity.y !== 0
       runtime.air += ((runtime.inAir ? 1 : 0) - runtime.air) * (1 - Math.exp(-12 * delta))
       if (touchdown > 4) runtime.landing = Math.min(1, runtime.landing + touchdown / 18)
-      const distance = runtime.inAir ? 0 : Math.hypot(position.x - x, position.z - z)
-      const actualSpeed = distance / Math.max(delta, 0.001)
-      runtime.gait += ((actualSpeed > 0.12 ? Math.min(1, actualSpeed / 2) : 0) - runtime.gait) * (1 - Math.exp(-14 * delta))
-      if (!runtime.inAir) runtime.runMix += (Math.min(1, Math.max(0, (actualSpeed - 2) / 3.5)) - runtime.runMix) * (1 - Math.exp(-6 * delta))
-      // Stride lengthens with speed, so cadence stays near a runner's ~3 steps/s from jog to sprint.
-      runtime.stride += distance / (1.7 + Math.min(actualSpeed, 11) * 0.28) * Math.PI * 2
       if (Math.hypot(velocity.x, velocity.z) > 0.2) {
         const desired = Math.atan2(velocity.x, -velocity.z)
         const difference = Math.atan2(Math.sin(desired - runtime.facing), Math.cos(desired - runtime.facing))

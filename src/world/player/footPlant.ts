@@ -33,14 +33,15 @@ export class FootPlant {
       this.chains.push({ hip, knee, foot, anchor: new Vector3(), locked: false, sole: c.y, offset })
     }
   }
-  update(state: PlayerRuntime) {
-    const walking = state.phase === 'GROUND' && !state.inAir && state.gait > 0.25 && state.velocity.length() > 0.12
+  /**
+   * The clips say when each foot is down: `stride` puts the left mid-stance at π, and a foot plants while
+   * cos(stride + side) < −duty, a window that narrows from walk to sprint as the clips spend less time on the ground.
+   */
+  update(state: PlayerRuntime, stride: number, duty: number) {
+    const walking = state.phase === 'GROUND' && !state.inAir && duty < 1 && state.velocity.length() > 0.12
     this.scene.getWorldScale(scale)
-    // A run spends less of each cycle on the ground (with a flight phase between steps), so the plant narrows with
-    // speed and the body's travel during a plant stays within what the leg can sweep.
-    const duty = Math.min(0.75, 0.12 + Math.max(0, Math.hypot(state.velocity.x, state.velocity.z) - 2) * 0.11)
     for (const chain of this.chains) {
-      const stance = walking && Math.cos(state.stride + chain.offset) < -duty
+      const stance = walking && Math.cos(stride + chain.offset) < -duty
       if (!stance) { chain.locked = false; continue }
       if (!chain.locked) { chain.foot.getWorldPosition(chain.anchor); chain.locked = true }
       const surface = groundHeight(chain.anchor.x, chain.anchor.z, chain.anchor.y + 0.5)
