@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Mesh, MeshBasicMaterial, PointsMaterial, ShaderMaterial, Vector3 } from 'three'
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Mesh, MeshBasicMaterial, PlaneGeometry, PointsMaterial, ShaderMaterial, Vector3 } from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { RefObject } from 'react'
 import { CHARACTER_ASSETS, type CharacterId } from './characterAssets'
 import { FLIGHT_SEQUENCE, isAirborne, smooth, type PlayerRuntime } from './playerMotion'
@@ -41,7 +42,17 @@ export function SwordEffects({ runtime, character, active }: { runtime: RefObjec
       gl_FragColor=vec4(tint,edge*pow(1.-uv.y,1.7)*opacity);}`,
     transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide,
   }), [colors.color])
-  useEffect(() => () => { geometry.dispose(); glow.dispose(); trail.dispose() }, [geometry, glow, trail])
+  // The circle's 12 ticks as one mesh (one draw instead of twelve).
+  const ticks = useMemo(() => {
+    const parts = Array.from({ length: 12 }, (_, i) => new PlaneGeometry(0.012, i % 3 === 0 ? 0.17 : 0.065)
+      .rotateZ(-i * Math.PI / 6).rotateX(-Math.PI / 2).translate(Math.cos(i * Math.PI / 6) * 0.83, 0, Math.sin(i * Math.PI / 6) * 0.83))
+    const merged = mergeGeometries(parts)
+    parts.forEach((part) => part.dispose())
+    return merged
+  }, [])
+  useEffect(() => () => { geometry.dispose(); ticks.dispose(); glow.dispose(); trail.dispose() }, [geometry, ticks, glow, trail])
+  // Additive glow sits on top of the AO either way; keep N8AO's transparency pass from drawing every effect again.
+  useEffect(() => { root.current?.traverse((object) => { object.userData.treatAsOpaque = true }) }, [])
 
   useFrame(() => {
     if (!active) return
@@ -98,7 +109,7 @@ export function SwordEffects({ runtime, character, active }: { runtime: RefObjec
     <group ref={root} name="SwordSummonVFX">
       <mesh ref={burst} rotation={[-Math.PI / 2, 0, 0]} name="SwordContactPulse">
         <ringGeometry args={[0.48, 0.53, 64]} />
-        <meshBasicMaterial ref={burstMaterial} color={colors.secondaryColor} transparent depthWrite={false} blending={AdditiveBlending} side={DoubleSide} />
+        <meshBasicMaterial ref={burstMaterial} color={colors.secondaryColor} transparent depthWrite={false} blending={AdditiveBlending} side={DoubleSide} forceSinglePass />
       </mesh>
       <group ref={column}>
         {[0, Math.PI / 2].map((angle) => <mesh key={angle} rotation={[0, angle, 0]} material={glow}><planeGeometry args={[1.4, 2.2]} /></mesh>)}
@@ -106,18 +117,15 @@ export function SwordEffects({ runtime, character, active }: { runtime: RefObjec
       <group ref={circle}>
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.72, 0.75, 64]} />
-          <meshBasicMaterial ref={ringMaterial} color={colors.color} transparent blending={AdditiveBlending} depthWrite={false} side={DoubleSide} />
+          <meshBasicMaterial ref={ringMaterial} color={colors.color} transparent blending={AdditiveBlending} depthWrite={false} side={DoubleSide} forceSinglePass />
         </mesh>
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.9, 0.915, 64, 1, 0, Math.PI * 1.65]} />
-          <meshBasicMaterial color={colors.secondaryColor} transparent opacity={0.55} blending={AdditiveBlending} depthWrite={false} side={DoubleSide} />
+          <meshBasicMaterial color={colors.secondaryColor} transparent opacity={0.55} blending={AdditiveBlending} depthWrite={false} side={DoubleSide} forceSinglePass />
         </mesh>
-        {Array.from({ length: 12 }, (_, i) => (
-          <mesh key={i} position={[Math.cos(i * Math.PI / 6) * 0.83, 0, Math.sin(i * Math.PI / 6) * 0.83]} rotation={[-Math.PI / 2, 0, -i * Math.PI / 6]}>
-            <planeGeometry args={[0.012, i % 3 === 0 ? 0.17 : 0.065]} />
-            <meshBasicMaterial color={colors.secondaryColor} transparent opacity={0.7} depthWrite={false} blending={AdditiveBlending} side={DoubleSide} />
-          </mesh>
-        ))}
+        <mesh geometry={ticks}>
+          <meshBasicMaterial color={colors.secondaryColor} transparent opacity={0.7} depthWrite={false} blending={AdditiveBlending} side={DoubleSide} forceSinglePass />
+        </mesh>
       </group>
       <mesh ref={flare} rotation={[-Math.PI / 2, 0, 0]} material={glow}>
         <planeGeometry args={[2, 2]} />
