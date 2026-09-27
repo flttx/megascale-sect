@@ -3,7 +3,7 @@ import { useProgress } from '@react-three/drei'
 import { SITES } from '../world/interact/registry'
 import { useWorldStore } from '../world/store'
 import { CharacterPicker } from './CharacterPicker'
-import type { SavedPosition } from './save'
+import { useStorageStatus, type SavedPosition } from './save'
 import { ORB_COUNT } from '../world/interact/orbs'
 
 const ART = `/assets/references/${encodeURIComponent('主概念图')}.png`
@@ -26,6 +26,7 @@ function placeName(position: SavedPosition) {
  * character choice and (when a save exists) an offer to resume where the last journey stopped.
  */
 export function IntroScreen({ saved, onEnter }: { saved: SavedPosition | null; onEnter: (resume: SavedPosition | null) => void }) {
+  const storage = useStorageStatus()
   const { progress, active } = useProgress()
   const ready = useWorldStore((state) => Object.keys(state.assets).length === 3)
   const characterReady = useWorldStore((state) => state.characterReady[state.character])
@@ -47,6 +48,7 @@ export function IntroScreen({ saved, onEnter }: { saved: SavedPosition | null; o
         </div>
         <small>{loaded ? '山门已开 · READY' : active ? `正在凝聚山川云气… ${percent}%` : '正在准备世界…'}</small>
       </div>
+      {storage !== 'ok' && <p role="status" className="intro-storage">{storage === 'protected' ? '已有存档版本暂不支持，已保留原档并暂停保存。' : '本机存储不可用，本次进度未能保存。'}</p>}
       {saved && <button className="intro-resume" aria-pressed={resume} onClick={() => setResume(!resume)}>
         <i aria-hidden="true" />从上次停留处继续 · {placeName(saved)}
       </button>}

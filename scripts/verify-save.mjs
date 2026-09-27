@@ -25,6 +25,10 @@ try {
     checks.push(['corrupt backed up', localStorage.getItem('yunque.save.corrupt') === '{broken-json'])
     save.applySave({ ...migrated, position: { x: 0, y: 550, z: 150, yaw: 0 } })
     checks.push(['unsafe legacy position falls back to spawn', save.safePosition().y === 0])
+    const { getPlayerRuntime } = await window.__liveImport('/src/world/player/playerHandle.ts')
+    const runtime = getPlayerRuntime(), previousPhase = runtime.phase
+    runtime.phase = 'FLIGHT'; save.flushSave(); runtime.phase = previousPhase
+    checks.push(['unsafe legacy position never written to v2', JSON.parse(localStorage.getItem(save.SAVE_KEY)).position.y === 0])
     localStorage.setItem('yunque.save.v2', JSON.stringify({ version: 99 }))
     save.loadSave(); save.flushSave()
     checks.push(['future version protected', JSON.parse(localStorage.getItem('yunque.save.v2')).version === 99])
@@ -39,6 +43,8 @@ try {
     await installLiveImports(page)
     const failure = await page.evaluate(async (corrupt) => {
       const save = await window.__liveImport('/src/ui/save.ts')
+      const { useWorldStore } = await window.__liveImport('/src/world/store.ts')
+      useWorldStore.getState().setStarted(true)
       if (corrupt) localStorage.setItem(save.SAVE_KEY, '{retain-me')
       const native = Storage.prototype.setItem, warn = console.warn
       let attempts = 0, warnings = 0

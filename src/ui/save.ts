@@ -1,7 +1,7 @@
 import { mixer } from '../world/audio/mixer'
 import { useSyncExternalStore } from 'react'
 import legacyOrbs from './legacyOrbs.json'
-import { groundHit, insideStructure, LAYOUT } from '../world/worldLayout'
+import { groundHit, insideStructure, LAYOUT, terrainSlope } from '../world/worldLayout'
 import { bodyInsideAnyCollider } from '../world/surfaces'
 import type { VolumeChannel } from '../world/audio/mixer'
 import { getPlayerRuntime } from '../world/player/playerHandle'
@@ -125,13 +125,15 @@ function snapshot(): SaveData {
       quality: world.quality, autoQuality: world.autoQuality, mouseSensitivity: world.mouseSensitivity, fov: world.fov,
       volumes: ui.volumes, timeScale: world.timeScale, autoWeather: world.autoWeather, soundEnabled: world.soundEnabled,
     },
-    position: lastPosition,
+    position: lastPosition ? safePosition() : null,
     savedAt: Date.now(),
   }
 }
 
 function write() {
-  if (storageStatus !== 'ok') return false
+  // Loading can restore settings before island/prop surfaces register. Preserve the old checkpoint
+  // until the player enters and those surfaces are available for validation.
+  if (storageStatus !== 'ok' || !useWorldStore.getState().started) return false
   try {
     window.localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot()))
     return true
@@ -152,7 +154,7 @@ function samplePosition() {
 
 function staticFooting(p: { x: number; y: number; z: number }, tolerance: number) {
   const hit = groundHit(p.x, p.z, p.y)
-  return hit && hit.surfaceId !== 'kun' && hit.normalY >= Math.cos(55 * Math.PI / 180) && Math.abs(p.y - hit.y) <= tolerance &&
+  return hit && hit.surfaceId !== 'kun' && terrainSlope(p.x, p.z, p.y) <= 52 && Math.abs(p.y - hit.y) <= tolerance &&
     !bodyInsideAnyCollider(p.x, p.y + 0.45, p.y + 1.7, p.z, 0.35, 0, true) && !insideStructure(p.x, p.y + 1, p.z)
 }
 
