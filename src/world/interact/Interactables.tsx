@@ -403,9 +403,9 @@ function PhotoCamera() {
     photo.dx = 0; photo.dy = 0
     s.fov = Math.max(18, Math.min(95, s.fov + photo.zoom * 3)); photo.zoom = 0
     const k = photo.keys
-    move.set(Number(k.has('d')) - Number(k.has('a')), Number(k.has('e')) - Number(k.has('q')), Number(k.has('s')) - Number(k.has('w')))
+    move.set(Number(k.has('KeyD')) - Number(k.has('KeyA')), Number(k.has('KeyE')) - Number(k.has('KeyQ')), Number(k.has('KeyS')) - Number(k.has('KeyW')))
     if (move.lengthSq() > 0) {
-      move.normalize().multiplyScalar((k.has('shift') ? 24 : 6) * delta)
+      move.normalize().multiplyScalar((k.has('ShiftLeft') || k.has('ShiftRight') ? 24 : 6) * delta)
       euler.set(s.pitch, s.yaw, 0, 'YXZ')
       const lift = move.y; move.y = 0
       move.applyEuler(euler).y += lift

@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useWorldStore } from '../world/store'
 import { photo, uiBridge } from './bridge'
 import { PHOTO_FILTER_CSS, PHOTO_FILTER_LABELS, PHOTO_FILTERS, useUiStore } from './uiStore'
+import { isUiInput } from './gameKeys'
 
-const MOVE_KEYS = ['w', 'a', 's', 'd', 'q', 'e', 'shift']
+const MOVE_KEYS = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ShiftLeft', 'ShiftRight']
 
 /** Cycles to the next photo look (F). */
 function cyclePhotoFilter() {
@@ -45,18 +46,21 @@ export function PhotoMode() {
 
   useEffect(() => {
     if (!active) return
+    const accepting = () => !uiBridge.graphicsBlocked && (useWorldStore.getState().locked || (import.meta.env.DEV && useUiStore.getState().devInput))
     const down = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase()
+      if (event.metaKey || event.ctrlKey || event.code.startsWith('Meta')) { photo.keys.clear(); return }
+      if (!accepting() || isUiInput(event)) return
+      const key = event.code
       if (MOVE_KEYS.includes(key)) { photo.keys.add(key); event.preventDefault(); return }
       if (event.repeat) return
-      if (key === 'f') { cyclePhotoFilter(); event.preventDefault() }
-      else if (key === 'v') { useUiStore.getState().setPhotoVignette(!useUiStore.getState().photoVignette); event.preventDefault() }
-      else if (key === 'enter') { photo.capture = true; event.preventDefault() }
+      if (key === 'KeyF') { cyclePhotoFilter(); event.preventDefault() }
+      else if (key === 'KeyV') { useUiStore.getState().setPhotoVignette(!useUiStore.getState().photoVignette); event.preventDefault() }
+      else if (key === 'Enter') { photo.capture = true; event.preventDefault() }
     }
-    const up = (event: KeyboardEvent) => { photo.keys.delete(event.key.toLowerCase()); if (!event.shiftKey) photo.keys.delete('shift') }
+    const up = (event: KeyboardEvent) => { photo.keys.delete(event.code); if (event.metaKey || event.code.startsWith('Meta')) photo.keys.clear() }
     const move = (event: MouseEvent) => { if (document.pointerLockElement) { photo.dx += event.movementX; photo.dy += event.movementY } }
     const click = (event: MouseEvent) => { if (event.button === 0 && document.pointerLockElement) photo.capture = true }
-    const wheel = (event: WheelEvent) => { photo.zoom += Math.sign(event.deltaY) }
+    const wheel = (event: WheelEvent) => { if (accepting()) photo.zoom += Math.sign(event.deltaY) }
     const blur = () => photo.keys.clear()
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
@@ -64,6 +68,7 @@ export function PhotoMode() {
     window.addEventListener('mousedown', click)
     window.addEventListener('wheel', wheel, { passive: true })
     window.addEventListener('blur', blur)
+    document.addEventListener('pointerlockchange', blur)
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
@@ -71,6 +76,7 @@ export function PhotoMode() {
       window.removeEventListener('mousedown', click)
       window.removeEventListener('wheel', wheel)
       window.removeEventListener('blur', blur)
+      document.removeEventListener('pointerlockchange', blur)
       photo.keys.clear()
     }
   }, [active])
