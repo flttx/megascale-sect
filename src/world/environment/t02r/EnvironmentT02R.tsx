@@ -2,6 +2,7 @@ import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { BoxGeometry, BufferGeometry, Euler, Group, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Raycaster, Vector2, Vector3 } from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { LAYOUT } from '../../worldLayout'
 import { GrandStairs } from '../GrandStairs'
 import { Grass } from '../Grass'
@@ -50,20 +51,26 @@ function Terraces() {
     transforms.forEach((m, i) => mesh.setMatrixAt(i, m)); mesh.computeBoundingSphere(); mesh.name = 'LocalRetainingWalls'
     return mesh
   }, [masonry])
+  // Platform cap, spawn landing, gate and tower footings merged per material: two draws per pass instead of sixteen.
+  const slabs = useMemo(() => {
+    const box = (size: [number, number, number], position: readonly number[], rotation: readonly number[] = [0, 0, 0], lift = 0) =>
+      new BoxGeometry(...size).translate(0, lift, 0).applyMatrix4(instanceMatrix(position, [1, 1, 1], rotation))
+    const merge = (parts: BufferGeometry[]) => { const merged = mergeGeometries(parts); parts.forEach((p) => p.dispose()); return merged }
+    return {
+      paving: merge([
+        box([380, .34, 450], [0, 23.83, -290]), box([30, .28, 24], [0, -.13, 150]),
+        ...towerFootings.map(t => box([t.width + .7, .24, t.depth + .7], t.position, t.rotation, -.12)),
+      ]),
+      masonry: merge([
+        ...[-1, 1].map(side => box([14.2, 2, 18], [side * 16.2, -1, 55])),
+        ...towerFootings.map(t => box([t.width, 2.8, t.depth], t.position, t.rotation, -1.4)),
+      ]),
+    }
+  }, [])
+  useEffect(() => () => { slabs.paving.dispose(); slabs.masonry.dispose() }, [slabs])
   return <group name="Terraces">
-    <mesh name="Main_Platform_Cap" position={[0, 23.83, -290]} material={paving}>
-      <boxGeometry args={[380, .34, 450]} />
-    </mesh>
-    <mesh name="Spawn_Stone_Landing" position={[0, -.13, 150]} material={paving}>
-      <boxGeometry args={[30, .28, 24]} />
-    </mesh>
-    {[-1, 1].map(side => <mesh key={side} name={`Gate_Footing_${side}`} position={[side * 16.2, -1, 55]} material={masonry}>
-      <boxGeometry args={[14.2, 2, 18]} />
-    </mesh>)}
-    {towerFootings.map((t, i) => <group key={i} name={`Tower_Footing_${i}`} position={[...t.position]} rotation={[...t.rotation]}>
-      <mesh position={[0, -1.4, 0]} material={masonry}><boxGeometry args={[t.width, 2.8, t.depth]} /></mesh>
-      <mesh position={[0, -.12, 0]} material={paving}><boxGeometry args={[t.width + .7, .24, t.depth + .7]} /></mesh>
-    </group>)}
+    <mesh name="Terrace_Paving" geometry={slabs.paving} material={paving} />
+    <mesh name="Terrace_Masonry" geometry={slabs.masonry} material={masonry} />
     <primitive object={stones} dispose={null} />
   </group>
 }

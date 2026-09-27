@@ -109,6 +109,11 @@
     - 生成器补查主殿旋转与缩放倍率；
     - G 线框改为每个格心一个顶点。
     `artifacts/r7/halltrap.mjs` 在屋顶碰撞面下起飞，水平被挡，按住 Space 升出。
+- 2026-09-27 R7c（绘制预算）：
+  - **来源**：`artifacts/r7/calls.mjs` 按物体统计最差视角（高档 / 雷暴 / 道路）一帧 389 次调用，其中阴影占 234 次（4 级级联各画一遍）。最大单项是大台阶的 14 个网格（阴影 42 次）和 6 座塔基的 12 个网格（阴影 24 次）。
+  - **合并**：大台阶合成一个带顶点色的网格；平台顶面、出生平台、山门基座、塔基共 16 个网格按材质合成两个。环境材质按世界坐标采样，外观不变。
+  - **结果**：该视角 389 → 291 次；verify:perf 最差 390 → 292 次（预算 400），中档 180–233，低档 48–88。
+  - **验证**：tsc、build 通过；verify:perf、verify:smoke、verify:navigation、verify:interact（37/37）、verify:visual（21/21）通过；山门、塔基、大台阶截图与合并前一致（`artifacts/r7/look/r7c-*.png`）。
   - **验证**：tsc、build 通过；`artifacts/r7/hallorbs.mjs` 真实按键飞行，8 团都能从上方降下收集，两侧檐角也能平飞收集；`artifacts/r7/halledge.mjs` 在 5 处边缘冲刺连跳都进不去（撤掉修正时 4 处掉进台面）；verify:navigation（绕墙飞越低层屋顶到 (0, 296.6, −258.2)）、verify:interact（37/37）、verify:smoke 通过；verify:perf 最差 390 次调用（预算 400）。
 
 ## 生产级重建（2026-09）
