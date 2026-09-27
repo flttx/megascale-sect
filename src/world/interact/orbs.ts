@@ -44,8 +44,9 @@ function placeOrbs(): OrbSite[] {
     }
   }
 
-  // Two per island top, on the pad but away from its interactables.
-  ISLANDS.forEach((island, index) => {
+  // Two per island top, on the pad but away from its interactables. Ids are saved by position in this list, so
+  // the chained isle (added later) takes its orbs after the pillar crowns, where two crowns used to be.
+  const islandOrbs = (island: (typeof ISLANDS)[number], index: number) => {
     const [cx, cy, cz] = island.top
     let placed = 0
     for (let attempt = 0; placed < 2 && attempt < 24; attempt++) {
@@ -56,11 +57,13 @@ function placeOrbs(): OrbSite[] {
       push([x, cy + 1.4, z], 'island', island.id)
       placed++
     }
-  })
+  }
+  ISLANDS.forEach((island, index) => { if (!island.chains) islandOrbs(island, index) })
 
-  // Crowns of the eight tallest pillars.
-  PILLARS.map((pillar, i) => ({ pillar, summit: PILLAR_SUMMITS[i] })).sort((a, b) => b.summit[1] - a.summit[1]).slice(0, 8)
+  // Crowns of the six tallest pillars.
+  PILLARS.map((pillar, i) => ({ pillar, summit: PILLAR_SUMMITS[i] })).sort((a, b) => b.summit[1] - a.summit[1]).slice(0, 6)
     .forEach(({ pillar, summit: [x, y, z] }) => push([x, y + 2.4, z], 'pillar', pillar.id))
+  ISLANDS.forEach((island, index) => { if (island.chains) islandOrbs(island, index) })
 
   // Main hall roof tiers (heights probed from above; each sits ~3 m over the tiles).
   const roof: Vec3[] = [[0, 447, -320], [0, 384, -346], [0, 380, -292], [0, 235, -400], [0, 234, -240], [78, 178, -320], [-78, 178, -320], [48, 231, -272]]

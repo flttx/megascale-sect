@@ -8,6 +8,7 @@ import { LAYOUT } from '../worldLayout'
 import { Balustrades } from './Balustrades'
 import { BANNER_POLES, BANNER_TOP, Banners } from './Banners'
 import { Bridges } from './Bridges'
+import { chainColliders, Chains } from './Chains'
 import { buildRockField } from './rockField'
 import { rockSurfaces } from './rockLayout'
 import { Waterfalls } from './Waterfalls'
@@ -17,6 +18,7 @@ function landmarkSurfaces() {
   const rock = rockSurfaces()
   const walkables: WalkableSurface[] = [...rock.walkables], colliders: Collider[] = [...rock.colliders]
   for (const [x, z] of BANNER_POLES) colliders.push({ kind: 'cylinder', x, z, radius: 0.6, minY: LAYOUT.platform.height, maxY: BANNER_TOP })
+  colliders.push(...chainColliders())
   for (const b of BRIDGES) walkables.push({ kind: 'span', from: b.from, to: b.to, halfWidth: b.halfWidth, sag: b.sag })
   return { walkables, colliders }
 }
@@ -41,7 +43,7 @@ function RockField() {
 const DISABLED = import.meta.env.DEV && new URLSearchParams(window.location.search).has('nolandmarks')
 const NO_ROCKS = import.meta.env.DEV && new URLSearchParams(window.location.search).has('norocks')
 
-/** Karst pillars, floating islands, bridges, waterfalls, balustrades and banners (P3). */
+/** Karst pillars, floating islands, bridges, the chains of 锁云屿, waterfalls, balustrades and banners. */
 export function Landmarks() {
   useEffect(() => {
     if (DISABLED) return
@@ -50,5 +52,5 @@ export function Landmarks() {
     return () => { offWalk(); offCollide() }
   }, [])
   if (DISABLED) return null
-  return <>{!NO_ROCKS && <Suspense fallback={null}><RockField /></Suspense>}<Bridges /><Balustrades /><Waterfalls /><Banners /></>
+  return <>{!NO_ROCKS && <Suspense fallback={null}><RockField /></Suspense>}<Bridges /><Chains /><Balustrades /><Waterfalls /><Banners /></>
 }

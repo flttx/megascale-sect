@@ -19,6 +19,7 @@ const FALLS: [string, number, number][] = [
   ['isle_west', 1.72, 7],
   ['isle_northwest', 0.25, 10],
   ['isle_sky', 1.45, 13],
+  ['isle_chained', 2.2, 16],
 ]
 
 const uniforms = {

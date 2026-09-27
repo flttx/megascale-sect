@@ -3,6 +3,7 @@ import { Color, Matrix4, Uniform, Vector3, type PerspectiveCamera, type Texture,
 import { atmosphere, keyLight } from './atmosphere'
 import { CLOUD_SEA_Y } from './CloudSea'
 import { createCloudNoise2D, createCloudNoise3D } from './cloudNoise'
+import { cloudSwell } from './cloudSwell'
 import { fogUniforms } from './fog'
 import { FOG_GLSL } from './glsl'
 
@@ -22,12 +23,41 @@ ${FOG_GLSL}
 uniform sampler2D uNoise; uniform sampler3D uErosion;
 uniform vec3 uLightDir; uniform vec3 uLightColor;
 uniform float uTime; uniform vec2 uWind; uniform float uCover; uniform float uPixelAngle; uniform float uGain;
+uniform vec4 uSwell;
 
 const float SEA_Y = ${CLOUD_SEA_Y.toFixed(1)};
 const float SEA_CEIL = SEA_Y + 100.0;
 const float SEA_FLOOR = SEA_Y - 380.0;
 const float SIGMA = 0.07;
 const float MAX_DIST = 9000.0;
+
+/** Cloud heaved up where a colossus breaks the sea (cloudSwell), and the ring spreading from it. */
+float swell(vec2 xz) {
+  if (uSwell.z < 0.0) return 0.0;
+  vec2 d = xz - uSwell.xy;
+  float r2 = dot(d, d), ring = (sqrt(r2) - 28.0 * uSwell.z) / 70.0;
+  return 45.0 * uSwell.w * exp(-r2 / 19600.0) + 28.0 * smoothstep(0.0, 2.0, uSwell.z) * exp(-uSwell.z / 16.0 - ring * ring);
+}
+/** The most the swell raises the tops anywhere. */
+float swellPeak() {
+  return uSwell.z < 0.0 ? 0.0 : 45.0 * uSwell.w + 28.0 * smoothstep(0.0, 2.0, uSwell.z) * exp(-uSwell.z / 16.0);
+}
+
+/**
+ * How far a ray at p, above the cloud tops by that much, can jump toward them: most of the way, as the
+ * height-field slopes stay below ~0.6. The swell's flanks reach ~1.1, so over its disc the jumps are shorter,
+ * and a ray heading into the disc from outside stops at its edge.
+ */
+float skip(vec3 p, vec3 rd, float above, float t) {
+  float h = length(rd.xz), least = 1.0 + t * 0.003;
+  float jump = clamp(above / max(max(-rd.y, 0.0) + 0.6 * h, 0.05) * 0.8, least, 800.0);
+  if (uSwell.z < 0.0) return jump;
+  vec2 o = p.xz - uSwell.xy;
+  float r = max(300.0, 28.0 * uSwell.z + 210.0), c = dot(o, o) - r * r;
+  if (c < 0.0) return clamp(above / max(max(-rd.y, 0.0) + 1.1 * h, 0.05) * 0.8, least, 800.0);
+  float b = dot(o, rd.xz), disc = b * b - h * h * c;
+  return b < 0.0 && disc >= 0.0 ? min(jump, (-b - sqrt(disc)) / max(h * h, 1e-6) + 1.0) : jump;
+}
 
 /** Local height of the cloud tops. \`lod\` selects the mip that matches the pixel footprint. */
 float seaTop(vec2 xz, float lod) {
@@ -36,7 +66,7 @@ float seaTop(vec2 xz, float lod) {
   vec4 mound = textureLod(uNoise, (xz - drift) / 950.0, lod);
   // Heavier weather closes the rifts into a continuous deck.
   float rift = 1.0 - smoothstep(0.0, 0.16, broad.r - mix(0.3, 0.0, smoothstep(0.45, 0.95, uCover)));
-  return SEA_Y + (broad.r - 0.47) * 90.0 + (mound.g - 0.4) * 84.0 + (mound.b - 0.5) * 20.0 - rift * 120.0;
+  return SEA_Y + (broad.r - 0.47) * 90.0 + (mound.g - 0.4) * 84.0 + (mound.b - 0.5) * 20.0 - rift * 120.0 + swell(xz);
 }
 
 float cloudDensity(vec3 p, float top, bool detail) {
@@ -79,11 +109,11 @@ vec4 marchClouds(vec3 ro, vec3 rd, float tScene, bool sky, float jitter, out flo
   vec3 ambTop = (zenith + side * 2.0) / 3.0;
   vec3 ambBottom = ambTop * vec3(0.16, 0.19, 0.25);
 
-  float tEnter = 0.0, tExit = MAX_DIST;
+  float tEnter = 0.0, tExit = MAX_DIST, seaCeil = SEA_CEIL + swellPeak();
   if (abs(rd.y) > 1e-5) {
-    float ta = (SEA_CEIL - ro.y) / rd.y, tb = (SEA_FLOOR - ro.y) / rd.y;
+    float ta = (seaCeil - ro.y) / rd.y, tb = (SEA_FLOOR - ro.y) / rd.y;
     tEnter = max(min(ta, tb), 0.0); tExit = min(max(ta, tb), MAX_DIST);
-  } else if (ro.y > SEA_CEIL || ro.y < SEA_FLOOR) tExit = -1.0;
+  } else if (ro.y > seaCeil || ro.y < SEA_FLOOR) tExit = -1.0;
   tExit = min(tExit, tScene);
 
   vec3 L = vec3(0.0);
@@ -96,9 +126,7 @@ vec4 marchClouds(vec3 ro, vec3 rd, float tScene, bool sky, float jitter, out flo
     float top = seaTop(p.xz, lod);
     float above = p.y - top;
     if (above > 0.5) {
-      // Outside the sea: jump most of the way to the surface (height-field slopes stay below ~0.6).
-      float closing = max(-rd.y, 0.0) + 0.6 * length(rd.xz);
-      t += clamp(above / max(closing, 0.05) * 0.8, 1.0 + t * 0.003, 800.0);
+      t += skip(p, rd, above, t);
       continue;
     }
     float dt = 3.0 + t * 0.006;
@@ -182,6 +210,7 @@ export class AtmosphereEffect extends Effect {
       uniforms.set('uLightDir', new Uniform(new Vector3(0, 1, 0))); uniforms.set('uLightColor', new Uniform(new Color()))
       uniforms.set('uTime', new Uniform(0)); uniforms.set('uWind', new Uniform(atmosphere.wind)); uniforms.set('uCover', new Uniform(0.5))
       uniforms.set('uPixelAngle', new Uniform(0.001)); uniforms.set('uGain', new Uniform(CLOUD_GAIN))
+      uniforms.set('uSwell', new Uniform(cloudSwell))
     }
     super('AtmosphereEffect', fragment, {
       attributes: EffectAttribute.DEPTH,

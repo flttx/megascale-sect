@@ -18,6 +18,8 @@ export interface IslandSite {
   /** Height of the rock mass hanging below the top. */
   depth: number
   bridged: boolean
+  /** Pillars it is chained to. A chained isle is hung among the pillars afterwards, so it does not push them aside. */
+  chains?: string[]
 }
 
 export const ISLANDS: IslandSite[] = [
@@ -28,6 +30,7 @@ export const ISLANDS: IslandSite[] = [
   { id: 'isle_front_left', name: '流云屿', top: [-270, 115, 230], padRadius: 15, radius: 22, depth: 40, bridged: false },
   { id: 'isle_front_right', name: '鹤鸣屿', top: [330, 140, 300], padRadius: 18, radius: 26, depth: 48, bridged: false },
   { id: 'isle_sky', name: '天池', top: [-160, 300, -780], padRadius: 20, radius: 30, depth: 60, bridged: false },
+  { id: 'isle_chained', name: '锁云屿', top: [-790, 265, -260], padRadius: 45, radius: 67, depth: 135, bridged: false, chains: ['pillar_5', 'pillar_3', 'pillar_2', 'pillar_0', 'pillar_4'] },
 ]
 
 export interface BridgeSite {
@@ -92,7 +95,7 @@ function generatePillars(): PillarSite[] {
       const radius = Math.min(48, Math.max(12, (topY + 84) * (0.1 + hash(seed, 4, 504) * 0.08) + 8))
       if (groundMax(x, z, radius + 30) > -110) continue
       if (out.some((p) => Math.hypot(p.x - x, p.z - z) < p.radius + radius + 30)) continue
-      if (ISLANDS.some((i) => Math.hypot(i.top[0] - x, i.top[2] - z) < i.radius + radius + 25)) continue
+      if (ISLANDS.some((i) => !i.chains && Math.hypot(i.top[0] - x, i.top[2] - z) < i.radius + radius + 25)) continue
       out.push({ id: `pillar_${out.length}`, cluster, x, z, topY, radius })
       placed++
     }

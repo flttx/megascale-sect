@@ -90,7 +90,7 @@ export const PILLAR_SUMMITS: Vec3[] = PILLAR_PLACEMENTS.map((pl) => toWorld(pl, 
  * Around each ledge a circle shrinks so that a body on the ledge (and hovering just above it) is clear, or the
  * sword could neither land nor lift off.
  */
-function pillarColliders(pl: RockPlacement, index: number): CylinderCollider[] {
+export function pillarColliders(pl: RockPlacement, index: number): CylinderCollider[] {
   const m = PILLAR_META[pl.variant], site = PILLARS[index], out: CylinderCollider[] = []
   const ledges = PILLAR_LEDGES.filter((l) => l.pillar === index)
   m.profile.forEach(([f, circles], b) => {
@@ -118,7 +118,7 @@ function pillarColliders(pl: RockPlacement, index: number): CylinderCollider[] {
 
 /** Model per island; the biggest, deepest one carries 天池's great waterfall. */
 const ISLAND_VARIANT: Record<string, number> = {
-  isle_west: 0, isle_east: 1, isle_northwest: 3, isle_star: 2, isle_front_left: 1, isle_front_right: 0, isle_sky: 3,
+  isle_west: 0, isle_east: 1, isle_northwest: 3, isle_star: 2, isle_front_left: 1, isle_front_right: 0, isle_sky: 3, isle_chained: 3,
 }
 const RIM_BINS = 48
 

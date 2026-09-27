@@ -21,6 +21,7 @@ import { WeatherSystem } from './weather/WeatherSystem'
 import { Landmarks } from './landmarks/Landmarks'
 import { PropField } from './props/PropField'
 import { Interactables } from './interact/Interactables'
+import { Colossi } from './colossi/Colossi'
 
 ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
@@ -69,6 +70,7 @@ export function World() {
       </Suspense>
       <Landmarks />
       <PropField />
+      <Colossi />
       <Interactables />
       <Player />
       <DebugHelpers />
