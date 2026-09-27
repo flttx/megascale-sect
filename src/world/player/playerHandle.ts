@@ -1,6 +1,6 @@
 import { groundHeight } from '../worldLayout'
 import { resetCameraRig } from './CameraRig'
-import { changePhase, type PlayerRuntime } from './playerMotion'
+import { changePhase, updatePlayerSupport, type PlayerRuntime } from './playerMotion'
 
 /** Imperative access to the live player for systems outside the Player component (interactables, UI, save). */
 let bound: PlayerRuntime | null = null
@@ -22,6 +22,8 @@ export function teleportPlayer(position: readonly [number, number, number], yaw?
   const runtime = bound
   if (!runtime || !['GROUND', 'FLIGHT'].includes(runtime.phase)) return false
   const [x, y, z] = position
+  runtime.relocation++
+  runtime.aboard = null; runtime.aboardJump = false; runtime.carrierDelta.set(0, 0, 0); runtime.carrierVelocity.set(0, 0, 0)
   const surface = groundHeight(x, z, y + 1.5)
   const onGround = surface !== null && y - surface < 1.5
   runtime.position.set(x, onGround ? surface : y, z)
@@ -35,5 +37,6 @@ export function teleportPlayer(position: readonly [number, number, number], yaw?
     changePhase(runtime, phase)
     runtime.rideMix = onGround ? 0 : 1
   }
+  updatePlayerSupport(runtime)
   return true
 }

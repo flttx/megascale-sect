@@ -1,8 +1,12 @@
 import { Vector3 } from 'three'
-import { groundHeight, insideStructure, LAYOUT, terrainSlope } from '../worldLayout'
+import { groundHeight, groundHit, insideStructure, LAYOUT, terrainSlope } from '../worldLayout'
 import { bodyInsideAnyCollider } from '../surfaces'
 import { stepFlight } from './FlightController'
 import { groundState, JUMP_SPEED, stepGround } from './GroundController'
+import { deckAnchor, evaluateDeckAnchor, kunDeckHit, kunDockable, kunState } from '../colossi/kunDeck'
+import type { DeckAnchor } from '../colossi/kunDeck'
+import { shiftCameraRig } from './CameraRig'
+import { useWorldStore } from '../store'
 
 export type PlayerPhase = 'GROUND' | 'SUMMONING' | 'BOARDING' | 'FLIGHT' | 'LANDING' | 'DISMOUNTING'
 export const PHASE_LABELS: Record<PlayerPhase, string> = {
@@ -27,6 +31,7 @@ export type PlayerRuntime = {
   jumpBuffer: number; inAir: boolean; air: number; landing: number;
   /** Time into the crouch before a jump, and its length (0 when no jump is winding up). */
   takeoff: number; takeoffTime: number;
+  aboard: DeckAnchor | null; carrierDelta: Vector3; carrierVelocity: Vector3; aboardJump: boolean; kunWarned: boolean; relocation: number;
 }
 
 export function createPlayerRuntime(): PlayerRuntime {
@@ -36,10 +41,15 @@ export function createPlayerRuntime(): PlayerRuntime {
     origin: new Vector3(), destination: new Vector3(), bank: 0, climb: 0, ready: false,
     rideMix: 0, impact: 0, braking: false, boostMix: 0,
     jumpBuffer: 0, inAir: false, air: 0, landing: 0, takeoff: 0, takeoffTime: 0,
+    aboard: null, carrierDelta: new Vector3(), carrierVelocity: new Vector3(), aboardJump: false, kunWarned: false, relocation: 0,
   }
 }
 
 export function changePhase(runtime: PlayerRuntime, phase: PlayerPhase) {
+  if (phase === 'FLIGHT' && runtime.aboard) {
+    runtime.velocity.add(runtime.carrierVelocity)
+    runtime.aboard = null; runtime.aboardJump = false
+  }
   runtime.phase = phase
   runtime.elapsed = 0
   // A buffered jump or the airborne flag from the last stretch on foot never carries into the next phase.
@@ -50,14 +60,59 @@ export function changePhase(runtime: PlayerRuntime, phase: PlayerPhase) {
 
 /** The sword flashes in underfoot and carries the player straight into flight (a long fall, or F pressed mid-jump). */
 function catchWithSword(runtime: PlayerRuntime) {
-  changePhase(runtime, 'FLIGHT')
   runtime.velocity.y *= 0.35
+  changePhase(runtime, 'FLIGHT')
   runtime.impact = 1
   runtime.air = 0
 }
 
 export function isAirborne(phase: PlayerPhase) {
   return phase === 'FLIGHT' || phase === 'LANDING' || phase === 'DISMOUNTING'
+}
+
+const carrierPoint = new Vector3(), previousPoint = new Vector3(), playerBefore = new Vector3(), UP = new Vector3(0, 1, 0)
+/** Runs even while the player is in a menu. Returns the carrier's turn for the free-look camera. */
+export function carryPlayer(runtime: PlayerRuntime, delta: number) {
+  runtime.carrierDelta.set(0, 0, 0)
+  const anchor = runtime.aboard
+  if (!anchor) { runtime.carrierVelocity.set(0, 0, 0); return 0 }
+  const now = evaluateDeckAnchor(anchor, carrierPoint)
+  if (!now) { catchWithSword(runtime); return 0 }
+  previousPoint.copy(anchor.point); playerBefore.copy(runtime.position)
+  const turn = Math.atan2(Math.sin(kunState.heading - anchor.yaw), Math.cos(kunState.heading - anchor.yaw))
+  for (const p of [runtime.position, runtime.origin, runtime.destination]) p.sub(previousPoint).applyAxisAngle(UP, turn).add(now)
+  runtime.carrierDelta.subVectors(runtime.position, playerBefore)
+  if (delta > 0) runtime.carrierVelocity.copy(runtime.carrierDelta).divideScalar(delta)
+  runtime.velocity.applyAxisAngle(UP, turn)
+  runtime.yaw -= turn; runtime.facing -= turn; runtime.sequenceYaw -= turn
+  shiftCameraRig(previousPoint, now, turn)
+  anchor.point.copy(now); anchor.yaw = kunState.heading
+  if (kunState.time >= 150 && !runtime.kunWarned) { runtime.kunWarned = true; useWorldStore.getState().setNotice('鲲将没入云海') }
+  if (runtime.phase === 'LANDING') {
+    runtime.destination.y = now.y + FLIGHT_SEQUENCE.hover
+    if (!kunDockable()) { changePhase(runtime, 'FLIGHT'); useWorldStore.getState().setNotice('鲲正没入云海，无法停靠') }
+  }
+  if (runtime.aboard && (runtime.position.y + Math.min(0, runtime.carrierVelocity.y) * delta <= -24 || kunState.headY < -44)) {
+    catchWithSword(runtime); useWorldStore.getState().setNotice('飞剑载你离开鲲背')
+  }
+  return turn
+}
+
+export function updatePlayerSupport(runtime: PlayerRuntime) {
+  if (runtime.phase !== 'GROUND') return
+  const p = runtime.position, hit = kunDeckHit(p.x, p.z, p.y)
+  if (runtime.inAir) {
+    if (runtime.aboard && runtime.velocity.y > 0) runtime.aboardJump = true
+    if (runtime.aboard && (!runtime.aboardJump || (runtime.velocity.y < 0 && p.y < runtime.aboard.point.y - 0.05 && !hit))) {
+      runtime.velocity.add(runtime.carrierVelocity); runtime.aboard = null; runtime.aboardJump = false
+    }
+    return
+  }
+  if (hit && Math.abs(hit.y - p.y) < 0.08 && groundHit(p.x, p.z, p.y)?.surfaceId === 'kun') {
+    if (!runtime.aboard && !kunDockable()) { catchWithSword(runtime); return }
+    if (!runtime.aboard) runtime.kunWarned = false
+    runtime.aboard = deckAnchor(hit); runtime.aboardJump = false
+  } else runtime.aboard = null
 }
 
 export function bodyClear(x: number, y: number, z: number) {
@@ -96,13 +151,17 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
     return null
   }
   if (runtime.phase === 'FLIGHT') {
-    const surface = groundHeight(runtime.position.x, runtime.position.z, runtime.position.y)
+    const hit = groundHit(runtime.position.x, runtime.position.z, runtime.position.y)
+    const surface = hit?.y ?? null
     if (surface === null) return '请飞到地面、平台或浮岛上方，再按 F 落地'
     if (terrainSlope(runtime.position.x, runtime.position.z, runtime.position.y) > 40) return '下方地势陡峭，请飞到平缓处再落地'
+    if (hit?.surfaceId === 'kun' && !kunDockable()) return '鲲正在爬升或入云，请待平飞时停靠'
+    if (hit && hit.normalY < Math.cos(40 * Math.PI / 180)) return '鲲背此处陡峭，请移到平缓处'
     if (!descentClear(runtime.position.x, runtime.position.y, surface, runtime.position.z)) return '下方有遮挡，请移到开阔处落地'
     runtime.destination.copy(runtime.position).setY(surface + FLIGHT_SEQUENCE.hover)
     runtime.velocity.set(0, 0, 0)
     changePhase(runtime, 'LANDING')
+    if (hit?.surfaceId === 'kun') { runtime.aboard = deckAnchor(hit); runtime.kunWarned = false }
     return null
   }
   if (runtime.phase === 'LANDING') {

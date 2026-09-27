@@ -3,6 +3,7 @@ import type { Mode } from '../store'
 import { insideAnyCollider } from '../surfaces'
 import { groundHeight, insideStructure } from '../worldLayout'
 import { smooth } from './playerMotion'
+import { kunClearance } from '../colossi/kunDeck'
 
 /** Orbit pivot above the feet, how far the view tilts below the aim pitch, and the arm length range (m). */
 const RIG = {
@@ -21,6 +22,13 @@ const sample = new Vector3(), moved = new Vector3(), direction = new Vector3()
 export function resetCameraRig() {
   rig.ready = false
 }
+const carryUp = new Vector3(0, 1, 0)
+export function shiftCameraRig(previous: Vector3, current: Vector3, turn: number) {
+  if (!rig.ready) return
+  rig.pivot.sub(previous).applyAxisAngle(carryUp, turn).add(current)
+  rig.last.sub(previous).applyAxisAngle(carryUp, turn).add(current)
+  rig.velocity.applyAxisAngle(carryUp, turn)
+}
 
 function solid(point: Vector3) {
   const ground = groundHeight(point.x, point.z, point.y)
@@ -29,6 +37,7 @@ function solid(point: Vector3) {
 
 /** Free length (≤ `length`) along the unit `direction` from `from` before terrain, a structure or a collider. */
 function clearance(from: Vector3, direction: Vector3, length: number) {
+  const deckFree = kunClearance(from, direction, length)
   const steps = Math.max(2, Math.ceil(length / 0.6))
   for (let i = 1; i <= steps; i++) {
     if (!solid(sample.copy(from).addScaledVector(direction, (i / steps) * length))) continue
@@ -38,9 +47,9 @@ function clearance(from: Vector3, direction: Vector3, length: number) {
       const mid = (lo + hi) / 2
       if (solid(sample.copy(from).addScaledVector(direction, mid))) hi = mid; else lo = mid
     }
-    return lo
+    return Math.min(lo, deckFree)
   }
-  return length
+  return Math.min(length, deckFree)
 }
 
 export function CameraRig({ camera }: { camera: PerspectiveCamera }) {

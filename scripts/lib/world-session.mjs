@@ -34,6 +34,17 @@ export async function openWorld(query = '', viewport = { width: 1600, height: 90
   await page.waitForFunction(() => document.body.innerText.includes('WORLD READY') && window.__playerSnapshot?.().characterReady?.male, null, { timeout: 180000 })
   await page.getByRole('button', { name: /进入仙宗/ }).click()
   await page.waitForTimeout(2500)
+  // Vite can retain timestamped module URLs after an edit, even on a fresh page. Use the instance the app loaded.
+  await page.evaluate(() => {
+    const modules = new Map()
+    window.__liveImport = (path) => {
+      if (!modules.has(path)) {
+        const entry = performance.getEntriesByType('resource').find((e) => new URL(e.name).pathname === path)
+        modules.set(path, import(entry?.name ?? path))
+      }
+      return modules.get(path)
+    }
+  })
   return { browser, page, errors }
 }
 

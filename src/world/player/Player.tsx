@@ -6,7 +6,8 @@ import { useWorldStore } from '../store'
 import { CameraRig, resetCameraRig, updateCameraRig } from './CameraRig'
 import { SpeedLines } from './SpeedLines'
 import { CharacterVisual } from './CharacterVisual'
-import { createPlayerRuntime, isAirborne, JUMP_BUFFER, requestFlightToggle, stepPlayer } from './playerMotion'
+import { carryPlayer, createPlayerRuntime, isAirborne, JUMP_BUFFER, requestFlightToggle, stepPlayer, updatePlayerSupport } from './playerMotion'
+import { simulationDelta } from '../simulation'
 import { type CharacterId } from './characterAssets'
 import { playerAudio } from './playerAudio'
 import { bindPlayerRuntime } from './playerHandle'
@@ -88,6 +89,8 @@ export function Player() {
       characterReady: useWorldStore.getState().characterReady, audio: playerAudio.snapshot(),
       yaw: runtime.current.yaw, pitch: runtime.current.pitch,
       keys: [...keys.current], inAir: runtime.current.inAir, takeoffTime: runtime.current.takeoffTime,
+      aboard: runtime.current.aboard ? { triangle: runtime.current.aboard.triangle, u: runtime.current.aboard.u, v: runtime.current.aboard.v, point: runtime.current.aboard.point.toArray() } : null,
+      carrierVelocity: runtime.current.carrierVelocity.toArray(), carrierDelta: runtime.current.carrierDelta.toArray(),
       feet: avatar.current?.getObjectByName(`Character_${useWorldStore.getState().character}`)?.userData.footPlant?.snapshot(),
       ridingPose: avatar.current?.getObjectByName(`Character_${useWorldStore.getState().character}`)?.userData.ridingPose?.(),
       ridingContact: inspectContact ? avatar.current?.getObjectByName(`Character_${useWorldStore.getState().character}`)?.userData.ridingContact?.() : undefined,
@@ -107,10 +110,11 @@ export function Player() {
   }, [camera, gl])
 
   useFrame((_, rawDelta) => {
-    const delta = Math.min(rawDelta, 0.05)
+    const delta = simulationDelta(rawDelta)
     const state = runtime.current
     const store = useWorldStore.getState()
     state.ready = store.characterReady[store.character]
+    viewYaw.current -= carryPlayer(state, delta)
     state.braking = keys.current.has('KeyX')
     const current = keys.current
     input.current.set(
@@ -122,7 +126,8 @@ export function Player() {
     const controlling = store.started && store.locked && state.ready && store.cameraMode === 'player'
     if (!controlling) input.current.set(0, 0, 0)
     if (store.started && store.locked && state.ready) stepPlayer(state, input.current, current.has('ShiftLeft') || current.has('ShiftRight'), delta)
-    else { state.time += delta; state.velocity.set(0, 0, 0) }
+    else { state.time += delta; if (state.phase === 'GROUND') state.velocity.set(0, 0, 0) }
+    updatePlayerSupport(state)
     playerAudio.update(state, store.started && store.locked && state.ready, store.soundEnabled)
     if (store.phase !== state.phase) store.setPhase(state.phase)
     if (avatar.current) {

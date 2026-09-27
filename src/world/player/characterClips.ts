@@ -76,6 +76,7 @@ export class ClipLayer {
   /** Distance covered per gait cycle at each clip's native speed (m). */
   private cycle: Record<Locomotion, number>
   private last = new Vector3(); private placed = false
+  private relocation = -1
   private speed = 0; private gait = 0; private idleTime = 0
   private air = 0; private airTime = 0; private jumped = false; private wasInAir = false
   private landTime = Infinity; private landStrength = 0; private land = 0; private fallTime = 0
@@ -107,9 +108,10 @@ export class ClipLayer {
 
   /** Advances the clocks and writes this frame's blended clip pose into every target. */
   update(runtime: PlayerRuntime, delta: number) {
+    if (runtime.relocation !== this.relocation) { this.reset(); this.relocation = runtime.relocation }
     const ground = runtime.phase === 'GROUND', boarding = runtime.phase === 'BOARDING'
     const inAir = ground && runtime.inAir, onFoot = ground && !inAir
-    const moved = this.placed ? Math.hypot(runtime.position.x - this.last.x, runtime.position.z - this.last.z) : 0
+    const moved = this.placed ? Math.hypot(runtime.position.x - this.last.x - runtime.carrierDelta.x, runtime.position.z - this.last.z - runtime.carrierDelta.z) : 0
     this.last.copy(runtime.position)
     this.placed = true
     // A jump keeps the speed it left the ground with; anything but a step on foot (a teleport) is not a stride.

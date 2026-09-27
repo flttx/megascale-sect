@@ -143,7 +143,7 @@ function write() {
 /** Remembers where the player stands, but only somewhere safe to resume (on foot, normal camera). */
 function samplePosition() {
   const world = useWorldStore.getState(), runtime = getPlayerRuntime()
-  if (!world.started || !runtime || runtime.phase !== 'GROUND' || runtime.inAir || runtime.takeoffTime || world.cameraMode !== 'player') return
+  if (!world.started || !runtime || runtime.phase !== 'GROUND' || runtime.inAir || runtime.takeoffTime || runtime.aboard || world.cameraMode !== 'player') return
   const p = runtime.position
   const ground = groundHeight(p.x, p.z, p.y)
   if (ground === null || Math.abs(p.y - ground) > 0.05) return

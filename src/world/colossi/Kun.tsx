@@ -11,6 +11,8 @@ import { KUN, KUN_PATH } from './layout'
 import { playKunCall } from './kunVoice'
 import { bindKunDeck, kunDeckHit, updateKunDeck } from './kunDeck'
 import { registerWalkables } from '../surfaces'
+import { getPlayerRuntime } from '../player/playerHandle'
+import { simulationDelta } from '../simulation'
 
 const KUN_URL = `${import.meta.env.BASE_URL}assets/colossi/kun.glb`.replace(/\/{2,}/g, '/')
 useGLTF.preload(KUN_URL)
@@ -94,15 +96,16 @@ export function Kun() {
 
   useEffect(() => {
     if (!import.meta.env.DEV) return
-    const w = window as unknown as { __kun?: () => unknown }
+    const w = window as unknown as { __kun?: () => unknown; __kunSetTime?: (t: number) => void }
+    w.__kunSetTime = (t) => { state.distance = t * KUN.speed; state.placed = false }
     w.__kun = () => ({ position: state.position.toArray().map(Math.round), time: +(state.distance / KUN.speed).toFixed(1), period: +(length / KUN.speed).toFixed(1), bank: +state.bank.toFixed(3), breaching: state.time - state.breachAt < anim.duration, swimming: anim.swim?.isRunning() ?? false, casting: state.casting, swell: cloudSwell.toArray().map((v) => +v.toFixed(2)) })
-    return () => { delete w.__kun }
+    return () => { delete w.__kun; delete w.__kunSetTime }
   }, [state, length, anim])
 
   useFrame(({ camera }, delta) => {
     const group = root.current
     if (!group) return
-    const dt = Math.min(delta, 0.1)
+    const dt = simulationDelta(delta)
     const moving = started || START > 0
     state.time += dt
     if (moving) state.distance += KUN.speed * dt
@@ -114,7 +117,8 @@ export function Kun() {
     const heading = Math.atan2(state.tangent.x, state.tangent.z), turn = heading - state.heading
     const yawRate = state.placed && dt > 0 ? Math.atan2(Math.sin(turn), Math.cos(turn)) / dt : 0
     state.heading = heading
-    const bank = Math.max(-BANK_MAX, Math.min(BANK_MAX, -yawRate * BANK_GAIN))
+    const bankMax = getPlayerRuntime()?.aboard ? 0.15 : BANK_MAX
+    const bank = Math.max(-bankMax, Math.min(bankMax, -yawRate * BANK_GAIN))
     state.bank += (bank - state.bank) * (1 - Math.exp(-dt * 1.2))
 
     state.ahead.copy(state.position).add(state.tangent)
@@ -167,7 +171,8 @@ export function Kun() {
     swim?.setEffectiveWeight(1 - w)
     anim.mixer.update(dt)
     group.updateMatrixWorld(true)
-    updateKunDeck(state.position, state.distance / KUN.speed % (length / KUN.speed), state.heading, state.head.y)
+    state.ahead.set(0, 0, 1).applyQuaternion(group.quaternion)
+    updateKunDeck(state.position, state.distance / KUN.speed % (length / KUN.speed), Math.atan2(state.ahead.x, state.ahead.z), state.head.y)
   }, -2)
 
   return (

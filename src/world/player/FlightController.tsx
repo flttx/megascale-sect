@@ -31,6 +31,7 @@ export function stepFlight(
   position: Vector3, velocity: Vector3, input: Vector3,
   yaw: number, pitch: number, boosting: boolean, delta: number, braking = false,
 ) {
+  const limitX = Math.max(LAYOUT.worldLimit, Math.abs(position.x)), limitZ = Math.max(LAYOUT.worldLimit, Math.abs(position.z))
   forward.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch))
   right.set(Math.cos(yaw), 0, Math.sin(yaw))
   desired.copy(forward).multiplyScalar(-input.z).addScaledVector(right, input.x)
@@ -60,7 +61,7 @@ export function stepFlight(
     }
     else { velocity.y = 0; step.y = 0 }
   }
-  position.x = Math.max(-LAYOUT.worldLimit, Math.min(LAYOUT.worldLimit, position.x))
+  position.x = Math.max(-limitX, Math.min(limitX, position.x))
   position.y = Math.max(TERRAIN_WALK_FLOOR, Math.min(1100, position.y))
-  position.z = Math.max(-LAYOUT.worldLimit, Math.min(LAYOUT.worldLimit, position.z))
+  position.z = Math.max(-limitZ, Math.min(limitZ, position.z))
 }

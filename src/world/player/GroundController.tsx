@@ -1,6 +1,7 @@
 import { Vector3 } from 'three'
 import { groundHeight, insideMainFootprint, insideStructure, LAYOUT, terrainGradient } from '../worldLayout'
 import { bodyInsideAnyCollider } from '../surfaces'
+import { kunBodyBlocked } from '../colossi/kunDeck'
 
 /** Horizontal probe for slope checks, and the rise it may climb (45°) or drop (55°) over that distance. */
 const PROBE = 1.2
@@ -111,8 +112,8 @@ export function stepGround(
   const startX = position.x, startZ = position.z
   const nextX = position.x + velocity.x * delta
   const nextZ = position.z + velocity.z * delta
-  const allowed = (nx: number, nz: number) => airborne ? canFly(nx, nz, position.y)
-    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep)
+  const allowed = (nx: number, nz: number) => !kunBodyBlocked(position.x, position.y, position.z, nx, nz) && (airborne ? canFly(nx, nz, position.y)
+    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep))
   // Blocked moves slide along the obstacle (cliff edge, steep bank) instead of stopping dead.
   if (allowed(nextX, nextZ)) {
     position.x = nextX
