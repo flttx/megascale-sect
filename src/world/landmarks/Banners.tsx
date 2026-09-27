@@ -10,7 +10,7 @@ import { LAYOUT } from '../worldLayout'
 
 /**
  * Sect banners (幡): indigo silk with gold trim hanging from the arm of a tall lacquered pole at the
- * platform's front corners, flanking the grand stairs, and at both bridge heads. The silk ripples in a
+ * platform's front corners, flanking the grand stairs and the great censer, and at both bridge heads. The silk ripples in a
  * vertex shader whose speed and reach follow the wind strength.
  */
 
@@ -19,6 +19,8 @@ const Y = LAYOUT.platform.height, POLE = 13, ARM = 2.1, WIDTH = 1.5, DROP = 6.4
 const SITES: [number, number, number][] = [
   [-183, -70, 0], [183, -70, Math.PI], [-16.5, -68.5, Math.PI], [16.5, -68.5, 0],
   [-186.5, -94.5, -Math.PI / 2], [-186.5, -109.5, Math.PI / 2], [186.5, -77.5, -Math.PI / 2], [186.5, -92.5, Math.PI / 2],
+  // Flanking the great censer's dais, arms toward the axis.
+  [-24, -160, 0], [24, -160, Math.PI],
 ]
 
 /** Pole feet that survive the interact-site clearance check (also used for flight colliders). */

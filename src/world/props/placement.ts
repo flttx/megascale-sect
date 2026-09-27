@@ -1,4 +1,5 @@
 import { buildingDistance, hash, noise, roadAt, roadDistance, slopeAt, terrainHeight } from '../environment/t02r/terrain'
+import { DAIS, DAIS_TOP, PIT, TREE_PITS } from '../environment/plaza'
 import { towerFootings } from '../environment/t02r/scatter'
 import { PILLAR_LEDGES, PILLAR_PLACEMENTS } from '../landmarks/rockLayout'
 import { BRIDGES, ISLANDS, siteClearance, yawToward } from '../sites'
@@ -100,8 +101,11 @@ export function buildPropLayout(): PropLayout {
     add('stone_lion', x, terrainHeight(x, z) - 0.05, z, yawToward([x, 0, z], [side * 4, 0, 120]), 1.3)
   }
 
-  // ── Forecourt: great censer before the hall, lantern posts along the axis, welcoming pines. ──
-  add('incense_burner', 0, PLATFORM_Y, -160, Math.PI / 2, 3.2)
+  // ── Forecourt: great censer on its dais before the hall, a smaller pair either side, lantern posts along the
+  // axis, welcoming pines; pines in the tree pits (plaza.ts) there and down the hall's flanks. ──
+  add('incense_burner', DAIS.x, DAIS_TOP, DAIS.z, Math.PI / 2, 3.2)
+  for (const side of [-1, 1]) add('incense_burner', side * 44, PLATFORM_Y, -164, Math.PI / 2, 2.2)
+  for (const [x, z] of TREE_PITS) add('pine_guest', x, PLATFORM_Y + PIT.height - PIT.bed - 0.3, z, hash(x, z, 31) * 6.28, 0.72 + hash(x, z, 32) * 0.12)
   for (const z of [-84, -100, -116, -136, -152]) for (const side of [-1, 1]) {
     const x = side * 10.5
     if (siteClearance(x, z) > 1.5) add('lantern_post', x, PLATFORM_Y, z, side * Math.PI / 2, 1.2)

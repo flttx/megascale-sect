@@ -26,9 +26,8 @@ const VERTEX_BODY = /* glsl */ `
     vWxNormal = normalize(mat3(modelMatrix) * wxN);
   }
 `
-const FRAGMENT_HEAD = /* glsl */ `
-varying vec3 vWxPosition; varying vec3 vWxNormal;
-uniform float uWxWetness; uniform float uWxSnow; uniform float uWxRain; uniform float uWxTime; uniform float uWxDebug;
+/** Value noise and raindrop rings, also used by the pool water (environment materials). */
+export const WX_NOISE_GLSL = /* glsl */ `
 float wxHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float wxNoise(vec2 p) {
   vec2 a = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -44,6 +43,10 @@ float wxRipple(vec2 p, float t) {
   return sin(ring * 70.0) * exp(-ring * ring * 500.0) * (1.0 - phase);
 }
 `
+const FRAGMENT_HEAD = /* glsl */ `
+varying vec3 vWxPosition; varying vec3 vWxNormal;
+uniform float uWxWetness; uniform float uWxSnow; uniform float uWxRain; uniform float uWxTime; uniform float uWxDebug;
+${WX_NOISE_GLSL}`
 const FRAGMENT_COLOR = /* glsl */ `
   vec3 wxN = normalize(vWxNormal);
   float wxFlat = smoothstep(0.82, 0.97, wxN.y);

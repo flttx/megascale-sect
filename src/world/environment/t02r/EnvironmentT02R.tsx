@@ -1,12 +1,14 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { BoxGeometry, BufferGeometry, Euler, Group, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Raycaster, Vector2, Vector3 } from 'three'
+import { BoxGeometry, BufferGeometry, Euler, Group, InstancedMesh, Matrix4, Mesh, Object3D, PlaneGeometry, Quaternion, Raycaster, Vector2, Vector3 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { registerColliders, registerWalkables } from '../../surfaces'
 import { LAYOUT } from '../../worldLayout'
 import { GrandStairs } from '../GrandStairs'
 import { Grass } from '../Grass'
-import { environmentMaterial } from './materials'
+import { DAIS, PIT, PLAZA_COLLIDERS, PLAZA_WALKABLES, POOL, POOLS, TREE_PITS } from '../plaza'
+import { environmentMaterial, waterMaterial } from './materials'
 import { FAR_RING_RADII, makeDistantRidge, makeFarRing, makeRoad, makeTerrain, roadSamples } from './terrain'
 import { loadSurfaceTextures } from '../terrainTextures'
 import { makeScatter, towerFootings } from './scatter'
@@ -41,6 +43,8 @@ function Rocks() {
 function Terraces() {
   const paving = useMemo(() => environmentMaterial('paving'), [])
   const masonry = useMemo(() => environmentMaterial('masonry'), [])
+  const bed = useMemo(() => environmentMaterial('bed'), [])
+  const water = useMemo(waterMaterial, [])
   const stones = useMemo(() => {
     const transforms: Matrix4[] = []
     // Restrict retaining walls to the formal front approach.
@@ -56,6 +60,17 @@ function Terraces() {
     const box = (size: [number, number, number], position: readonly number[], rotation: readonly number[] = [0, 0, 0], lift = 0) =>
       new BoxGeometry(...size).translate(0, lift, 0).applyMatrix4(instanceMatrix(position, [1, 1, 1], rotation))
     const merge = (parts: BufferGeometry[]) => { const merged = mergeGeometries(parts); parts.forEach((p) => p.dispose()); return merged }
+    const Y = LAYOUT.platform.height
+    // A curb ring round a pit or pool (outer half-extents), sunk 0.1 m into the slab.
+    const curb = (x: number, z: number, hx: number, hz: number, wall: number, height: number) => {
+      const y = Y + (height - .1) / 2, h = height + .1
+      return [
+        box([2 * hx, h, wall], [x, y, z - hz + wall / 2]), box([2 * hx, h, wall], [x, y, z + hz - wall / 2]),
+        box([wall, h, 2 * (hz - wall)], [x - hx + wall / 2, y, z]), box([wall, h, 2 * (hz - wall)], [x + hx - wall / 2, y, z]),
+      ]
+    }
+    const plane = (x: number, y: number, z: number, sx: number, sz: number) => new PlaneGeometry(sx, sz).rotateX(-Math.PI / 2).translate(x, y, z)
+    const inner = 2 * (PIT.half - PIT.wall)
     return {
       paving: merge([
         box([380, .34, 450], [0, 23.83, -290]), box([30, .28, 24], [0, -.13, 150]),
@@ -64,13 +79,24 @@ function Terraces() {
       masonry: merge([
         ...[-1, 1].map(side => box([14.2, 2, 18], [side * 16.2, -1, 55])),
         ...towerFootings.map(t => box([t.width, 2.8, t.depth], t.position, t.rotation, -1.4)),
+        ...TREE_PITS.flatMap(([x, z]) => curb(x, z, PIT.half, PIT.half, PIT.wall, PIT.height)),
+        ...POOLS.flatMap(p => curb(p.x, p.z, p.halfX, p.halfZ, POOL.wall, POOL.height)),
+        ...DAIS.tiers.map((half, i) => box([2 * half, (i + 1) * DAIS.rise + .1, 2 * half], [DAIS.x, Y + ((i + 1) * DAIS.rise - .1) / 2, DAIS.z])),
       ]),
+      bed: merge(TREE_PITS.map(([x, z]) => plane(x, Y + PIT.height - PIT.bed, z, inner, inner))),
+      water: merge(POOLS.map(p => plane(p.x, Y + POOL.water, p.z, 2 * (p.halfX - POOL.wall), 2 * (p.halfZ - POOL.wall)))),
     }
   }, [])
-  useEffect(() => () => { slabs.paving.dispose(); slabs.masonry.dispose() }, [slabs])
+  useEffect(() => () => Object.values(slabs).forEach((g) => g.dispose()), [slabs])
+  useEffect(() => {
+    const offWalkables = registerWalkables(PLAZA_WALKABLES), offColliders = registerColliders(PLAZA_COLLIDERS)
+    return () => { offWalkables(); offColliders() }
+  }, [])
   return <group name="Terraces">
     <mesh name="Terrace_Paving" geometry={slabs.paving} material={paving} />
     <mesh name="Terrace_Masonry" geometry={slabs.masonry} material={masonry} />
+    <mesh name="Plaza_TreeBeds" geometry={slabs.bed} material={bed} userData={{ castShadow: false }} />
+    <mesh name="Plaza_Pools" geometry={slabs.water} material={water} userData={{ castShadow: false }} />
     <primitive object={stones} dispose={null} />
   </group>
 }

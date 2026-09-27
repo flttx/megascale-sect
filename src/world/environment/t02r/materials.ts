@@ -1,8 +1,8 @@
 import { MeshStandardMaterial } from 'three'
-import { patchSurfaceWeather } from '../../weather/surfaceWeather'
+import { SURFACE_WEATHER_UNIFORMS, WX_NOISE_GLSL, patchSurfaceWeather } from '../../weather/surfaceWeather'
 import { SURFACE_SETS, surfaceTextures } from '../terrainTextures'
 
-export type Surface = 'terrain' | 'rock' | 'karst' | 'scholar' | 'paving' | 'gravel' | 'masonry' | 'distant'
+export type Surface = 'terrain' | 'rock' | 'karst' | 'scholar' | 'paving' | 'gravel' | 'masonry' | 'bed' | 'distant'
 
 const layer = (set: (typeof SURFACE_SETS)[number]) => `${SURFACE_SETS.indexOf(set)}.0`
 
@@ -145,6 +145,83 @@ const ROCK_MOSS = (ledges: boolean, extra = '0.0') => /* glsl */ `
   }
 `
 
+/** Relief of the imperial way's centre stone (0 recessed … 1 raised): framed 4.8 m panels of cloud scrolls. */
+const WAY_CARVE = /* glsl */ `
+float wayCarve(vec2 p) {
+  vec2 f = vec2(p.x, mod(p.y, 4.8) - 2.4);
+  float inside = 1.0 - smoothstep(2.14, 2.2, max(abs(f.x), abs(f.y)));
+  // A 2 × 2 grid of scroll cells per panel, alternate cells mirrored so the spirals turn toward each other.
+  vec2 c = f / 2.2 + 1.0, id = floor(c), g = fract(c) - 0.5;
+  g.x *= mod(id.x + id.y, 2.0) * 2.0 - 1.0;
+  float r = length(g);
+  float scroll = smoothstep(0.1, 0.45, sin(r * 44.0 - atan(g.y, g.x + 1e-6))) * (1.0 - smoothstep(0.36, 0.44, r));
+  return mix(1.0, scroll * 0.8, inside);
+}
+`
+
+/**
+ * The main platform's top face (the road, stairs and footings keep the plain paving). 30 m bays measured from the
+ * axis and the front edge close exactly on all four edges; each bay is a slightly different batch of stone, framed
+ * by dark granite bands, with a wider kerb band round the rim. The imperial way (御道) carries the grand stairs
+ * across the forecourt (and out behind the hall) in marble with a carved centre stone. Feet polish the lanes beside
+ * it, and moss creeps into the joints toward the cliff edges and the hall's walls.
+ */
+const PLATFORM_TOP = /* glsl */ `
+  if (sp.y > 23.9 && sp.y < 24.1 && surfN.y > 0.9 && abs(sp.x) < 190.0 && sp.z < -65.0 && sp.z > -515.0) {
+    float ax = abs(sp.x), back = -65.0 - sp.z, aa = max(length(abs(surfDx.xz) + abs(surfDy.xz)), 1e-3); // fwidth, taken outside the mask branch
+    // Pull each slab toward the texture's mean tone (its last mip): the joints stay, the checkerboard goes.
+    vec3 mean = textureGrad(uSurfAlbedo, vec3(0.5, 0.5, ${layer('paving')}), vec2(64.0, 0.0), vec2(0.0, 64.0)).rgb;
+    vec2 q = vec2(ax - 10.0, back), bay = floor(q / 30.0);
+    vec3 batch = mix(vec3(0.96, 0.98, 1.03), vec3(1.04, 1.0, 0.94), envHash(bay + 9.1)) * (0.9 + envHash(bay + 3.7) * 0.16);
+    surfAlbedo = mix(mean, pA.rgb, 0.55) * batch * (0.8 + grime * 0.3) * mix(vec3(1.0), vec3(0.86, 0.95, 0.78), lichen * 0.35);
+    vec2 toLine = abs(q - 30.0 * floor(q / 30.0 + 0.5));
+    float edge = min(190.0 - ax, min(back, sp.z + 515.0));
+    float band = max(1.0 - smoothstep(0.6 - aa, 0.6 + aa, min(toLine.x, toLine.y)), 1.0 - smoothstep(2.4 - aa, 2.4 + aa, edge));
+    surfAlbedo = mix(surfAlbedo, mix(mean, pA.rgb, 0.7) * vec3(0.5, 0.52, 0.56), band);
+    surfRough = mix(surfRough, 0.5, band);
+    float lane = (1.0 - smoothstep(10.0, 26.0, ax)) * step(-176.0, sp.z);
+    surfRough *= 1.0 - lane * 0.3; surfAlbedo *= 1.0 + lane * 0.05;
+    vec2 hq = abs(sp.xz - vec2(0.0, -320.0)) - vec2(136.0, 147.0);
+    float hall = length(max(hq, 0.0)) + min(max(hq.x, hq.y), 0.0);
+    float damp = max(1.0 - smoothstep(2.0, 12.0, edge), 1.0 - smoothstep(0.0, 8.0, hall)) * smoothstep(0.45, 0.8, envFbm(sp.xz * 0.11 + 4.0));
+    if (damp > 0.01) {
+      vec4 mA, mD; vec3 mN;
+      surfTop(${layer('moss')}, 4.0, mA, mD, mN);
+      // Held below one half so it creeps along the joints instead of carpeting the slabs.
+      float w = heightMix(surfHeight, mD.a, damp * 0.46, 0.2);
+      surfAlbedo = mix(surfAlbedo, mix(mA.rgb, surfAlbedo, 0.3), w); surfRough = mix(surfRough, mA.a, w);
+      surfNormal = normalize(mix(surfNormal, mN, w)); surfAO = mix(surfAO, mD.b, w);
+    }
+    if (ax < 9.4 && (sp.z > -176.0 || sp.z < -464.0)) {
+      // Marble: three staggered courses each side of the centre stone; each slab cut from a different part of the block.
+      float courseW = 7.0 / 3.0, across = ax - 2.4, course = floor(across / courseW), along = back + course * 1.3 + step(0.0, sp.x) * 0.6;
+      vec2 slabId = across < 0.0 ? vec2(0.0, floor(back / 4.8)) : vec2(course * sign(sp.x), floor(along / 3.5));
+      float jointD = across < 0.0 ? min(-across, abs(back - 4.8 * floor(back / 4.8 + 0.5)))
+        : min(abs(across - courseW * floor(across / courseW + 0.5)), abs(along - 3.5 * floor(along / 3.5 + 0.5)));
+      vec3 mp = vec3((sp.xz + vec2(envHash(slabId), envHash(slabId + 5.3)) * 20.0) / 5.0, ${layer('marble')});
+      vec4 wA = textureGrad(uSurfAlbedo, mp, surfDx.xz / 5.0, surfDy.xz / 5.0), wD = textureGrad(uSurfDetail, mp, surfDx.xz / 5.0, surfDy.xz / 5.0);
+      vec2 wt = surfTangent(wD);
+      vec3 wN = normalize(vec3(wt.x + surfN.x, surfN.y, wt.y + surfN.z));
+      float relief = 1.0;
+      if (across < 0.0) {
+        // Carved scrolls, lit by a finite-difference normal; faded out before they shimmer at range.
+        float fade = 1.0 - smoothstep(0.02, 0.12, aa);
+        vec2 cp = vec2(sp.x, back);
+        relief = wayCarve(cp);
+        if (fade > 0.0) {
+          float e = 0.03, hx = wayCarve(cp + vec2(e, 0.0)), hz = wayCarve(cp + vec2(0.0, e));
+          wN = normalize(wN + vec3(-(hx - relief), 0.0, hz - relief) / e * 0.025 * fade);
+        }
+        relief = mix(1.0, relief, fade * 0.8 + 0.2);
+      }
+      float joint = (1.0 - smoothstep(0.015, 0.015 + aa, jointD)) * min(1.0, 0.05 / aa);
+      surfAlbedo = wA.rgb * vec3(0.47, 0.45, 0.42) * (0.94 + envHash(slabId + 1.7) * 0.1) * (0.88 + grime * 0.2) * (1.0 - joint * 0.45) * mix(0.8, 1.0, relief);
+      surfRough = mix(0.42, 0.56, grime) + joint * 0.3;
+      surfNormal = wN; surfAO = wD.b * mix(0.7, 1.0, relief); surfHeight = wD.a;
+    }
+  }
+`
+
 const SURFACES: Record<Surface, string> = {
   terrain: /* glsl */ `
     ${ROCK(16, 71.3)}
@@ -219,6 +296,7 @@ const SURFACES: Record<Surface, string> = {
     surfAlbedo = pA.rgb * (0.72 + grime * 0.45) * mix(vec3(1.0), vec3(0.86, 0.95, 0.78), lichen * 0.5);
     surfRough = clamp(pA.a * (0.9 + grime * 0.2), 0.3, 1.0);
     surfNormal = pN; surfAO = pD.b; surfHeight = pD.a;
+    ${PLATFORM_TOP}
   `,
   masonry: /* glsl */ `
     vec4 pA, pD; vec3 pN;
@@ -226,6 +304,16 @@ const SURFACES: Record<Surface, string> = {
     float grime = envFbm(vec2(sp.x + sp.z, sp.y) * 0.08);
     surfAlbedo = pA.rgb * 1.35 * (0.8 + grime * 0.3);
     surfRough = pA.a; surfNormal = pN; surfAO = pD.b; surfHeight = pD.a;
+  `,
+  // Tree pits: moss over dark earth, with gravel showing through where it is thin.
+  bed: /* glsl */ `
+    vec4 mA, mD, sA, sD; vec3 mN, sN;
+    surfTop(${layer('moss')}, 3.0, mA, mD, mN);
+    surfTop(${layer('gravel')}, 1.6, sA, sD, sN);
+    float w = heightMix(sD.a, mD.a, smoothstep(0.3, 0.7, envFbm(sp.xz * 0.6)), 0.15);
+    surfAlbedo = mix(sA.rgb * vec3(0.55, 0.5, 0.45), mA.rgb * 0.85, w);
+    surfRough = mix(sA.a, mA.a, w); surfNormal = normalize(mix(sN, mN, w));
+    surfAO = mix(sD.b, mD.b, w) * 0.85; surfHeight = mix(sD.a, mD.a, w);
   `,
   gravel: /* glsl */ `
     vec4 sA, sD; vec3 sN;
@@ -243,7 +331,7 @@ export function environmentMaterial(surface: Surface) {
   const material = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, metalness: 0 })
   material.name = `T02R_${surface}`
   const masked = surface === 'terrain', rockMasked = surface === 'karst'
-  material.customProgramCacheKey = () => `t02r-${surface}-12`
+  material.customProgramCacheKey = () => `t02r-${surface}-16`
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, surfaceTextures)
     if (masked) shader.defines = { ...shader.defines, SURF_MASK: '' }
@@ -271,7 +359,7 @@ export function environmentMaterial(surface: Surface) {
         vRockMask = rockMask;
       #endif
     `)
-    shader.fragmentShader = `${HEAD}\n${shader.fragmentShader}`
+    shader.fragmentShader = `${HEAD}\n${surface === 'paving' ? WAY_CARVE : ''}\n${shader.fragmentShader}`
       .replace('#include <color_fragment>', `#include <color_fragment>
       vec3 sp = vEnvPosition;
       surfP = sp; surfDx = dFdx(sp); surfDy = dFdy(sp);
@@ -296,6 +384,48 @@ export function environmentMaterial(surface: Surface) {
       reflectedLight.indirectSpecular *= mix(1.0, surfAO, 0.8);
     `)
     patchSurfaceWeather(shader)
+  }
+  return material
+}
+
+/**
+ * Still, dark jade water for the forecourt pools: slow wind ripples, raindrop rings while it rains, and the sky
+ * mirrored a little above the dim scene IBL kept for stone. No weather patch: snow does not settle on open water.
+ */
+export function waterMaterial() {
+  const material = new MeshStandardMaterial({ color: '#0e2621', roughness: 0.06, metalness: 0 })
+  material.name = 'T02R_water'
+  material.customProgramCacheKey = () => 't02r-water-2'
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, SURFACE_WEATHER_UNIFORMS)
+    shader.vertexShader = `varying vec3 vWaterPosition;\n${shader.vertexShader}`.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+      vWaterPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
+    `)
+    shader.fragmentShader = /* glsl */ `varying vec3 vWaterPosition;
+      uniform float uWxRain; uniform float uWxTime;
+      ${WX_NOISE_GLSL}
+      float waterHeight(vec2 p, float rings) {
+        float t = uWxTime;
+        float h = (wxNoise(p * 0.8 + vec2(t * 0.23, t * 0.11)) * 0.6 + wxNoise(p * 2.1 - vec2(t * 0.19, -t * 0.31)) * 0.3
+          + wxNoise(p * 4.7 + vec2(-t * 0.43, t * 0.37)) * 0.1) * 0.035;
+        if (rings > 0.01) h += (wxRipple(p * 2.3, t) + wxRipple(p * 3.1 + 17.0, t * 1.1)) * 0.004 * rings;
+        return h;
+      }
+      ${shader.fragmentShader}`
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      {
+        // Rings fade out where a pixel spans several of them.
+        vec2 p = vWaterPosition.xz;
+        float rings = uWxRain * (1.0 - smoothstep(0.05, 0.25, length(fwidth(p)))), e = 0.004, h = waterHeight(p, rings);
+        vec2 slope = vec2(waterHeight(p + vec2(e, 0.0), rings) - h, waterHeight(p + vec2(0.0, e), rings) - h) / e;
+        normal = normalize((viewMatrix * vec4(normalize(vec3(-slope.x, 1.0, -slope.y)), 0.0)).xyz);
+      }
+    `)
+      .replace('#include <lights_fragment_maps>', `#include <lights_fragment_maps>
+      #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
+        radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness ) * 0.5;
+      #endif
+    `)
   }
   return material
 }
