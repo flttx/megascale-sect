@@ -65,6 +65,7 @@
     - 碰撞：铁链碰撞只对飞行生效，不再是地面空气墙；空中不能越过会让人落进碰撞体的位置；飞行按 1 m 分步检测，不会穿过细杆。
     - 状态：空中按 F 由飞剑直接接住；换阶段时清掉跳跃预输入；拍照时速度线立即消失。
     - 复验：tsc、build、verify:optimization、verify:navigation、verify:interact（37/37）、verify:smoke、verify:characters、verify:riding-pose 通过；探针逐帧记录镜头距离，召剑、落地、冲刺停步时每帧最大变化 0.09 / 0.07 / 0.03 m。
+    - 二次审查修正：飞剑停在碰撞体外扩区内（或落进碰撞体）时不再卡死，本步改测裸碰撞体或不测，可以飞出；非跟随镜头的每一帧都重置跟随镜头，退出拍照不会从旧位置缓入；下台阶和沿坡滑落时躯干也要避开下方的道具；镜头重置帧的肩偏移直接到位。复验：tsc、build、verify:navigation、verify:interact（37/37）、verify:smoke、verify:characters 通过；Node 探针中，从外扩区和碰撞体内部向外飞 1 s 分别飞出 42 m / 36.5 m，从外侧飞入停在外扩边缘（11 m）。
 
 ## 生产级重建（2026-09）
 

@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { Group, PerspectiveCamera, Vector3 } from 'three'
 import { LAYOUT } from '../worldLayout'
 import { useWorldStore } from '../store'
-import { CameraRig, updateCameraRig } from './CameraRig'
+import { CameraRig, resetCameraRig, updateCameraRig } from './CameraRig'
 import { SpeedLines } from './SpeedLines'
 import { CharacterVisual } from './CharacterVisual'
 import { createPlayerRuntime, isAirborne, JUMP_BUFFER, requestFlightToggle, stepPlayer } from './playerMotion'
@@ -132,6 +132,8 @@ export function Player() {
       } else { viewYaw.current = state.yaw; viewPitch.current = state.pitch }
     }
     if (store.cameraMode === 'player') updateCameraRig(camera, state.position, viewYaw.current, viewPitch.current, mode, delta, mode === 'FLIGHT' ? state.velocity.length() : Math.hypot(state.velocity.x, state.velocity.z), state.bank, state.impact, store.fov, state.landing)
+    // Any other camera (photo, cinematic) leaves the follow rig stale: it starts over when the player view returns.
+    else resetCameraRig()
     elapsed.current += rawDelta
     frames.current++
     if (elapsed.current >= 0.25) {

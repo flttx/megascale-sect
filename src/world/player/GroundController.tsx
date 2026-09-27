@@ -33,7 +33,8 @@ const bodyBlocked = (x: number, y: number, z: number) =>
  */
 function canStep(x: number, z: number, nx: number, nz: number, y: number, here: number, steepHere: boolean) {
   const next = groundHeight(nx, nz, y)
-  if (next === null || bodyBlocked(nx, Math.max(y, next), nz)) return false
+  // Stepping down, the body must also clear the lower footing (a censer at the foot of a ledge).
+  if (next === null || bodyBlocked(nx, Math.max(y, next), nz) || (next < y && bodyBlocked(nx, next, nz))) return false
   const dx = nx - x, dz = nz - z, length = Math.hypot(dx, dz)
   if (length < 1e-6) return true
   const ahead = groundHeight(x + (dx / length) * PROBE, z + (dz / length) * PROBE, y)
@@ -43,6 +44,12 @@ function canStep(x: number, z: number, nx: number, nz: number, y: number, here: 
   if (steepHere) return true
   const slope = terrainGradient(nx, nz, y, probeGradient)
   return slope === null || Math.hypot(slope.x, slope.z) <= SLIDE_GRADIENT
+}
+
+/** A slide may carry the body anywhere down the ground, but not into a prop. */
+function canSlide(nx: number, nz: number, y: number) {
+  const next = groundHeight(nx, nz, y)
+  return next !== null && !bodyBlocked(nx, next, nz)
 }
 
 /**
@@ -96,7 +103,7 @@ export function stepGround(
   const nextX = position.x + velocity.x * delta
   const nextZ = position.z + velocity.z * delta
   const allowed = (nx: number, nz: number) => airborne ? canFly(nx, nz, position.y)
-    : sliding ? groundHeight(nx, nz, position.y) !== null : canStep(position.x, position.z, nx, nz, position.y, here, steep)
+    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep)
   // Blocked moves slide along the obstacle (cliff edge, steep bank) instead of stopping dead.
   if (allowed(nextX, nextZ)) {
     position.x = nextX

@@ -2,7 +2,13 @@ import { Vector3 } from 'three'
 import { insideStructure, LAYOUT } from '../worldLayout'
 import { insideAnyCollider } from '../surfaces'
 
-const blocked = (x: number, y: number, z: number) => insideStructure(x, y, z) || insideAnyCollider(x, y, z, 1, true)
+/**
+ * Collider margin for the current step. A flight that starts inside a collider's 1 m margin (the sword caught the
+ * player right beside a stele) tests the bare collider, and one that starts inside it (a long drop onto a tall prop)
+ * tests none, so it can always fly back out.
+ */
+let margin = 1
+const blocked = (x: number, y: number, z: number) => insideStructure(x, y, z) || (margin >= 0 && insideAnyCollider(x, y, z, margin, true))
 /** Longest collision substep (m): every collider grown by its 1 m margin is at least 2 m across, so none is skipped. */
 const SUBSTEP = 1
 const forward = new Vector3(), right = new Vector3(), desired = new Vector3(), step = new Vector3()
@@ -27,6 +33,7 @@ export function stepFlight(
   step.copy(desired).multiplyScalar(delta).addScaledVector(velocity, blend / response).addScaledVector(desired, -blend / response)
   velocity.lerp(desired, blend)
   if (desired.lengthSq() === 0 && velocity.lengthSq() < 0.0025) velocity.set(0, 0, 0)
+  margin = !insideAnyCollider(position.x, position.y, position.z, 1, true) ? 1 : !insideAnyCollider(position.x, position.y, position.z, 0, true) ? 0 : -1
   const substeps = Math.max(1, Math.ceil(step.length() / SUBSTEP))
   step.divideScalar(substeps)
   for (let i = 0; i < substeps; i++) {

@@ -60,7 +60,8 @@ export function updateCameraRig(
   const flight = mode === 'FLIGHT'
   const pace = flight ? smooth(speed / 140) : smooth((speed - 5.5) / 4.5)
   const length = config.near + (config.far - config.near) * pace
-  if (!rig.ready || rig.last.distanceTo(player) > SNAP) {
+  const fresh = !rig.ready || rig.last.distanceTo(player) > SNAP
+  if (fresh) {
     rig.ready = true
     rig.height = config.pivot
     rig.pivot.copy(player)
@@ -99,7 +100,7 @@ export function updateCameraRig(
   side.set(Math.cos(yaw), 0, Math.sin(yaw))
   // Shoulder offset, kept clear of a wall on that side.
   const shoulder = config.shoulder > 0 ? Math.max(0, Math.min(config.shoulder, clearance(rig.pivot, side, config.shoulder + PAD) - PAD)) : 0
-  rig.shoulder += (shoulder - rig.shoulder) * (1 - Math.exp(-(shoulder < rig.shoulder ? 30 : 5) * delta))
+  rig.shoulder = fresh ? shoulder : rig.shoulder + (shoulder - rig.shoulder) * (1 - Math.exp(-(shoulder < rig.shoulder ? 30 : 5) * delta))
   focus.copy(rig.pivot).addScaledVector(side, rig.shoulder).add(rig.lag)
   // Probe out to the current arm as well, so a shorter wanted length (slowing down, landing) eases in rather than snapping.
   view.negate()
