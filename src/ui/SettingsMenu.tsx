@@ -10,6 +10,7 @@ import { WEATHER_LABELS } from '../world/weather/weatherMachine'
 import { requestLock } from './bridge'
 import { Dialog } from './Dialog'
 import { useUiStore } from './uiStore'
+import { useStorageStatus } from './save'
 
 const TIME_SCALES: [number, string][] = [[0, '静止'], [0.5, '½×'], [1, '1×'], [2, '2×'], [4, '4×']]
 const CHANNELS: [VolumeChannel, string][] = [['master', '总音量'], ['music', '乐曲'], ['ambience', '环境'], ['sfx', '音效']]
@@ -66,6 +67,7 @@ function Clock() {
 }
 
 function SettingsPanel() {
+  const storage = useStorageStatus()
   // Only the settings fields: the store also carries telemetry that changes several times a second.
   const world = useWorldStore(useShallow((s) => ({
     quality: s.quality, autoQuality: s.autoQuality, setQuality: s.setQuality, fov: s.fov, setFov: s.setFov,
@@ -133,6 +135,6 @@ function SettingsPanel() {
         <dl>{CONTROLS.map(([key, action]) => <div key={key}><dt><kbd>{key}</kbd></dt><dd>{action}</dd></div>)}</dl>
       </section>
     </div>
-    <footer className="settings-foot"><span>设置自动保存于本机</span><span><kbd>Esc</kbd> 再 <kbd>Enter</kbd>，或点击空白处继续</span></footer>
+    <footer className="settings-foot"><span role="status">{storage === 'ok' ? '设置自动保存于本机 · 菜单期间世界继续运行' : storage === 'protected' ? '存档版本无法读取，已保留原档并暂停保存' : '本机存储不可用，本次进度未能保存'}</span><span><kbd>Esc</kbd> 再 <kbd>Enter</kbd>，或点击空白处继续</span></footer>
   </Dialog>
 }

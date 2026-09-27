@@ -21,7 +21,13 @@ export interface OrbSite {
  */
 function placeOrbs(): OrbSite[] {
   const out: OrbSite[] = []
-  const push = (position: Vec3, group: OrbGroup, cluster: string) => out.push({ id: `orb_${String(out.length).padStart(2, '0')}`, position, group, cluster })
+  const counts = new Map<string, number>()
+  const push = (position: Vec3, group: OrbGroup, cluster: string) => {
+    const base = cluster === group ? group : `${group}_${cluster}`
+    const n = counts.get(base) ?? 0
+    counts.set(base, n + 1)
+    out.push({ id: `orb_${base}_${n}`, position, group, cluster })
+  }
 
   // Road: alternate sides of the curving road centre, then two on the grand stairs.
   ;[128, 112, 96, 80, 66, 44, 30].forEach((z, i) => push([roadAt(z).x + (i % 2 ? 3.6 : -3.6), 1.4, z], 'road', 'road'))
@@ -46,8 +52,7 @@ function placeOrbs(): OrbSite[] {
     }
   }
 
-  // Two per island top, on the pad but away from its interactables. Ids are saved by position in this list, so
-  // the chained isle (added later) takes its orbs after the pillar crowns, where two crowns used to be.
+  // Two per island top, on the pad but away from its interactables. IDs use the island identity.
   const islandOrbs = (island: (typeof ISLANDS)[number], index: number) => {
     const [cx, cy, cz] = island.top
     let placed = 0
@@ -59,6 +64,7 @@ function placeOrbs(): OrbSite[] {
       push([x, cy + 1.4, z], 'island', island.id)
       placed++
     }
+    if (placed !== 2) throw new Error(`Island ${island.id} could only place ${placed}/2 spirit orbs`)
   }
   ISLANDS.forEach((island, index) => { if (!island.chains) islandOrbs(island, index) })
 
@@ -79,4 +85,5 @@ function placeOrbs(): OrbSite[] {
 
 export const ORBS: OrbSite[] = placeOrbs()
 export const ORB_COUNT = ORBS.length
+if (new Set(ORBS.map((o) => o.id)).size !== ORB_COUNT || ORB_COUNT !== 60) throw new Error('Spirit orb layout is incomplete or has duplicate IDs')
 export const COLLECT_RADIUS = 2.5

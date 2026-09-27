@@ -1,0 +1,542 @@
+[
+  {
+    "oldId": "orb_00",
+    "id": "orb_road_0",
+    "position": [
+      -3.0599545452329826,
+      1.4,
+      128
+    ]
+  },
+  {
+    "oldId": "orb_01",
+    "id": "orb_road_1",
+    "position": [
+      3.6098245373157343,
+      1.4,
+      112
+    ]
+  },
+  {
+    "oldId": "orb_02",
+    "id": "orb_road_2",
+    "position": [
+      -4.190340751001946,
+      1.4,
+      96
+    ]
+  },
+  {
+    "oldId": "orb_03",
+    "id": "orb_road_3",
+    "position": [
+      3.0152395323077994,
+      1.4,
+      80
+    ]
+  },
+  {
+    "oldId": "orb_04",
+    "id": "orb_road_4",
+    "position": [
+      -3.878135441545266,
+      1.4,
+      66
+    ]
+  },
+  {
+    "oldId": "orb_05",
+    "id": "orb_road_5",
+    "position": [
+      3.950547477778815,
+      1.4,
+      44
+    ]
+  },
+  {
+    "oldId": "orb_06",
+    "id": "orb_road_6",
+    "position": [
+      -3.216980927868049,
+      1.4,
+      30
+    ]
+  },
+  {
+    "oldId": "orb_07",
+    "id": "orb_road_stairs_0",
+    "position": [
+      0,
+      12.794117647058822,
+      -20
+    ]
+  },
+  {
+    "oldId": "orb_08",
+    "id": "orb_road_stairs_1",
+    "position": [
+      0,
+      21.264705882352942,
+      -50
+    ]
+  },
+  {
+    "oldId": "orb_09",
+    "id": "orb_platform_forecourt_0",
+    "position": [
+      -30,
+      25.5,
+      -92
+    ]
+  },
+  {
+    "oldId": "orb_10",
+    "id": "orb_platform_forecourt_1",
+    "position": [
+      30,
+      25.5,
+      -92
+    ]
+  },
+  {
+    "oldId": "orb_11",
+    "id": "orb_platform_forecourt_2",
+    "position": [
+      -122,
+      25.5,
+      -132
+    ]
+  },
+  {
+    "oldId": "orb_12",
+    "id": "orb_platform_forecourt_3",
+    "position": [
+      122,
+      25.5,
+      -132
+    ]
+  },
+  {
+    "oldId": "orb_13",
+    "id": "orb_platform_flank_w_0",
+    "position": [
+      -166,
+      25.5,
+      -250
+    ]
+  },
+  {
+    "oldId": "orb_14",
+    "id": "orb_platform_flank_e_0",
+    "position": [
+      166,
+      25.5,
+      -250
+    ]
+  },
+  {
+    "oldId": "orb_15",
+    "id": "orb_platform_flank_w_1",
+    "position": [
+      -160,
+      25.5,
+      -405
+    ]
+  },
+  {
+    "oldId": "orb_16",
+    "id": "orb_platform_flank_e_1",
+    "position": [
+      160,
+      25.5,
+      -405
+    ]
+  },
+  {
+    "oldId": "orb_17",
+    "id": "orb_platform_rear_0",
+    "position": [
+      -92,
+      25.5,
+      -497
+    ]
+  },
+  {
+    "oldId": "orb_18",
+    "id": "orb_platform_rear_1",
+    "position": [
+      118,
+      25.5,
+      -505
+    ]
+  },
+  {
+    "oldId": "orb_19",
+    "id": "orb_bridge_bridge_west_0",
+    "position": [
+      -234.02000000000004,
+      18.441200000000002,
+      -102
+    ]
+  },
+  {
+    "oldId": "orb_20",
+    "id": "orb_bridge_bridge_west_1",
+    "position": [
+      -270.28,
+      22.2152,
+      -102
+    ]
+  },
+  {
+    "oldId": "orb_21",
+    "id": "orb_bridge_bridge_east_0",
+    "position": [
+      237.20000000000005,
+      21.540000000000006,
+      -85
+    ]
+  },
+  {
+    "oldId": "orb_22",
+    "id": "orb_bridge_bridge_east_1",
+    "position": [
+      296.08,
+      30.574399999999997,
+      -85
+    ]
+  },
+  {
+    "oldId": "orb_23",
+    "id": "orb_island_isle_west_0",
+    "position": [
+      -312.1188729477867,
+      31.4,
+      -97.14845770413882
+    ]
+  },
+  {
+    "oldId": "orb_24",
+    "id": "orb_island_isle_west_1",
+    "position": [
+      -297.12055107968627,
+      31.4,
+      -93.2104926690137
+    ]
+  },
+  {
+    "oldId": "orb_25",
+    "id": "orb_island_isle_east_0",
+    "position": [
+      343.2938611815444,
+      41.4,
+      -79.97707187214723
+    ]
+  },
+  {
+    "oldId": "orb_26",
+    "id": "orb_island_isle_east_1",
+    "position": [
+      322.8465236915776,
+      41.4,
+      -95.58687586570635
+    ]
+  },
+  {
+    "oldId": "orb_27",
+    "id": "orb_island_isle_northwest_0",
+    "position": [
+      -544.2653116634592,
+      151.4,
+      -423.06058823917306
+    ]
+  },
+  {
+    "oldId": "orb_28",
+    "id": "orb_island_isle_northwest_1",
+    "position": [
+      -553.6335128812242,
+      151.4,
+      -406.71372162151533
+    ]
+  },
+  {
+    "oldId": "orb_29",
+    "id": "orb_island_isle_star_0",
+    "position": [
+      640.6269329336004,
+      176.4,
+      -243.98535751662254
+    ]
+  },
+  {
+    "oldId": "orb_30",
+    "id": "orb_island_isle_star_1",
+    "position": [
+      639.5458407933897,
+      176.4,
+      -274.3957929999022
+    ]
+  },
+  {
+    "oldId": "orb_31",
+    "id": "orb_island_isle_front_left_0",
+    "position": [
+      -267.71660810400306,
+      116.4,
+      222.1164717604421
+    ]
+  },
+  {
+    "oldId": "orb_32",
+    "id": "orb_island_isle_front_left_1",
+    "position": [
+      -260.11474531165925,
+      116.4,
+      231.36388211053753
+    ]
+  },
+  {
+    "oldId": "orb_33",
+    "id": "orb_island_isle_front_right_0",
+    "position": [
+      321.65004863637756,
+      141.4,
+      296.8824412116169
+    ]
+  },
+  {
+    "oldId": "orb_34",
+    "id": "orb_island_isle_front_right_1",
+    "position": [
+      327.1999999980418,
+      141.4,
+      308.9353368153345
+    ]
+  },
+  {
+    "oldId": "orb_35",
+    "id": "orb_island_isle_sky_0",
+    "position": [
+      -157.16492196766424,
+      301.4,
+      -790.3373913968284
+    ]
+  },
+  {
+    "oldId": "orb_36",
+    "id": "orb_island_isle_sky_1",
+    "position": [
+      -146.39250356879415,
+      301.4,
+      -774.2609200959623
+    ]
+  },
+  {
+    "oldId": "orb_37",
+    "id": "orb_pillar_pillar_34_0",
+    "position": [
+      694.6031143919555,
+      201.28821360102157,
+      -900.5783317204081
+    ]
+  },
+  {
+    "oldId": "orb_38",
+    "id": "orb_pillar_pillar_8_0",
+    "position": [
+      1071.8586379261249,
+      192.74675211267314,
+      -520.672268769625
+    ]
+  },
+  {
+    "oldId": "orb_39",
+    "id": "orb_pillar_pillar_30_0",
+    "position": [
+      -876.1637348788165,
+      171.37555790550542,
+      -765.3220974454769
+    ]
+  },
+  {
+    "oldId": "orb_40",
+    "id": "orb_pillar_pillar_5_0",
+    "position": [
+      -961.5061702748801,
+      168.2197651131195,
+      -253.55976011967167
+    ]
+  },
+  {
+    "oldId": "orb_41",
+    "id": "orb_pillar_pillar_4_0",
+    "position": [
+      -1066.8471931811416,
+      167.77707276060246,
+      -125.10725053033093
+    ]
+  },
+  {
+    "oldId": "orb_42",
+    "id": "orb_pillar_pillar_15_0",
+    "position": [
+      1089.3858650269133,
+      157.1846588741595,
+      -266.02865347232404
+    ]
+  },
+  {
+    "oldId": "orb_43",
+    "id": "orb_island_isle_chained_0",
+    "position": [
+      -785.4841528432431,
+      266.4,
+      -285.51132602779967
+    ]
+  },
+  {
+    "oldId": "orb_44",
+    "id": "orb_island_isle_chained_1",
+    "position": [
+      -814.0661466525646,
+      266.4,
+      -274.56065129899605
+    ]
+  },
+  {
+    "oldId": "orb_45",
+    "id": "orb_roof_0",
+    "position": [
+      0,
+      447,
+      -320
+    ]
+  },
+  {
+    "oldId": "orb_46",
+    "id": "orb_roof_1",
+    "position": [
+      0,
+      384,
+      -346
+    ]
+  },
+  {
+    "oldId": "orb_47",
+    "id": "orb_roof_2",
+    "position": [
+      0,
+      380,
+      -292
+    ]
+  },
+  {
+    "oldId": "orb_48",
+    "id": "orb_roof_3",
+    "position": [
+      0,
+      235,
+      -400
+    ]
+  },
+  {
+    "oldId": "orb_49",
+    "id": "orb_roof_4",
+    "position": [
+      0,
+      234,
+      -240
+    ]
+  },
+  {
+    "oldId": "orb_50",
+    "id": "orb_roof_5",
+    "position": [
+      78,
+      178,
+      -320
+    ]
+  },
+  {
+    "oldId": "orb_51",
+    "id": "orb_roof_6",
+    "position": [
+      -78,
+      178,
+      -320
+    ]
+  },
+  {
+    "oldId": "orb_52",
+    "id": "orb_roof_7",
+    "position": [
+      48,
+      234,
+      -272
+    ]
+  },
+  {
+    "oldId": "orb_53",
+    "id": "orb_sky_sky_0_0",
+    "position": [
+      -135,
+      100,
+      65
+    ]
+  },
+  {
+    "oldId": "orb_54",
+    "id": "orb_sky_sky_1_0",
+    "position": [
+      30,
+      150,
+      280
+    ]
+  },
+  {
+    "oldId": "orb_55",
+    "id": "orb_sky_sky_2_0",
+    "position": [
+      -380,
+      105,
+      -330
+    ]
+  },
+  {
+    "oldId": "orb_56",
+    "id": "orb_sky_sky_3_0",
+    "position": [
+      420,
+      120,
+      -200
+    ]
+  },
+  {
+    "oldId": "orb_57",
+    "id": "orb_sky_sky_4_0",
+    "position": [
+      -230,
+      170,
+      -450
+    ]
+  },
+  {
+    "oldId": "orb_58",
+    "id": "orb_sky_sky_5_0",
+    "position": [
+      330,
+      90,
+      100
+    ]
+  },
+  {
+    "oldId": "orb_59",
+    "id": "orb_sky_sky_6_0",
+    "position": [
+      -90,
+      250,
+      -640
+    ]
+  }
+]

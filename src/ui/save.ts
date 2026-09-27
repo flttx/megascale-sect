@@ -1,4 +1,7 @@
 import { mixer } from '../world/audio/mixer'
+import { useSyncExternalStore } from 'react'
+import legacyOrbs from './legacyOrbs.json'
+import { groundHeight, LAYOUT } from '../world/worldLayout'
 import type { VolumeChannel } from '../world/audio/mixer'
 import { getPlayerRuntime } from '../world/player/playerHandle'
 import { QUALITY_LEVELS } from '../world/quality'
@@ -8,9 +11,21 @@ import { URL_OVERRIDES, useWorldStore } from '../world/store'
 import { ORBS } from '../world/interact/orbs'
 import { useUiStore } from './uiStore'
 
-/** Bump the suffix when the shape changes incompatibly; old saves are then ignored, not migrated. */
-const SAVE_KEY = 'yunque.save.v1'
-const SAVE_VERSION = 1
+export const SAVE_KEY = 'yunque.save.v2'
+const LEGACY_KEY = 'yunque.save.v1'
+const SAVE_VERSION = 2
+type StorageStatus = 'ok' | 'unavailable' | 'protected'
+let storageStatus: StorageStatus = 'ok'
+const listeners = new Set<() => void>()
+const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } }
+export const useStorageStatus = () => useSyncExternalStore(subscribe, () => storageStatus)
+function blockStorage(status: StorageStatus, error: unknown) {
+  if (storageStatus !== 'ok') return
+  storageStatus = status
+  console.warn('[save] automatic saving stopped; original data retained', error)
+  listeners.forEach((listener) => listener())
+}
+const legacyIds = new Map(legacyOrbs.map(({ oldId, id }) => [oldId, id]))
 const CHANNELS: VolumeChannel[] = ['master', 'music', 'ambience', 'sfx']
 const TIME_SCALES = [0, 0.5, 1, 2, 4]
 
@@ -61,21 +76,39 @@ function parsePosition(value: unknown): SavedPosition | null {
   return isNumber(x) && isNumber(y) && isNumber(z) && isNumber(yaw) && Math.abs(x) < 1200 && Math.abs(z) < 1300 && y > -80 && y < 600 ? { x, y, z, yaw } : null
 }
 
+/** Pure, repeatable migration followed by validation. Unknown versions must never be overwritten. */
+export function migrate(value: unknown): SaveData | null {
+  if (!isRecord(value)) return null
+  let data = value
+  if (data.version === 1) data = { ...data, version: 2, orbs: Array.isArray(data.orbs) ? data.orbs.map((id) => legacyIds.get(id)) : [] }
+  if (data.version !== SAVE_VERSION) return null
+  return {
+    version: SAVE_VERSION,
+    orbs: idList(data.orbs, KNOWN.orbs), steles: idList(data.steles, KNOWN.steles),
+    viewpoints: idList(data.viewpoints, KNOWN.viewpoints), arrays: idList(data.arrays, KNOWN.arrays),
+    settings: parseSettings(data.settings), position: parsePosition(data.position),
+    savedAt: isNumber(data.savedAt) ? data.savedAt : 0,
+  }
+}
+
 export function loadSave(): SaveData | null {
   try {
-    const raw = window.localStorage.getItem(SAVE_KEY)
+    const raw = window.localStorage.getItem(SAVE_KEY) ?? window.localStorage.getItem(LEGACY_KEY)
     if (!raw) return null
-    const data: unknown = JSON.parse(raw)
-    if (!isRecord(data) || data.version !== SAVE_VERSION) return null
-    return {
-      version: SAVE_VERSION,
-      orbs: idList(data.orbs, KNOWN.orbs), steles: idList(data.steles, KNOWN.steles),
-      viewpoints: idList(data.viewpoints, KNOWN.viewpoints), arrays: idList(data.arrays, KNOWN.arrays),
-      settings: parseSettings(data.settings), position: parsePosition(data.position),
-      savedAt: isNumber(data.savedAt) ? data.savedAt : 0,
+    let data: unknown
+    try { data = JSON.parse(raw) } catch {
+      const backup = 'yunque.save.corrupt', previous = window.localStorage.getItem(backup)
+      if (previous !== raw) {
+        if (previous !== null) window.localStorage.setItem(`${backup}.${Date.now()}`, previous)
+        window.localStorage.setItem(backup, raw)
+      }
+      return null
     }
+    const result = migrate(data)
+    if (!result) blockStorage('protected', 'Unsupported save version')
+    return result
   } catch (error) {
-    console.warn('[save] could not read the saved journey; starting fresh', error)
+    blockStorage('unavailable', error)
     return null
   }
 }
@@ -97,20 +130,30 @@ function snapshot(): SaveData {
 }
 
 function write() {
+  if (storageStatus !== 'ok') return false
   try {
     window.localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot()))
+    return true
   } catch (error) {
-    console.warn('[save] could not store progress (storage full or disabled)', error)
+    blockStorage('unavailable', error)
+    return false
   }
 }
 
 /** Remembers where the player stands, but only somewhere safe to resume (on foot, normal camera). */
 function samplePosition() {
   const world = useWorldStore.getState(), runtime = getPlayerRuntime()
-  if (!world.started || !runtime || runtime.phase !== 'GROUND' || world.cameraMode !== 'player') return
+  if (!world.started || !runtime || runtime.phase !== 'GROUND' || runtime.inAir || runtime.takeoffTime || world.cameraMode !== 'player') return
   const p = runtime.position
+  const ground = groundHeight(p.x, p.z, p.y)
+  if (ground === null || Math.abs(p.y - ground) > 0.05) return
   lastPosition = { x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100, z: Math.round(p.z * 100) / 100, yaw: Math.round(runtime.yaw * 1000) / 1000 }
 }
+
+export function safePosition(): SavedPosition {
+  return lastPosition ? { ...lastPosition } : { x: LAYOUT.spawn.position[0], y: LAYOUT.spawn.position[1], z: LAYOUT.spawn.position[2], yaw: 0 }
+}
+export function flushSave() { samplePosition(); return write() }
 
 /**
  * Applies a save before the player enters. URL verification overrides (?quality, ?weather, ?hours) win
