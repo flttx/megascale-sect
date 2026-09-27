@@ -46,9 +46,11 @@
 - [x] 镇山巨剑（Tripo）剑尖没入东侧主峰 60 m
 - [x] 锁云屿：5 条铁链从岛缘系缆桩连到周围石柱，另有一道瀑布
 
-### R4 广场与植被 — pending
+### R4 广场与植被 — in_progress
 - [ ] 主平台改为分层台地：中轴御道、栏杆、铜鼎、旗杆、树池、水池
-- [ ] Blender 程序化黄山松（针叶卡片 + 树皮），替换实心盘状松树（岩架上的 pine_small 自带偏蓝的盆景石座，近看像蓝色圆团，换成 pine_0 崖边斜松）
+- [x] Blender 程序化黄山松（针叶卡片 + 树皮），替换实心盘状松树（岩架上的 pine_small 自带偏蓝的盆景石座，近看像蓝色圆团，换成 pine_0 崖边斜松）：合并为一次实例化绘制，风摆 + 阴影同摆，针叶透光
+- [x] 景石：rock_moss 换成 Blender 巨石（6 形合一，按实例哈希选形），rock_scholar 改用浅灰石灰岩表面
+- [x] 木桥：桥面下挖浅槽（地面 ≤ 桥面 − 0.3 m），道具按整段桥面避让，平台端桥下灵光移出地面
 - [ ] GPU 草地（风动），只在玩家附近
 
 ### R5 操控 — pending
@@ -93,3 +95,6 @@
 | 锁云屿铁链的铁箍悬在半空（pillar_3） | 1 | 柱顶倾斜并收尖，从柱址 xz 发的射线打不到岩体；改为取柱顶下第一个宽度 ≥ 18 m 的截面，从它的质心发射线找岩面 |
 | 鲲的 cleanup 调 `uncacheRoot` 后，StrictMode 重挂载时 play 抛 `_cacheIndex`，世界加载不出来 | 1 | cleanup 只 `stopAllAction()`，action 保留缓存，在 effect 里 play |
 | 鲲的剔除球取自 `geometry.boundingSphere`，半径 1.4 m，而蒙皮后身体约 160 m | 1 | 骨骼空间 ≠ 网格局部空间；先 `updateMatrixWorld(true)` 再 `SkinnedMesh.computeBoundingSphere()`，半径 ×1.3，实测最远顶点 162 m < 210 m |
+| 西桥桥板最多埋进地面 1.00 m（东桥 0.20 m），平台端桥下灵光埋深约 6 m，桥面长出松树 | 1 | 地形沿桥面挖槽；桥数据挪到独立的 `bridges.ts` 以免 terrain ↔ sites 循环依赖；`siteClearance` 改用整段桥面的胶囊距离；灵光沿桥外移直到地面低于它 3.5 m。没有挪桥端点，栏杆缺口依赖端点处的 siteClearance |
+| verify:interact 报 `does not provide an export named 'PROP_TINT'` | 1 | 验证进行中改了 src，HMR 把半改的模块推给了测试页面；用最终代码重跑通过。验证期间不再改 src |
+| 用 node heredoc 做多行替换时锚点匹配失败 | 1 | 模板字符串里的转义与源码不一致；多行替换改用 Edit 工具 |

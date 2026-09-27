@@ -1,5 +1,6 @@
 import { BufferAttribute, BufferGeometry, Group, LOD, Matrix3, Mesh, Vector3 } from 'three'
 import type { Material, Matrix4, Object3D } from 'three'
+import { bridgeDeck } from '../bridges'
 import { BRIDGES, ISLANDS, PILLARS } from '../sites'
 import type { BridgeSite, IslandSite } from '../sites'
 import { ISLAND_PLACEMENTS, padFlatten, PILLAR_PLACEMENTS, rockScaleY, toWorld } from './rockLayout'
@@ -31,13 +32,6 @@ function sources(root: Object3D) {
   return out
 }
 
-function deckAt(b: BridgeSite, x: number, z: number) {
-  const dx = b.to[0] - b.from[0], dz = b.to[2] - b.from[2], len = Math.hypot(dx, dz)
-  const t = ((x - b.from[0]) * dx + (z - b.from[2]) * dz) / (len * len)
-  const side = Math.abs((x - b.from[0]) * dz - (z - b.from[2]) * dx) / len
-  return { t, side, y: b.from[1] + (b.to[1] - b.from[1]) * t - b.sag * 4 * t * (1 - t) }
-}
-
 /** Island top: flat to the pad edge + 2 m, easing back to the sculpted surface by the narrowest rim. */
 function shapeIslandTop(isle: IslandSite, bridge: BridgeSite | undefined, p: Vector3, n: Vector3) {
   const [cx, T, cz] = isle.top, P = isle.padRadius, d = Math.hypot(p.x - cx, p.z - cz)
@@ -47,7 +41,7 @@ function shapeIslandTop(isle: IslandSite, bridge: BridgeSite | undefined, p: Vec
   }
   // The bridge lands in a shallow notch cut to deck height (the pad itself stays flat).
   if (bridge && d > P + 0.1) {
-    const deck = deckAt(bridge, p.x, p.z), target = deck.y - 0.14
+    const deck = bridgeDeck(bridge, p.x, p.z), target = deck.y - 0.14
     if (deck.t > 0 && deck.t < 1.02 && p.y > target) {
       const w = smooth(0, 1, 1 - (deck.side - bridge.halfWidth - 0.4) / 1.6)
       if (w > 0) { p.y += (target - p.y) * w; n.lerp(up, w).normalize() }

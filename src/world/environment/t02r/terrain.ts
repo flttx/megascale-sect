@@ -1,4 +1,5 @@
 import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, Vector3 } from 'three'
+import { BRIDGES, bridgeDeck } from '../../bridges'
 import { LAYOUT } from '../../worldLayout'
 
 export const TERRAIN = { minX: -1080, maxX: 1080, minZ: -1220, maxZ: 650 }
@@ -152,6 +153,12 @@ export function terrainHeight(x: number, z: number) {
   }
   // The protected playable platform wins over nearby tower slope influences.
   h += (23.78 - h) * (1 - smooth(0, 18 + 8 * noise(x / 58, z / 60, 77), platform))
+  // Beyond the slab the bridges cross a low shoulder before the cliff rim; cut a shallow trench just under each
+  // deck (as they land in a notch on the isles), so no plank is buried. The planks start at the slab edge (x ±190).
+  for (const b of BRIDGES) {
+    const deck = bridgeDeck(b, x, z), target = deck.y - 0.3
+    if (deck.t > 0 && deck.t < 1 && h > target) h += (target - h) * (1 - smooth(b.halfWidth + 1.4, b.halfWidth + 4.6, deck.side)) * smooth(0, 1.5, rectDistance(x, z, 0, -290, 189.5, 226))
+  }
   const spawnDistance = rectDistance(x, z, 0, 150, 15, 12)
   h += (-0.2 - h) * (1 - smooth(0, 19, spawnDistance))
   const gateDistance = rectDistance(x, z, 0, 55, 27, 10)

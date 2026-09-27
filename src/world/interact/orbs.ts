@@ -1,4 +1,4 @@
-import { hash, roadAt } from '../environment/t02r/terrain'
+import { hash, roadAt, terrainHeight } from '../environment/t02r/terrain'
 import { PILLAR_SUMMITS } from '../landmarks/rockLayout'
 import { BRIDGES, ISLANDS, PILLARS, siteClearance } from '../sites'
 import type { Vec3 } from '../surfaces'
@@ -35,12 +35,14 @@ function placeOrbs(): OrbSite[] {
   ]
   platform.forEach(([x, z, cluster]) => push([x, 25.5, z], 'platform', cluster))
 
-  // Under each bridge deck, a short way out from both ends (reached by flying beneath).
+  // Under each bridge deck, a short way out from both ends (reached by flying beneath). The platform end first
+  // crosses a shoulder of ground, so that orb moves on until the ground has fallen well away under it.
   for (const bridge of BRIDGES) {
-    for (const t of [0.14, 0.86]) {
+    for (let t of [0.14, 0.86]) {
       const [ax, ay, az] = bridge.from, [bx, by, bz] = bridge.to
-      const deck = ay + (by - ay) * t - bridge.sag * 4 * t * (1 - t)
-      push([ax + (bx - ax) * t, deck - 5.5, az + (bz - az) * t], 'bridge', bridge.id)
+      const at = (u: number): Vec3 => [ax + (bx - ax) * u, ay + (by - ay) * u - bridge.sag * 4 * u * (1 - u) - 5.5, az + (bz - az) * u]
+      while (t < 0.8 && terrainHeight(at(t)[0], at(t)[2]) > at(t)[1] - 3.5) t += 0.01
+      push(at(t), 'bridge', bridge.id)
     }
   }
 

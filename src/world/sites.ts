@@ -1,5 +1,9 @@
 import { DISTANT_RIDGE_LAYERS, distantRidgeBand, distantRidgeHeight, hash, terrainHeight } from './environment/t02r/terrain'
+import { BRIDGES, bridgeDeck } from './bridges'
 import type { Vec3 } from './surfaces'
+
+export { BRIDGES }
+export type { BridgeSite } from './bridges'
 
 /**
  * Authored layout of the expanded world: the single source of truth that landmarks (geometry,
@@ -31,20 +35,6 @@ export const ISLANDS: IslandSite[] = [
   { id: 'isle_front_right', name: '鹤鸣屿', top: [330, 140, 300], padRadius: 18, radius: 26, depth: 48, bridged: false },
   { id: 'isle_sky', name: '天池', top: [-160, 300, -780], padRadius: 20, radius: 30, depth: 60, bridged: false },
   { id: 'isle_chained', name: '锁云屿', top: [-790, 265, -260], padRadius: 45, radius: 67, depth: 135, bridged: false, chains: ['pillar_5', 'pillar_3', 'pillar_2', 'pillar_0', 'pillar_4'] },
-]
-
-export interface BridgeSite {
-  id: string; island: string
-  /** Deck endpoints (walking height). `from` overlaps the platform by 4 m, `to` overlaps the island pad by 2 m. */
-  from: Vec3; to: Vec3
-  halfWidth: number
-  /** Mid-span sag of the deck in metres. */
-  sag: number
-}
-
-export const BRIDGES: BridgeSite[] = [
-  { id: 'bridge_west', island: 'isle_west', from: [-186, 24, -102], to: [-284, 30, -102], halfWidth: 2.2, sag: 3 },
-  { id: 'bridge_east', island: 'isle_east', from: [186, 24, -85], to: [314, 40, -85], halfWidth: 2.2, sag: 3.5 },
 ]
 
 export interface PillarSite {
@@ -151,13 +141,16 @@ export const INTERACT_SITES: InteractSite[] = [
 ]
 
 /**
- * Distance from (x, z) to the nearest reserved footprint: interact sites and bridge heads.
+ * Distance from (x, z) to the nearest reserved footprint: interact sites and bridge decks (heads included).
  * Negative inside a footprint. Decoration should require e.g. `siteClearance(x, z) > size`.
  */
 export function siteClearance(x: number, z: number) {
   let best = Infinity
   for (const site of INTERACT_SITES) best = Math.min(best, Math.hypot(x - site.position[0], z - site.position[2]) - site.clearance)
-  for (const bridge of BRIDGES) for (const end of [bridge.from, bridge.to]) best = Math.min(best, Math.hypot(x - end[0], z - end[2]) - (bridge.halfWidth + 4))
+  for (const bridge of BRIDGES) {
+    const deck = bridgeDeck(bridge, x, z), t = Math.min(1, Math.max(0, deck.t))
+    best = Math.min(best, Math.hypot(deck.side, (deck.t - t) * Math.hypot(bridge.to[0] - bridge.from[0], bridge.to[2] - bridge.from[2])) - (bridge.halfWidth + 4))
+  }
   return best
 }
 
