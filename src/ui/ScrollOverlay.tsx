@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { roadAt } from '../world/environment/t02r/terrain'
-import { ORB_COUNT, ORB_GROUP_LABELS, ORBS } from '../world/interact/orbs'
+import { ORB_COUNT, ORB_GROUP_LABELS, ORBS, orbPosition } from '../world/interact/orbs'
+import { Vector3 } from 'three'
+import { kunState } from '../world/colossi/kunDeck'
+import { KUN_PATH } from '../world/colossi/layout'
 import type { OrbGroup } from '../world/interact/orbs'
 import { KIND_LABELS, SITES, sitesOf } from '../world/interact/registry'
 import type { SiteSpec } from '../world/interact/registry'
@@ -56,6 +59,7 @@ function worldView(): View {
   let minX = -400, maxX = 400, minZ = -620, maxZ = 220
   for (const p of PILLARS) { minX = Math.min(minX, p.x - p.radius); maxX = Math.max(maxX, p.x + p.radius); minZ = Math.min(minZ, p.z - p.radius); maxZ = Math.max(maxZ, p.z + p.radius) }
   for (const i of ISLANDS) { minX = Math.min(minX, i.top[0] - i.radius); maxX = Math.max(maxX, i.top[0] + i.radius); minZ = Math.min(minZ, i.top[2] - i.radius); maxZ = Math.max(maxZ, i.top[2] + i.radius) }
+  for (const [x, , z] of KUN_PATH) { minX = Math.min(minX, x - 180); maxX = Math.max(maxX, x + 180); minZ = Math.min(minZ, z - 180); maxZ = Math.max(maxZ, z + 180) }
   const pad = 60
   return { x: minX - pad, z: minZ - pad, w: maxX - minX + pad * 2, h: maxZ - minZ + pad * 2 }
 }
@@ -92,11 +96,25 @@ function MapPanel() {
   const view = zoom === 'sect' ? SECT_VIEW : full
   const unit = view.w / 1000
   const player = useRef<SVGGElement | null>(null)
+  const kun = useRef<SVGGElement | null>(null)
+  const orbNodes = useRef(new Map<string, SVGCircleElement>())
   useEffect(() => {
     let frame = 0
+    const orbPoint = new Vector3()
     const tick = () => {
       const p = getPlayerRuntime()?.position
       if (p && player.current) player.current.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.z.toFixed(1)}) rotate(${(uiBridge.heading * 180 / Math.PI).toFixed(1)}) scale(${unit})`)
+      if (kun.current) {
+        kun.current.style.visibility = kunState.ready ? 'visible' : 'hidden'
+        kun.current.setAttribute('transform', `translate(${kunState.center.x} ${kunState.center.z}) rotate(${-kunState.heading * 180 / Math.PI}) scale(${unit})`)
+      }
+      for (const orb of ORBS) {
+        const node = orbNodes.current.get(orb.id)
+        if (!node) continue
+        const point = orbPosition(orb, orbPoint)
+        node.style.visibility = point ? 'visible' : 'hidden'
+        if (point) { node.setAttribute('cx', String(point.x)); node.setAttribute('cy', String(point.z)) }
+      }
       frame = requestAnimationFrame(tick)
     }
     tick()
@@ -148,7 +166,8 @@ function MapPanel() {
           {label('长阶', 34, -22, 10)}
           {ISLANDS.map((i) => <g key={i.id}>{label(i.name, i.top[0], i.top[2] + i.radius + unit * 16, 11)}</g>)}
         </g>
-        <g className="map-orbs">{ORBS.filter((o) => orbs.includes(o.id)).map((o) => <circle key={o.id} cx={o.position[0]} cy={o.position[2]} r={unit * 2.2} />)}</g>
+        <g className="map-orbs">{ORBS.filter((o) => orbs.includes(o.id)).map((o) => <circle key={o.id} data-orb-id={o.id} ref={(node) => { if (node) orbNodes.current.set(o.id, node); else orbNodes.current.delete(o.id) }} r={unit * 2.2} />)}</g>
+        <g ref={kun} className="map-kun" fill="#91d6c7" stroke="#d7ede1" strokeWidth="1.2"><title>鲲 · 平飞时可停靠</title><ellipse rx="7" ry="17" /><path d="M-5 -10 L-13 -19 L0 -15 L13 -19 L5 -10 M-6 2 L-17 -3 L-6 7 M6 2 L17 -3 L6 7" /><text x="17" y="5" fontSize="12" stroke="none">鲲</text></g>
         <g className="map-markers">{SITES.map((site) => <Marker key={site.id} site={site} done={siteDone(site, state)} unit={unit} />)}</g>
         <g ref={player} className="map-player"><circle r="11" className="map-player-ring" /><path d="M0 -13 L7.5 8 L0 3.5 L-7.5 8Z" /></g>
       </svg>

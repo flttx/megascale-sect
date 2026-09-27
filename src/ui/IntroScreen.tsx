@@ -4,6 +4,7 @@ import { SITES } from '../world/interact/registry'
 import { useWorldStore } from '../world/store'
 import { CharacterPicker } from './CharacterPicker'
 import type { SavedPosition } from './save'
+import { ORB_COUNT } from '../world/interact/orbs'
 
 const ART = `/assets/references/${encodeURIComponent('主概念图')}.png`
 const GUIDE: [string, string][] = [
@@ -38,7 +39,7 @@ export function IntroScreen({ saved, onEnter }: { saved: SavedPosition | null; o
     <div className="intro-panel">
       <div className="intro-kicker"><span /> 云端 · 巨构实境漫游</div>
       <h1>入山，<br /><em>见天地。</em></h1>
-      <p>以一人之躯，丈量四百二十米的云阙。沿石道穿过山门，登阶入宗，或御剑绕行高殿；研读碑文，远眺云海，拾取散落的六十道灵光。</p>
+      <p>以一人之躯，丈量四百二十米的云阙。沿石道穿过山门，登阶入宗，或御剑绕行高殿；研读碑文，远眺云海，拾取散落的 {ORB_COUNT} 道灵光。</p>
       <CharacterPicker />
       <div className="intro-load" aria-busy={!loaded}>
         <div className="intro-load-bar" role="progressbar" aria-label="仙宗载入进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>

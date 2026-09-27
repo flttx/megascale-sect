@@ -2,21 +2,25 @@ import { hash, roadAt, terrainHeight } from '../environment/t02r/terrain'
 import { PILLAR_SUMMITS } from '../landmarks/rockLayout'
 import { BRIDGES, ISLANDS, PILLARS, siteClearance } from '../sites'
 import type { Vec3 } from '../surfaces'
+import { Vector3 } from 'three'
+import { kunOrbPosition } from '../colossi/kunDeck'
 
 /** Display groups for the collection page. */
-export type OrbGroup = 'road' | 'platform' | 'bridge' | 'island' | 'pillar' | 'roof' | 'sky'
+export type OrbGroup = 'road' | 'platform' | 'bridge' | 'island' | 'pillar' | 'roof' | 'sky' | 'kun'
 export const ORB_GROUP_LABELS: Record<OrbGroup, string> = {
   road: '石道长阶', platform: '云阙广场', bridge: '桥下', island: '浮屿', pillar: '石林之巅', roof: '主殿檐顶', sky: '天路',
+  kun: '鲲背',
 }
 
 export interface OrbSite {
   id: string; position: Vec3; group: OrbGroup
   /** Spatial cluster the compass points at (nearest cluster that still has orbs). */
   cluster: string
+  kunIndex?: number
 }
 
 /**
- * 60 spirit orbs, placed deterministically: a gentle trail on foot (road, stairs, forecourt) that
+ * Spirit orbs, placed deterministically: a gentle trail on foot (road, stairs, forecourt) that
  * graduates to flight targets (under bridges, island tops, pillar crowns, the hall's roof tiers, open sky).
  */
 function placeOrbs(): OrbSite[] {
@@ -80,10 +84,15 @@ function placeOrbs(): OrbSite[] {
   // Open sky along the flight lines between the sect and its islands.
   const sky: Vec3[] = [[-135, 100, 65], [30, 150, 280], [-380, 105, -330], [420, 120, -200], [-230, 170, -450], [330, 90, 100], [-90, 250, -640]]
   sky.forEach((position, i) => push(position, 'sky', `sky_${i}`))
+  for (let i = 0; i < 6; i++) out.push({ id: `orb_kun_${i}`, position: [0, 0, 0], group: 'kun', cluster: 'kun', kunIndex: i })
   return out
 }
 
 export const ORBS: OrbSite[] = placeOrbs()
 export const ORB_COUNT = ORBS.length
-if (new Set(ORBS.map((o) => o.id)).size !== ORB_COUNT || ORB_COUNT !== 60) throw new Error('Spirit orb layout is incomplete or has duplicate IDs')
+if (new Set(ORBS.map((o) => o.id)).size !== ORB_COUNT || ORB_COUNT !== 66) throw new Error('Spirit orb layout is incomplete or has duplicate IDs')
 export const COLLECT_RADIUS = 2.5
+/** One position source for rendering, collection, compass, map and verification. */
+export function orbPosition(orb: OrbSite, out: Vector3): Vector3 | null {
+  return orb.kunIndex === undefined ? out.fromArray(orb.position) : kunOrbPosition(orb.kunIndex, out)
+}

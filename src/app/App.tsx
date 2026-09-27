@@ -8,7 +8,7 @@ import { useWorldStore } from '../world/store'
 import { CHARACTER_ASSETS } from '../world/player/characterAssets'
 import { PHASE_LABELS } from '../world/player/playerMotion'
 import { playerAudio } from '../world/player/playerAudio'
-import { teleportPlayer } from '../world/player/playerHandle'
+import { getPlayerRuntime, teleportPlayer } from '../world/player/playerHandle'
 import { enterPhoto, exitPhoto, photo, requestLock, uiBridge } from '../ui/bridge'
 import { CharacterPicker } from '../ui/CharacterPicker'
 import { Hud } from '../ui/Hud'
@@ -53,7 +53,8 @@ function Interface() {
   const cameraMode = useWorldStore((state) => state.cameraMode)
   const hudHidden = useUiStore((state) => state.hudHidden)
   const { active, progress } = useProgress()
-  const route = routeStage(telemetry.position[2])
+  const aboard = !!getPlayerRuntime()?.aboard
+  const route = aboard ? { name: '鲲背 · 云上巡游', number: '随鲲而行', progress: 100, next: '自由探索 · 拾取灵光，F 召剑离开' } : routeStage(telemetry.position[2])
   const ready = Object.keys(assets).length === 3
   // H hides the HUD; photo mode and cinematic shots clear the screen on their own.
   const hud = started && !hudHidden && cameraMode === 'player'

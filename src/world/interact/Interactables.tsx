@@ -27,7 +27,7 @@ import {
   glowMaterial, GLYPH_FRAGMENT, HALO_FRAGMENT, HALO_VERTEX, LOCAL_VERTEX, PILLAR_FRAGMENT, SPARK_FRAGMENT,
   SPARK_VERTEX, syncGlow, WAVE_FRAGMENT,
 } from './glow'
-import { COLLECT_RADIUS, ORB_GROUP_LABELS, ORBS } from './orbs'
+import { COLLECT_RADIUS, ORB_GROUP_LABELS, ORBS, orbPosition } from './orbs'
 import { nearestSite, SITES, sitesOf, TELEPORT_PAD_RADIUS } from './registry'
 import type { SiteSpec } from './registry'
 import { playChime } from './sounds'
@@ -231,6 +231,7 @@ function BellShockwave() {
 const ORB_TINT: Record<string, [number, number, number]> = {
   road: [2.6, 2.05, 1.15], platform: [2.6, 2.05, 1.15], bridge: [1.25, 2.4, 2.15],
   island: [1.25, 2.4, 2.15], pillar: [1.9, 1.75, 2.6], roof: [2.7, 2.2, 1.3], sky: [1.9, 1.75, 2.6],
+  kun: [1.25, 2.6, 2.35],
 }
 
 function SpiritOrbs() {
@@ -268,7 +269,12 @@ function SpiritOrbs() {
     const canCollect = world.started && runtime !== null && world.cameraMode !== 'photo'
     const px = runtime?.position.x ?? 0, py = (runtime?.position.y ?? 0) + 1, pz = runtime?.position.z ?? 0
     for (let i = 0; i < ORBS.length; i++) {
-      const orb = ORBS[i], [x, y, z] = orb.position
+      const orb = ORBS[i], point = orbPosition(orb, scratch.v)
+      if (!point) {
+        core.setMatrixAt(i, scratch.a.makeScale(0, 0, 0)); halo.setMatrixAt(i, scratch.a)
+        continue
+      }
+      const { x, y, z } = point
       const bob = Math.sin(t * 1.35 + i * 1.7) * 0.22
       let taken = collectedAt.current[i], scale = 1 + Math.sin(t * 2.4 + i * 0.9) * 0.12, rise = 0
       if (taken === -1 && canCollect && Math.hypot(px - x, py - y - bob, pz - z) < COLLECT_RADIUS) {
@@ -296,7 +302,7 @@ function collect(id: string, at: readonly [number, number, number], tint: [numbe
   const orb = ORBS.find((o) => o.id === id)
   const collected = new Set(useUiStore.getState().orbs)
   const count = collected.size
-  if (count === ORBS.length) useWorldStore.getState().setNotice('六十灵光尽收 · 云阙诸天为你澄明')
+  if (count === ORBS.length) useWorldStore.getState().setNotice('诸天灵光尽收 · 云阙诸天为你澄明')
   else if (orb && ORBS.filter((o) => o.group === orb.group).every((o) => collected.has(o.id))) useWorldStore.getState().setNotice(`${ORB_GROUP_LABELS[orb.group]} · 灵光尽收`)
 }
 
@@ -448,9 +454,13 @@ function DevHooks() {
       sites: () => SITES.map(({ id, kind, name, position }) => ({ id, kind, name, position })),
       standAt, trigger: triggerSite, press: interactPressed, travel, chooseWeather, dismiss: dismissOverlay,
       nearby: () => useUiStore.getState().nearby,
-      orbs: () => ORBS.map(({ id, position, group }) => ({ id, position, group, collected: useUiStore.getState().orbs.includes(id) })),
+      orbs: () => ORBS.map((orb) => ({ id: orb.id, position: orbPosition(orb, new Vector3())?.toArray() ?? null, group: orb.group, collected: useUiStore.getState().orbs.includes(orb.id) })),
       /** Stands the player under orb `index` (those reachable on foot are collected by walking in). */
-      visitOrb: (index: number) => { const orb = ORBS[index]; return orb ? teleportPlayer([orb.position[0], orb.position[1] - 1, orb.position[2]]) : false },
+      visitOrb: (index: number | string) => {
+        const orb = typeof index === 'string' ? ORBS.find((o) => o.id === index) : ORBS[index]
+        const p = orb && orbPosition(orb, new Vector3())
+        return p ? teleportPlayer([p.x, p.y - 1, p.z]) : false
+      },
       /** Hides every P6 object (draw-call accounting). */
       setVisible: (value: boolean) => { const group = scene.getObjectByName('interactables'); if (group) group.visible = value },
       state: () => ({

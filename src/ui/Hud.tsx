@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { ORB_COUNT, ORBS } from '../world/interact/orbs'
+import { ORB_COUNT, ORBS, orbPosition } from '../world/interact/orbs'
+import { Vector3 } from 'three'
 import { director } from '../world/interact/cinematics'
 import { sitesOf } from '../world/interact/registry'
 import { getPlayerRuntime } from '../world/player/playerHandle'
@@ -40,10 +41,12 @@ function staticItems(): CompassItem[] {
 /** Nearest cluster that still has uncollected orbs: [centroid x, centroid z, distance] or null. */
 function nearestOrbCluster(x: number, y: number, z: number, collected: string[]) {
   const sums = new Map<string, [number, number, number, number]>()
+  const point = new Vector3()
   for (const orb of ORBS) {
     if (collected.includes(orb.id)) continue
+    if (!orbPosition(orb, point)) continue
     const sum = sums.get(orb.cluster) ?? [0, 0, 0, 0]
-    sum[0] += orb.position[0]; sum[1] += orb.position[1]; sum[2] += orb.position[2]; sum[3]++
+    sum[0] += point.x; sum[1] += point.y; sum[2] += point.z; sum[3]++
     sums.set(orb.cluster, sum)
   }
   let best: [number, number, number] | null = null
@@ -176,4 +179,3 @@ export function Hud() {
     <Effects />
   </>
 }
-
