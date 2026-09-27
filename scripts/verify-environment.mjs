@@ -4,16 +4,9 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 const base = process.env.BASE_URL || 'http://127.0.0.1:5174/'
 const out = 'artifacts/t02r'
+const views = JSON.parse(await fs.readFile(new URL('../environment-pipeline/review-views.json', import.meta.url), 'utf8'))
 await fs.mkdir(out, { recursive: true })
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', args: ['--use-angle=d3d11'] })
-const views = [
-  { name: 'A-spawn', eye: [0, 1.75, 150], look: [0, 69, -255] },
-  { name: 'B-gate', eye: [0, 1.75, 86], look: [0, 20, -45] },
-  { name: 'C-stairs', eye: [0, 4.85, 9], look: [0, 27, -100] },
-  { name: 'D-platform', eye: [100, 25.75, -120], look: [0, 97, -320] },
-  { name: 'E-flight', eye: [310, 125, 150], look: [0, -22, -250] },
-  { name: 'F-side', eye: [690, 170, 5], look: [0, -30, -295] },
-]
 const report = { views, before: [], after: [], errors: [], geometry: {}, protectedFiles: [] }
 try {
   for (const mode of ['before', 'after']) {

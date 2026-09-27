@@ -5,7 +5,10 @@ Run with Blender --background --factory-startup --python this_file.
 import bpy, json, math, pathlib
 from mathutils import Matrix, Vector, Euler
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-data = json.loads((ROOT / 'environment-pipeline/runtime-environment.json').read_text())
+data = json.loads((ROOT / 'environment-pipeline/runtime-environment.json').read_text(encoding='utf-8'))
+review_views = json.loads((ROOT / 'environment-pipeline/review-views.json').read_text(encoding='utf-8'))
+backup_dir = ROOT / 'artifacts/t02r/backup'
+backup_dir.mkdir(parents=True, exist_ok=True)
 C = Matrix(((1,0,0,0),(0,0,-1,0),(0,1,0,0),(0,0,0,1)))
 for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
 scene = bpy.context.scene
@@ -99,7 +102,7 @@ import_asset('主建筑.glb','MG01',[layout['main']],420)
 import_asset('山门.glb','MG02',[layout['gate']],56)
 import_asset('侧塔.glb','MG04',layout['towers'],120)
 scene['backup_note'] = 'No pre-existing .blend existed. Exact Web Graybox reconstructed with original, unmodified GLBs before adding ENV_T02R.'
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT / 'artifacts/t02r/backup/environment-graybox.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(backup_dir / 'environment-graybox.blend'))
 
 env = collection('ENV_T02R')
 children = {name:collection(name,env) for name in ['Terrain','Terraces','Roads','Cliffs','HeroRocks','Scatter','Materials','Debug','FarMountains']}
@@ -172,8 +175,7 @@ mesh=n.new('GeometryNodeCurveToMesh'); l.new(i.outputs['Geometry'],mesh.inputs['
 road.modifiers.new('Road Surface from Curve','NODES').node_group=gn
 road.hide_render=True; road.hide_set(True); road['note']='Authoring source. Curve_MainRoad is the visible baked runtime equivalent.'
 
-review=json.loads((ROOT/'artifacts/t02r/review-report.json').read_text())
-for v in review['views']:
+for v in review_views:
     cam=bpy.data.cameras.new(v['name']); obj=bpy.data.objects.new('VIEW_'+v['name'],cam); children['Debug'].objects.link(obj)
     obj.location=C@Vector(v['eye']); target=C@Vector(v['look']); obj.rotation_euler=(target-obj.location).to_track_quat('-Z','Y').to_euler(); cam.lens=25
     if v['name'].startswith('E'): scene.camera=obj

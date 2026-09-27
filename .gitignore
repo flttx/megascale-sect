@@ -16,6 +16,8 @@ asset-pipeline/*/*/work/
 asset-pipeline/*/textures/
 asset-pipeline/**/*.blend
 asset-pipeline/**/*.blend1
+# The full Blender scene is rebuilt from environment-pipeline sources.
+environment-pipeline/T02R-environment.blend*
 # Rebuild pipeline scratch: previews, caches, raw meshes and logs are reproducible from the scripts and task locks.
 asset-pipeline/*/tmp/
 asset-pipeline/*/out/
