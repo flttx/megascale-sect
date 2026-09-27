@@ -22,7 +22,7 @@ export function SwordWake({ runtime, color, active }: { runtime: RefObject<Playe
   const material = useMemo(() => new ShaderMaterial({
     uniforms: { tint: { value: new Color(color) }, strength: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: 'varying vec2 vUv; uniform vec3 tint; uniform float strength; void main(){float edge=pow(max(0.,1.-abs(vUv.x*2.-1.)),2.);gl_FragColor=vec4(tint,edge*pow(1.-vUv.y,2.)*strength);}',
+    fragmentShader: 'varying vec2 vUv; uniform vec3 tint; uniform float strength; void main(){float edge=pow(max(0.,1.-abs(vUv.x*2.-1.)),2.);float tail=clamp(1.-vUv.y,0.,1.);gl_FragColor=vec4(tint,edge*tail*tail*strength);}',
     transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide,
   }), [color])
   useEffect(() => () => { geometry.dispose(); material.dispose() }, [geometry, material])

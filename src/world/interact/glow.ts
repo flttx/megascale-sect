@@ -131,8 +131,10 @@ void main() {
   float r = length(vUv * 2.0 - 1.0);
   if (r > 1.0) discard;
   float f = uProgress;
-  float front = exp(-pow((r - f) / 0.02, 2.0));
-  float echo = exp(-pow((r - f * 0.72) / 0.015, 2.0)) * 0.55;
+  // Squared by hand: pow() of a negative base is NaN on D3D, and bloom spreads a NaN over the whole frame.
+  float d0 = (r - f) / 0.02, d1 = (r - f * 0.72) / 0.015;
+  float front = exp(-d0 * d0);
+  float echo = exp(-d1 * d1) * 0.55;
   float wake = smoothstep(f - 0.3, f, r) * step(r, f) * 0.22;
   float alpha = (front + echo + wake) * pow(1.0 - f, 1.6);
   gl_FragColor = vec4(vec3(1.0, 0.83, 0.52) * alpha * 1.6 * glowFade(vWorld), 1.0);

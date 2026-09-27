@@ -35,9 +35,10 @@ export function SwordEffects({ runtime, character, active }: { runtime: RefObjec
   const trail = useMemo(() => new ShaderMaterial({
     uniforms: { tint: { value: new Color(colors.color) }, opacity: { value: 0 } },
     vertexShader: glowVertex,
+    // Interpolated uvs can overshoot 0..1 by an ulp; pow() of a negative is NaN on D3D and bloom smears it across the frame.
     fragmentShader: `uniform vec3 tint; uniform float opacity; varying vec2 vUv;
-      void main(){float width=mix(.48,.03,vUv.y);float edge=1.-smoothstep(0.,width,abs(vUv.x-.5));
-      gl_FragColor=vec4(tint,edge*pow(1.-vUv.y,1.7)*opacity);}`,
+      void main(){vec2 uv=clamp(vUv,0.,1.);float width=mix(.48,.03,uv.y);float edge=1.-smoothstep(0.,width,abs(uv.x-.5));
+      gl_FragColor=vec4(tint,edge*pow(1.-uv.y,1.7)*opacity);}`,
     transparent: true, blending: AdditiveBlending, depthWrite: false, side: DoubleSide,
   }), [colors.color])
   useEffect(() => () => { geometry.dispose(); glow.dispose(); trail.dispose() }, [geometry, glow, trail])
