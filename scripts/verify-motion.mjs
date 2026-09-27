@@ -3,10 +3,10 @@ import { openWorld } from './lib/world-session.mjs'
 const { browser, page, errors } = await openWorld('?quality=low')
 try {
   const result = await page.evaluate(async () => {
-    const { Vector3 } = await import('/node_modules/.vite/deps/three.js')
-    const { createPlayerRuntime, requestFlightToggle, stepPlayer } = await import('/src/world/player/playerMotion.ts')
-    const { registerWalkables, registerColliders } = await import('/src/world/surfaces.ts')
-    const { groundHeight, terrainGradient } = await import('/src/world/worldLayout.ts')
+    const { Vector3 } = await window.__liveImport('/node_modules/.vite/deps/three.js')
+    const { createPlayerRuntime, requestFlightToggle, stepPlayer } = await window.__liveImport('/src/world/player/playerMotion.ts')
+    const { registerWalkables, registerColliders } = await window.__liveImport('/src/world/surfaces.ts')
+    const { groundHeight, terrainGradient } = await window.__liveImport('/src/world/worldLayout.ts')
     const checks = []
     const offGround = registerWalkables([{ kind: 'disc', x: 900, z: 900, y: 500, radius: 20 }])
     const offProp = registerColliders([{ kind: 'cylinder', x: 900, z: 898.85, radius: 0.6, minY: 500, maxY: 504 }])

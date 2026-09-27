@@ -15,12 +15,13 @@ import { Hud } from '../ui/Hud'
 import { IntroScreen } from '../ui/IntroScreen'
 import { Modals } from '../ui/Modals'
 import { PhotoMode } from '../ui/PhotoMode'
-import { applySave, loadSave, startAutosave } from '../ui/save'
+import { applySave, loadSave, safePosition, startAutosave } from '../ui/save'
 import type { SavedPosition } from '../ui/save'
 import { SettingsMenu } from '../ui/SettingsMenu'
 import { dismissOverlay, showOverlay, useUiStore } from '../ui/uiStore'
 import type { Overlay } from '../ui/uiStore'
 import { useUiKeys } from '../ui/useUiKeys'
+import { RecoveryOverlay, RecoveryProbe, useGraphicsRecovery } from './GraphicsRecovery'
 
 function routeStage(z: number) {
   if (z > 64) return { name: '山门前路', number: '01 / 04', progress: 12, next: '目标 · 穿山门，登主平台，接近主殿' }
@@ -122,6 +123,7 @@ function exposeUiHooks() {
       }
     },
     setDevInput: (value: boolean) => useUiStore.getState().setDevInput(value),
+    setAutoWeather: (value: boolean) => useWorldStore.getState().setAutoWeather(value),
     open: (overlay: Overlay) => showOverlay(overlay),
     dismiss: dismissOverlay,
     enterPhoto, exitPhoto,
@@ -132,12 +134,14 @@ function exposeUiHooks() {
 }
 
 export default function App() {
+  const graphics = useGraphicsRecovery()
   const setLocked = useWorldStore((state) => state.setLocked)
   const setStarted = useWorldStore((state) => state.setStarted)
   const started = useWorldStore((state) => state.started)
   const [save] = useState(loadSave)
   useEffect(() => { if (save) applySave(save) }, [save])
   useEffect(() => startAutosave(), [])
+  useEffect(() => mixer.watchVisibility(), [])
   useEffect(() => {
     mixer.setMuted(!useWorldStore.getState().soundEnabled)
     return useWorldStore.subscribe((state, previous) => { if (state.soundEnabled !== previous.soundEnabled) mixer.setMuted(!state.soundEnabled) })
@@ -155,26 +159,30 @@ export default function App() {
     setStarted(true)
     requestLock()
     if (!first || !resume) return
-    const ok = teleportPlayer([resume.x, resume.y + 0.2, resume.z], resume.yaw)
+    const p = safePosition()
+    const ok = teleportPlayer([p.x, p.y + 0.2, p.z], p.yaw) && Math.hypot(p.x - resume.x, p.y - resume.y, p.z - resume.z) < 1
     useWorldStore.getState().setNotice(ok ? '已回到上次停留之处' : '未能回到上次停留处，已自山门启程')
   }
   return (
     <main className="app-shell">
       <Canvas
+        key={graphics.epoch}
+        frameloop={graphics.status === 'lost' || graphics.status === 'failed' ? 'never' : 'always'}
         // Anti-aliasing, tone mapping and fog happen in the post-processing chain.
         gl={{ antialias: false, stencil: false, powerPreference: 'high-performance' }}
         shadows="percentage"
         dpr={[1, 1.5]}
         camera={{ position: [0, 3, 154], fov: 72, near: 0.08, far: 8000 }}
-        onCreated={({ gl }) => { uiBridge.canvas = gl.domElement }}
+        onCreated={({ gl }) => graphics.attach(gl.domElement)}
         onPointerDown={() => {
           const world = useWorldStore.getState()
-          if (world.started && !world.locked && world.cameraMode === 'player' && !useUiStore.getState().overlay) enter()
+          if (!uiBridge.graphicsBlocked && world.started && !world.locked && world.cameraMode === 'player' && !useUiStore.getState().overlay) enter()
         }}
       >
         <World />
+        <RecoveryProbe active={graphics.status === 'rebuilding'} onReady={graphics.ready} />
       </Canvas>
-      <div className="interface">
+      <div className="interface" inert={graphics.status !== 'ready'}>
         <Interface />
         <Hud />
         <PhotoMode />
@@ -183,6 +191,7 @@ export default function App() {
         {!started && <IntroScreen saved={save?.position ?? null} onEnter={enter} />}
         <DebugHud />
       </div>
+      <RecoveryOverlay status={graphics.status} retry={graphics.retry} />
     </main>
   )
 }

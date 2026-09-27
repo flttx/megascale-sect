@@ -27,6 +27,35 @@ class Mixer {
   private sends = new Map<Bus, GainNode>()
   private volumes = { ...DEFAULT_VOLUMES }
   private muted = false
+  private syncing = false
+  private visibilityUsers = 0
+  private warned = false
+  private onVisibility = () => { void this.syncVisibility() }
+
+  /** One listener shared by mounts; visibility changes never create a context or change mute settings. */
+  watchVisibility() {
+    if (this.visibilityUsers++ === 0) document.addEventListener('visibilitychange', this.onVisibility)
+    this.onVisibility()
+    return () => {
+      if (--this.visibilityUsers === 0) document.removeEventListener('visibilitychange', this.onVisibility)
+    }
+  }
+
+  private async syncVisibility() {
+    if (!this.context || this.syncing || this.context.state === 'closed') return
+    this.syncing = true
+    try {
+      // Serialize operations: a quick tab switch during suspend must still resume afterwards.
+      while (this.context.state !== (document.hidden ? 'suspended' : 'running')) {
+        if (document.hidden) await this.context.suspend()
+        else await this.context.resume()
+      }
+      this.warned = false
+    } catch (error) {
+      if (!this.warned) console.warn('[mixer] audio state change was blocked; next interaction will retry', error)
+      this.warned = true
+    } finally { this.syncing = false }
+  }
 
   /** Creates (first call) and resumes the context. Must run inside a user gesture the first time. */
   unlock(): AudioContext {
@@ -41,7 +70,7 @@ class Mixer {
       }
       this.apply()
     }
-    void this.context.resume().catch((error: unknown) => console.warn('[mixer] audio resume was blocked', error))
+    void this.syncVisibility()
     return this.context
   }
 

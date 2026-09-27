@@ -19,6 +19,7 @@
     "verify:save": "node scripts/verify-save.mjs",
     "verify:motion": "node scripts/verify-motion.mjs",
     "verify:kun": "node scripts/verify-kun.mjs",
+    "verify:stability": "node scripts/verify-stability.mjs",
     "assets:optimize": "node scripts/optimize-characters.mjs",
     "assets:buildings": "node scripts/optimize-buildings.mjs && node asset-pipeline/buildings/meta.mjs"
   },

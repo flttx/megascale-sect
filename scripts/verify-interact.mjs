@@ -39,7 +39,8 @@ const sites = await page.evaluate(() => window.__interact.sites())
 const byKind = (kind) => sites.filter((s) => s.kind === kind)
 console.log('sites', sites.length, Object.fromEntries(['stele', 'bell', 'altar', 'meditation', 'viewpoint', 'teleport'].map((k) => [k, byKind(k).map((s) => s.id).join(',')])))
 check('compass rendered', await page.locator('.compass').isVisible())
-check('orb counter text', /灵光\s*0\s*\/\s*60/.test(await page.locator('.orb-counter').innerText()), await page.locator('.orb-counter').innerText())
+const totalOrbs = await page.evaluate(() => window.__interact.orbs().length)
+check('orb counter text', new RegExp(`灵光\\s*0\\s*\\/\\s*${totalOrbs}`).test(await page.locator('.orb-counter').innerText()), await page.locator('.orb-counter').innerText())
 
 // Draw-call accounting: P6 objects on vs off at a few spots.
 const drawDelta = async (label) => {
@@ -100,9 +101,11 @@ const after = (await weather()).target
 check('weather target changed', before !== after, `${before} -> ${after} (${pickLabel})`)
 // 顺其自然
 await standAndPress(altar.id)
+await page.evaluate(() => window.__ui.setAutoWeather(false))
+check('auto weather initially disabled', !(await ui()).autoWeather)
 await page.getByRole('button', { name: /顺其自然/ }).click()
 await wait(300)
-check('auto weather restored', await page.evaluate(() => window.__ui && true) && (await ui()).autoWeather)
+check('auto weather restored', (await ui()).autoWeather === true)
 await page.evaluate(() => window.__setWeather('clear', true))
 
 // Teleport: attune two arrays, travel between them.
@@ -156,9 +159,10 @@ check('viewpoint skipped', (await ix()).shot === null && (await ui()).cameraMode
 // Orbs: visit the walkable (gold) ones.
 const orbs = await page.evaluate(() => window.__interact.orbs())
 const walk = orbs.map((o, i) => [o, i]).filter(([o]) => o.group === orbs[0].group).slice(0, 5)
+const expectedOrbs = new Set([...orbs.filter((o) => o.collected).map((o) => o.id), ...walk.map(([o]) => o.id)])
 for (const [, i] of walk) { await page.evaluate((n) => window.__interact.visitOrb(n), i); await wait(700) }
 const got = (await ui()).orbs
-check('orbs collected', got >= 3, `${got} of ${walk.length} visited (group ${orbs[0].group})`)
+check('orbs collected exactly', got === expectedOrbs.size, `${got}, expected ${expectedOrbs.size}`)
 check('orb counter updates', (await page.locator('.orb-counter b').innerText()) === String(got))
 await shot('orbs')
 
@@ -232,8 +236,12 @@ await page.evaluate(() => window.__ui.setDevInput(true))
 await wait(400)
 check('settings closed', !(await ui()).settingsOpen)
 
-const saved = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes('yunque') || k.includes('save')))
-check('save written', saved.length > 0, saved.join(','))
+await wait(900)
+const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('yunque.save.v2')))
+check('save content', saved?.version === 2 && saved.orbs.length === got && saved.settings.fov === fov1, JSON.stringify(saved))
+await page.reload({ waitUntil: 'domcontentloaded' })
+await page.waitForFunction(() => !!window.__ui && document.body.innerText.includes('WORLD READY'), null, { timeout: 180000 })
+check('refresh restores progress and settings', (await ui()).orbs === got && (await ui()).fov === fov1)
 
 console.log('draw deltas', deltas.join(', '))
 console.log('errors', errors.slice(0, 8))

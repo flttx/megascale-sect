@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { interactPressed } from '../world/interact/actions'
 import { director, endShot } from '../world/interact/cinematics'
 import { useWorldStore } from '../world/store'
-import { enterPhoto, exitPhoto } from './bridge'
+import { enterPhoto, exitPhoto, uiBridge } from './bridge'
 import { dismissOverlay, showOverlay, useUiStore } from './uiStore'
 import { isUiInput } from './gameKeys'
 
@@ -13,7 +13,7 @@ import { isUiInput } from './gameKeys'
 export function useUiKeys() {
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
-      if (event.repeat || event.metaKey || event.ctrlKey) return
+      if (uiBridge.graphicsBlocked || event.repeat || event.metaKey || event.ctrlKey) return
       const key = event.code
       const world = useWorldStore.getState(), ui = useUiStore.getState()
       if (key === 'KeyE' && ui.overlay?.kind === 'lore' && !(event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))) { dismissOverlay(); return }

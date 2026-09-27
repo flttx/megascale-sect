@@ -13,6 +13,7 @@ import { playerAudio } from './playerAudio'
 import { bindPlayerRuntime } from './playerHandle'
 import { isUiInput } from '../../ui/gameKeys'
 import { useUiStore } from '../../ui/uiStore'
+import { uiBridge } from '../../ui/bridge'
 
 export function Player() {
   const avatar = useRef<Group>(null)
@@ -35,6 +36,7 @@ export function Player() {
     camera.position.set(0, 2.75, LAYOUT.spawn.position[2] + 4.8)
     const unbind = bindPlayerRuntime(runtime.current)
     const down = (event: KeyboardEvent) => {
+      if (uiBridge.graphicsBlocked) return
       if (event.metaKey || event.code === 'MetaLeft' || event.code === 'MetaRight') { keys.current.clear(); return }
       if (isUiInput(event)) return
       const key = event.code
@@ -56,6 +58,7 @@ export function Player() {
     }
     const up = (event: KeyboardEvent) => { keys.current.delete(event.code); if (event.metaKey || event.code.startsWith('Meta')) keys.current.clear() }
     const mouse = (event: MouseEvent) => {
+      if (uiBridge.graphicsBlocked) return
       if (document.pointerLockElement !== gl.domElement) return
       const { cameraMode, mouseSensitivity } = useWorldStore.getState()
       if (cameraMode !== 'player') return

@@ -1,4 +1,5 @@
 import { useWorldStore } from '../world/store'
+import { mixer } from '../world/audio/mixer'
 
 /**
  * Mutable per-frame values shared between the R3F scene and DOM widgets (compass, map) that update
@@ -6,6 +7,7 @@ import { useWorldStore } from '../world/store'
  */
 export const uiBridge = {
   canvas: null as HTMLCanvasElement | null,
+  graphicsBlocked: false,
   /** Camera heading in radians: 0 = north (−z), π/2 = east (+x). */
   heading: 0,
   camera: { x: 0, y: 0, z: 0 },
@@ -13,6 +15,8 @@ export const uiBridge = {
 
 /** Re-acquires pointer lock on the game canvas (needs a user gesture unless the lock was released by script). */
 export function requestLock() {
+  if (uiBridge.graphicsBlocked) return
+  mixer.unlock()
   // R3F may replace the canvas after a remount; never request a lock on a detached element.
   const canvas = uiBridge.canvas?.isConnected ? uiBridge.canvas : document.querySelector('canvas')
   uiBridge.canvas = canvas

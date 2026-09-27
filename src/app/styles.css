@@ -368,3 +368,10 @@ button { font: inherit; }
 }
 .route-card { transition: opacity .9s ease, transform .9s ease; }
 .route-card[data-shown="false"] { opacity: 0; transform: translateY(10px); pointer-events: none; }
+/* Context loss keeps the DOM controls available while GPU resources are rebuilt. */
+.graphics-recovery { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: #101d2beb; color: #e9e1cd; text-align: center; }
+.graphics-recovery > div { max-width: 32rem; padding: 2rem; }
+.graphics-recovery h2 { font-size: 1.5rem; font-weight: 500; letter-spacing: .1em; }
+.graphics-recovery p { line-height: 1.8; }
+.graphics-recovery button { margin-top: 1rem; padding: .8rem 1.6rem; border: 1px solid #bbaa81; background: #243744; color: inherit; cursor: pointer; }
+.graphics-recovery button:focus-visible { outline: 2px solid #efce85; outline-offset: 4px; }

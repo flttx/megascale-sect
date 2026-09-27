@@ -4,9 +4,9 @@ import { openWorld } from './lib/world-session.mjs'
 const { browser, page, errors } = await openWorld('?quality=low')
 try {
   const result = await page.evaluate(async () => {
-    const { Vector3 } = await import('/node_modules/.vite/deps/three.js')
-    const { createPlayerRuntime, stepPlayer } = await import('/src/world/player/playerMotion.ts')
-    const { registerWalkables } = await import('/src/world/surfaces.ts')
+    const { Vector3 } = await window.__liveImport('/node_modules/.vite/deps/three.js')
+    const { createPlayerRuntime, stepPlayer } = await window.__liveImport('/src/world/player/playerMotion.ts')
+    const { registerWalkables } = await window.__liveImport('/src/world/surfaces.ts')
     const release = registerWalkables([{ kind: 'disc', x: 1000, z: 1000, y: 500, radius: 5 }])
     const checks = []
     try {
@@ -29,17 +29,21 @@ try {
     return checks
   })
   for (const [name, ok] of result) { assert.ok(ok, name); console.log('PASS', name) }
+  await page.keyboard.down('w')
+  assert.ok((await page.evaluate(() => window.__playerSnapshot().keys)).includes('KeyW'))
   await page.evaluate(() => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))
     window.dispatchEvent(new KeyboardEvent('keyup', { key: '∑', code: 'KeyW' }))
   })
   assert.ok(!(await page.evaluate(() => window.__playerSnapshot().keys)).includes('KeyW'))
+  await page.keyboard.up('w')
   for (const event of ['meta', 'blur']) {
+    await page.keyboard.down('w')
+    assert.ok((await page.evaluate(() => window.__playerSnapshot().keys)).includes('KeyW'))
     await page.evaluate((event) => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))
       window.dispatchEvent(event === 'meta' ? new KeyboardEvent('keydown', { code: 'MetaLeft', metaKey: true }) : new Event('blur'))
     }, event)
     assert.equal((await page.evaluate(() => window.__playerSnapshot().keys)).length, 0)
+    await page.keyboard.up('w')
   }
   for (const activation of ['Enter', 'Space']) {
     const entry = await browser.newPage()

@@ -1,7 +1,8 @@
 import { mixer } from '../world/audio/mixer'
 import { useSyncExternalStore } from 'react'
 import legacyOrbs from './legacyOrbs.json'
-import { groundHeight, LAYOUT } from '../world/worldLayout'
+import { groundHit, insideStructure, LAYOUT } from '../world/worldLayout'
+import { bodyInsideAnyCollider } from '../world/surfaces'
 import type { VolumeChannel } from '../world/audio/mixer'
 import { getPlayerRuntime } from '../world/player/playerHandle'
 import { QUALITY_LEVELS } from '../world/quality'
@@ -94,7 +95,7 @@ export function migrate(value: unknown): SaveData | null {
 export function loadSave(): SaveData | null {
   try {
     const raw = window.localStorage.getItem(SAVE_KEY) ?? window.localStorage.getItem(LEGACY_KEY)
-    if (!raw) return null
+    if (raw === null) return null
     let data: unknown
     try { data = JSON.parse(raw) } catch {
       const backup = 'yunque.save.corrupt', previous = window.localStorage.getItem(backup)
@@ -145,13 +146,18 @@ function samplePosition() {
   const world = useWorldStore.getState(), runtime = getPlayerRuntime()
   if (!world.started || !runtime || runtime.phase !== 'GROUND' || runtime.inAir || runtime.takeoffTime || runtime.aboard || world.cameraMode !== 'player') return
   const p = runtime.position
-  const ground = groundHeight(p.x, p.z, p.y)
-  if (ground === null || Math.abs(p.y - ground) > 0.05) return
+  if (!staticFooting(p, 0.05)) return
   lastPosition = { x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100, z: Math.round(p.z * 100) / 100, yaw: Math.round(runtime.yaw * 1000) / 1000 }
 }
 
+function staticFooting(p: { x: number; y: number; z: number }, tolerance: number) {
+  const hit = groundHit(p.x, p.z, p.y)
+  return hit && hit.surfaceId !== 'kun' && hit.normalY >= Math.cos(55 * Math.PI / 180) && Math.abs(p.y - hit.y) <= tolerance &&
+    !bodyInsideAnyCollider(p.x, p.y + 0.45, p.y + 1.7, p.z, 0.35, 0, true) && !insideStructure(p.x, p.y + 1, p.z)
+}
+
 export function safePosition(): SavedPosition {
-  return lastPosition ? { ...lastPosition } : { x: LAYOUT.spawn.position[0], y: LAYOUT.spawn.position[1], z: LAYOUT.spawn.position[2], yaw: 0 }
+  return lastPosition && staticFooting(lastPosition, 0.3) ? { ...lastPosition } : { x: LAYOUT.spawn.position[0], y: LAYOUT.spawn.position[1], z: LAYOUT.spawn.position[2], yaw: 0 }
 }
 export function flushSave() { samplePosition(); return write() }
 
