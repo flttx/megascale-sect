@@ -1,4 +1,4 @@
-import { chromium } from 'playwright'
+import { launchBrowser } from './chrome.mjs'
 
 /**
  * Shared headless session for the verify scripts: launches Chrome against the dev server, enters the
@@ -16,13 +16,12 @@ export const VIEWS = {
   back: [[0, 200, -700], [0, 0, -300]],
 }
 
-const CHROME = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe'
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:5173/'
 /** Known-harmless console noise (D3D shader compiler warnings, three deprecation notices). */
 const NOISE = [/warning X\d+/, /THREE\.Clock: This module has been deprecated/]
 
 export async function openWorld(query = '', viewport = { width: 1600, height: 900 }) {
-  const browser = await chromium.launch({ headless: true, executablePath: CHROME, args: ['--use-angle=d3d11', '--disable-gpu-vsync', '--disable-frame-rate-limit'] })
+  const browser = await launchBrowser({ headless: true, args: ['--use-angle=d3d11', '--disable-gpu-vsync', '--disable-frame-rate-limit'] })
   const page = await browser.newPage({ viewport, deviceScaleFactor: 1 })
   const errors = []
   const record = (text) => { if (!NOISE.some((pattern) => pattern.test(text))) errors.push(text.slice(0, 300)) }

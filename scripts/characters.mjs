@@ -1,9 +1,8 @@
-import { chromium } from 'playwright'
+import { launchBrowser } from './lib/chrome.mjs'
 import fs from 'node:fs/promises'
 import assert from 'node:assert/strict'
 
-const browser = await chromium.launch({ headless: true,
-  executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+const browser = await launchBrowser({ headless: true,
   args: ['--use-angle=d3d11'],
 })
 const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 })

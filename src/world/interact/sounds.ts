@@ -1,16 +1,29 @@
 import { mixer } from '../audio/mixer'
 
+const voices = new WeakMap<AudioNode, (source: AudioScheduledSourceNode, nodes: AudioNode[]) => void>()
+const track = (target: AudioNode, source: AudioScheduledSourceNode, ...nodes: AudioNode[]) => voices.get(target)?.(source, nodes)
+
 /** Routes a voice to the sfx bus and its hall reverb; null before audio is unlocked. */
 function output(wet: number) {
   const context = mixer.audioContext, dry = mixer.bus('sfx'), send = mixer.reverbSend('sfx')
   if (!context || !dry) return null
   const gain = context.createGain()
+  const outputs: AudioNode[] = [gain]
+  let sources = 0
   gain.connect(dry)
   if (send) {
     const wetGain = context.createGain()
+    outputs.push(wetGain)
     wetGain.gain.value = wet
     gain.connect(wetGain).connect(send)
   }
+  voices.set(gain, (source, nodes) => {
+    sources++
+    source.onended = () => {
+      source.disconnect(); nodes.forEach((node) => node.disconnect()); source.onended = null
+      if (--sources === 0) { outputs.forEach((node) => node.disconnect()); voices.delete(gain) }
+    }
+  })
   return { context, gain }
 }
 
@@ -22,6 +35,7 @@ function partial(context: AudioContext, target: AudioNode, frequency: number, le
   env.gain.linearRampToValueAtTime(level, start + 0.006)
   env.gain.exponentialRampToValueAtTime(0.0001, start + decay)
   osc.connect(env).connect(target)
+  track(target, osc, env)
   osc.start(start)
   osc.stop(start + decay + 0.05)
 }
@@ -36,6 +50,7 @@ function noiseBurst(context: AudioContext, target: AudioNode, start: number, sec
   filter.type = 'bandpass'; filter.frequency.value = frequency; filter.Q.value = q
   env.gain.value = level
   source.connect(filter).connect(env).connect(target)
+  track(target, source, filter, env)
   source.start(start)
 }
 
@@ -90,6 +105,7 @@ export function playTeleport() {
   env.gain.linearRampToValueAtTime(0.28, now + 0.25)
   env.gain.exponentialRampToValueAtTime(0.0001, now + 1.4)
   osc.connect(env).connect(gain)
+  track(gain, osc, env)
   osc.start(now); osc.stop(now + 1.5)
   noiseBurst(context, gain, now + 0.3, 0.9, 3200, 0.7, 0.35)
   partial(context, gain, 1320, 0.2, 2.2, now + 0.4)

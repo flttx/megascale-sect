@@ -1,5 +1,6 @@
 import { useWorldStore } from '../world/store'
 import { mixer } from '../world/audio/mixer'
+import { useUiStore } from './uiStore'
 
 /**
  * Mutable per-frame values shared between the R3F scene and DOM widgets (compass, map) that update
@@ -21,11 +22,12 @@ export function requestLock() {
   const canvas = uiBridge.canvas?.isConnected ? uiBridge.canvas : document.querySelector('canvas')
   uiBridge.canvas = canvas
   if (!canvas || document.pointerLockElement === canvas) return
+  const refused = () => useUiStore.setState({ lockError: '视角锁定未成功，请稍候再点击继续' })
   try {
     const result: unknown = canvas.requestPointerLock()
-    if (result instanceof Promise) result.catch((error: unknown) => console.warn('[ui] pointer lock request was refused', error))
-  } catch (error) {
-    console.warn('[ui] pointer lock request failed', error)
+    if (result instanceof Promise) result.catch(refused)
+  } catch {
+    refused()
   }
 }
 
@@ -58,7 +60,11 @@ export function enterPhoto() {
   useWorldStore.getState().setCameraMode('photo')
 }
 
-export function exitPhoto() {
+export function exitPhoto(lostLock = false) {
   photo.keys.clear(); photo.capture = false
   if (useWorldStore.getState().cameraMode === 'photo') useWorldStore.getState().setCameraMode('player')
+  if (lostLock) {
+    useUiStore.setState({ photoUnlocked: true })
+    useWorldStore.getState().setNotice('已退出拍照，点击画面继续；Esc 打开设置')
+  }
 }

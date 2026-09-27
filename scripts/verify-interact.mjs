@@ -1,9 +1,9 @@
-import { chromium } from 'playwright'
+import { launchBrowser } from './lib/chrome.mjs'
 import fs from 'node:fs/promises'
 // End-to-end interaction check against the dev server (npm run dev). Screenshots -> artifacts/interact/.
 // Env: BASE_URL (default http://127.0.0.1:5173/), CHROME_PATH. Exits 1 when any check fails.
 await fs.mkdir('artifacts/interact', { recursive: true })
-const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--use-angle=d3d11', '--disable-gpu-vsync', '--disable-frame-rate-limit'] })
+const browser = await launchBrowser({ headless: true, args: ['--use-angle=d3d11', '--disable-gpu-vsync', '--disable-frame-rate-limit'] })
 const context = await browser.newContext({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1, acceptDownloads: true })
 const page = await context.newPage()
 const errors = []
@@ -50,6 +50,8 @@ const drawDelta = async (label) => {
   await wait(900)
   const off = await tele()
   await page.evaluate(() => window.__interact.setVisible(true))
+  check(`interaction draw budget ${label}`, on.drawCalls - off.drawCalls > 0 && on.drawCalls - off.drawCalls <= 40 && on.drawCalls <= 400,
+    `${on.drawCalls - off.drawCalls}/40 additional calls; ${on.drawCalls}/400 total`)
   console.log(`draws ${label}: on ${on.drawCalls} off ${off.drawCalls} delta ${on.drawCalls - off.drawCalls} fps ${Math.round(on.fps)} tris ${(on.triangles / 1e6).toFixed(2)}M`)
   return on.drawCalls - off.drawCalls
 }

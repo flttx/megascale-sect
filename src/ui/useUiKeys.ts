@@ -22,7 +22,7 @@ export function useUiKeys() {
       const playing = world.started && world.cameraMode === 'player' && inputOk
       if (key === 'Tab' && playing) event.preventDefault()
       if (world.cameraMode === 'photo') {
-        if (key === 'KeyP' || key === 'Escape') { event.preventDefault(); exitPhoto() }
+        if (key === 'KeyP' || key === 'Escape') { event.preventDefault(); exitPhoto(key === 'Escape') }
         else if (key === 'KeyH') ui.setHudHidden(!ui.hudHidden)
         return
       }
@@ -39,6 +39,7 @@ export function useUiKeys() {
           if (world.started) ui.setHudHidden(!ui.hudHidden)
           break
         case 'Escape':
+          if (ui.photoUnlocked) useUiStore.setState({ photoUnlocked: false })
           if (director.shot) endShot()
           else if (ui.overlay) dismissOverlay()
           break

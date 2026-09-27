@@ -1,9 +1,9 @@
-import { chromium } from 'playwright'
+import { launchBrowser } from './lib/chrome.mjs'
 import fs from 'node:fs/promises'
 import assert from 'node:assert/strict'
 import sharp from 'sharp'
 
-const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', args: ['--use-angle=d3d11'] })
+const browser = await launchBrowser({ headless: true, args: ['--use-angle=d3d11'] })
 const page = await browser.newPage({ viewport: { width: 2000, height: 1500 } })
 const errors = [], poses = []
 page.on('pageerror', (e) => errors.push(e.message))

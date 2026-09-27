@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Profiler, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useProgress } from '@react-three/drei'
 import { World } from '../world/World'
@@ -10,7 +10,8 @@ import { PHASE_LABELS } from '../world/player/playerMotion'
 import { playerAudio } from '../world/player/playerAudio'
 import { getPlayerRuntime, teleportPlayer } from '../world/player/playerHandle'
 import { enterPhoto, exitPhoto, photo, requestLock, uiBridge } from '../ui/bridge'
-import { CharacterPicker } from '../ui/CharacterPicker'
+import { worldAssetsReady } from '../world/worldAssets'
+import { recordUiRender } from '../ui/renderProfile'
 import { Hud } from '../ui/Hud'
 import { IntroScreen } from '../ui/IntroScreen'
 import { Modals } from '../ui/Modals'
@@ -23,12 +24,13 @@ import type { Overlay } from '../ui/uiStore'
 import { useUiKeys } from '../ui/useUiKeys'
 import { RecoveryOverlay, RecoveryProbe, useGraphicsRecovery } from './GraphicsRecovery'
 
-function routeStage(z: number) {
-  if (z > 64) return { name: '山门前路', number: '01 / 04', progress: 12, next: '目标 · 穿山门，登主平台，接近主殿' }
-  if (z > 20) return { name: '穿越山门', number: '02 / 04', progress: 32, next: '目标 · 沿长阶而上，直抵主平台' }
-  if (z > -65) return { name: '登临长阶', number: '03 / 04', progress: 58, next: '目标 · 登顶长阶，入云阙广场' }
-  return { name: '主平台 · 云阙', number: '04 / 04', progress: 100, next: '自由探索 · 灵光、碑文、观景台与传送阵' }
-}
+const ROUTES = [
+  { name: '山门前路', number: '01 / 04', progress: 12, next: '目标 · 穿山门，登主平台，接近主殿' },
+  { name: '穿越山门', number: '02 / 04', progress: 32, next: '目标 · 沿长阶而上，直抵主平台' },
+  { name: '登临长阶', number: '03 / 04', progress: 58, next: '目标 · 登顶长阶，入云阙广场' },
+  { name: '主平台 · 云阙', number: '04 / 04', progress: 100, next: '自由探索 · 灵光、碑文、观景台与传送阵' },
+  { name: '鲲背 · 云上巡游', number: '随鲲而行', progress: 100, next: '自由探索 · 拾取灵光，F 召剑离开' },
+]
 /** The route card announces each stage, then fades so the view stays clear. */
 const ROUTE_CARD_SECONDS = 7
 /** The full key strip shows for the first minute of play; afterwards only the everyday keys stay. */
@@ -40,23 +42,20 @@ const CONTROLS: [string, string][] = [
 ]
 const COMPACT_CONTROLS: [string, string][] = [['E', '交互'], ['TAB', '卷轴'], ['P', '拍照'], ['H', '隐藏界面'], ['ESC', '设置与操作']]
 
-/** Telemetry-driven HUD cards (re-render with telemetry; the modal/UI layers live beside it). */
+/** Subscribe to the route stage, rather than every position/FPS update. */
 function Interface() {
   const started = useWorldStore((state) => state.started)
-  const telemetry = useWorldStore((state) => state.telemetry)
-  const assets = useWorldStore((state) => state.assets)
+  const routeIndex = useWorldStore((state) => getPlayerRuntime()?.aboard ? 4 : state.telemetry.position[2] > 64 ? 0 : state.telemetry.position[2] > 20 ? 1 : state.telemetry.position[2] > -65 ? 2 : 3)
+  const ready = useWorldStore((state) => worldAssetsReady(state.assets))
   const character = useWorldStore((state) => state.character)
   const characterReady = useWorldStore((state) => state.characterReady[state.character])
   const phase = useWorldStore((state) => state.phase)
   const notice = useWorldStore((state) => state.notice)
   const soundEnabled = useWorldStore((state) => state.soundEnabled)
-  const toggleSound = useWorldStore((state) => state.toggleSound)
   const cameraMode = useWorldStore((state) => state.cameraMode)
   const hudHidden = useUiStore((state) => state.hudHidden)
   const { active, progress } = useProgress()
-  const aboard = !!getPlayerRuntime()?.aboard
-  const route = aboard ? { name: '鲲背 · 云上巡游', number: '随鲲而行', progress: 100, next: '自由探索 · 拾取灵光，F 召剑离开' } : routeStage(telemetry.position[2])
-  const ready = Object.keys(assets).length === 3
+  const route = ROUTES[routeIndex]
   // H hides the HUD; photo mode and cinematic shots clear the screen on their own.
   const hud = started && !hudHidden && cameraMode === 'player'
   const [routeShown, setRouteShown] = useState(true)
@@ -96,10 +95,10 @@ function Interface() {
           <div className="route-next">{route.next}</div>
         </div>
         <div className="character-dock">
-          <button className="sound-button" aria-pressed={soundEnabled} onClick={toggleSound} aria-label={soundEnabled ? '关闭声音' : '开启声音'}>{soundEnabled ? '♪ 音效开' : '♪ 音效关'} <kbd>M</kbd></button>
-          <CharacterPicker />
+          <small>{CHARACTER_ASSETS[character].name} · {soundEnabled ? '音效开' : '音效关'}</small>
+          <small><kbd>1 / 2</kbd> 换人 · <kbd>M</kbd> 音效 · <kbd>Esc</kbd> 设置</small>
         </div>
-        <div className="mode-card" data-phase={phase}><span className="mode-icon">{telemetry.mode === 'FLIGHT' ? '↗' : '⌁'}</span><div><small>TRAVEL MODE</small><b>{PHASE_LABELS[phase]}</b></div><em>{phase === 'GROUND' ? 'F 召剑' : phase === 'FLIGHT' ? 'F 落地' : phase === 'LANDING' ? 'F 取消' : '聚气中'}</em></div>
+        <div className="mode-card" data-phase={phase}><span className="mode-icon">{phase === 'FLIGHT' ? '↗' : '⌁'}</span><div><small>TRAVEL MODE</small><b>{PHASE_LABELS[phase]}</b></div><em>{phase === 'GROUND' ? 'F 召剑' : phase === 'FLIGHT' ? 'F 落地' : phase === 'LANDING' ? 'F 取消' : '聚气中'}</em></div>
         <div className="controls" aria-label="操作提示">{(fullControls ? CONTROLS : COMPACT_CONTROLS).map(([key, action], i) => <span key={key} className="control-item">{i > 0 && <i />}{key} <span>{action}</span></span>)}</div>
       </>}
       {started && !hudHidden && cameraMode !== 'photo' && (!characterReady || notice) && <div className="player-notice" role="status">{!characterReady ? `正在载入${CHARACTER_ASSETS[character].name}与佩剑… ${Math.round(progress)}%` : notice}</div>}
@@ -138,6 +137,7 @@ export default function App() {
   const setLocked = useWorldStore((state) => state.setLocked)
   const setStarted = useWorldStore((state) => state.setStarted)
   const started = useWorldStore((state) => state.started)
+  const debug = useWorldStore((state) => state.debug)
   const [save] = useState(loadSave)
   useEffect(() => { if (save) applySave(save) }, [save])
   useEffect(() => startAutosave(), [])
@@ -147,7 +147,12 @@ export default function App() {
     return useWorldStore.subscribe((state, previous) => { if (state.soundEnabled !== previous.soundEnabled) mixer.setMuted(!state.soundEnabled) })
   }, [])
   useEffect(() => {
-    const onChange = () => setLocked(uiBridge.canvas !== null && document.pointerLockElement === uiBridge.canvas)
+    const onChange = () => {
+      const locked = uiBridge.canvas !== null && document.pointerLockElement === uiBridge.canvas
+      if (!locked && useWorldStore.getState().cameraMode === 'photo' && !uiBridge.graphicsBlocked) exitPhoto(true)
+      if (locked) useUiStore.setState({ photoUnlocked: false, lockError: null })
+      setLocked(locked)
+    }
     document.addEventListener('pointerlockchange', onChange)
     return () => document.removeEventListener('pointerlockchange', onChange)
   }, [setLocked])
@@ -183,13 +188,13 @@ export default function App() {
         <RecoveryProbe active={graphics.status === 'rebuilding'} onReady={graphics.ready} />
       </Canvas>
       <div className="interface" inert={graphics.status !== 'ready'}>
-        <Interface />
+        {import.meta.env.DEV ? <Profiler id="interface" onRender={recordUiRender}><Interface /></Profiler> : <Interface />}
         <Hud />
         <PhotoMode />
         <Modals />
         <SettingsMenu />
         {!started && <IntroScreen saved={save?.position ?? null} onEnter={enter} />}
-        <DebugHud />
+        {debug && (import.meta.env.DEV ? <Profiler id="debug" onRender={recordUiRender}><DebugHud /></Profiler> : <DebugHud />)}
       </div>
       <RecoveryOverlay status={graphics.status} retry={graphics.retry} />
     </main>

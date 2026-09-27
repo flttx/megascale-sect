@@ -5,6 +5,7 @@ import { useWorldStore } from '../world/store'
 import { CharacterPicker } from './CharacterPicker'
 import { useStorageStatus, type SavedPosition } from './save'
 import { ORB_COUNT } from '../world/interact/orbs'
+import { worldAssetsReady } from '../world/worldAssets'
 
 const ART = `/assets/references/${encodeURIComponent('主概念图')}.png`
 const GUIDE: [string, string][] = [
@@ -28,7 +29,7 @@ function placeName(position: SavedPosition) {
 export function IntroScreen({ saved, onEnter }: { saved: SavedPosition | null; onEnter: (resume: SavedPosition | null) => void }) {
   const storage = useStorageStatus()
   const { progress, active } = useProgress()
-  const ready = useWorldStore((state) => Object.keys(state.assets).length === 3)
+  const ready = useWorldStore((state) => worldAssetsReady(state.assets))
   const characterReady = useWorldStore((state) => state.characterReady[state.character])
   const [resume, setResume] = useState(saved !== null)
   const loaded = ready && characterReady

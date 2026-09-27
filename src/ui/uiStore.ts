@@ -43,6 +43,9 @@ interface UiState {
   volumes: Record<VolumeChannel, number>
   /** DEV: let E work without pointer lock (headless verification). */
   devInput: boolean
+  /** Leaving photo mode by Esc returns to the scene; a click resumes pointer lock. */
+  photoUnlocked: boolean
+  lockError: string | null
   setNearby: (value: NearbySite | null) => void
   openOverlay: (value: Overlay) => void
   closeOverlay: () => void
@@ -67,6 +70,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   orbs: [], steles: [], viewpoints: [], arrays: [],
   volumes: { master: 0.8, music: 0.55, ambience: 0.8, sfx: 0.9 },
   devInput: false,
+  photoUnlocked: false, lockError: null,
   setNearby: (nearby) => { const current = get().nearby; if (current?.id !== nearby?.id) set({ nearby }) },
   openOverlay: (overlay) => set({ overlay }),
   closeOverlay: () => set({ overlay: null }),

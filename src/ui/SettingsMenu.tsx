@@ -11,6 +11,7 @@ import { requestLock } from './bridge'
 import { Dialog } from './Dialog'
 import { useUiStore } from './uiStore'
 import { useStorageStatus } from './save'
+import { CharacterPicker } from './CharacterPicker'
 
 const TIME_SCALES: [number, string][] = [[0, '静止'], [0.5, '½×'], [1, '1×'], [2, '2×'], [4, '4×']]
 const CHANNELS: [VolumeChannel, string][] = [['master', '总音量'], ['music', '乐曲'], ['ambience', '环境'], ['sfx', '音效']]
@@ -29,7 +30,8 @@ export function SettingsMenu() {
   const cameraMode = useWorldStore((state) => state.cameraMode)
   const overlay = useUiStore((state) => state.overlay)
   const devInput = useUiStore((state) => state.devInput)
-  const wanted = started && !locked && !overlay && cameraMode === 'player' && !devInput
+  const photoUnlocked = useUiStore((state) => state.photoUnlocked)
+  const wanted = started && !locked && !overlay && cameraMode === 'player' && !devInput && !photoUnlocked
   const [open, setOpen] = useState(false)
   useEffect(() => {
     if (!wanted) { setOpen(false); return }
@@ -68,6 +70,7 @@ function Clock() {
 
 function SettingsPanel() {
   const storage = useStorageStatus()
+  const lockError = useUiStore((state) => state.lockError)
   // Only the settings fields: the store also carries telemetry that changes several times a second.
   const world = useWorldStore(useShallow((s) => ({
     quality: s.quality, autoQuality: s.autoQuality, setQuality: s.setQuality, fov: s.fov, setFov: s.setFov,
@@ -88,6 +91,7 @@ function SettingsPanel() {
       <div><small>PAUSED · SETTINGS</small><strong>暂停 · 设置</strong></div>
       <button className="settings-resume" data-autofocus onClick={requestLock} aria-label="继续游戏并锁定视角">继续 <span aria-hidden="true">→</span></button>
     </header>
+    {lockError && <p className="settings-lock-error" role="alert">{lockError}</p>}
     <div className="settings-grid">
       <section className="settings-section" aria-label="画面">
         <h3>画面 <small>DISPLAY</small></h3>
@@ -132,6 +136,7 @@ function SettingsPanel() {
       </section>
       <section className="settings-section settings-keys" aria-label="操作说明">
         <h3>操作 <small>CONTROLS</small></h3>
+        <Row label="角色" en="CHARACTER"><CharacterPicker /></Row>
         <dl>{CONTROLS.map(([key, action]) => <div key={key}><dt><kbd>{key}</kbd></dt><dd>{action}</dd></div>)}</dl>
       </section>
     </div>

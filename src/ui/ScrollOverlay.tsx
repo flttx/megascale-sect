@@ -39,7 +39,7 @@ export function ScrollOverlay() {
       <div className="scroll-brand"><span>卷</span><div><strong>云阙卷轴</strong><small>SECT SCROLL · 舆图 碑录 收集</small></div></div>
       <div className="scroll-tabs" role="tablist" aria-label="卷轴页签" onKeyDown={onTabKeys}>
         {TABS.map((t, i) => <button key={t.id} ref={(el) => { tabs.current[i] = el }} role="tab" id={`scroll-tab-${t.id}`}
-          aria-selected={tab === t.id} aria-controls={`scroll-panel-${t.id}`} tabIndex={tab === t.id ? 0 : -1}
+          aria-selected={tab === t.id} aria-controls={tab === t.id ? `scroll-panel-${t.id}` : undefined} tabIndex={tab === t.id ? 0 : -1}
           data-autofocus={tab === t.id ? true : undefined} onClick={() => setTab(t.id)}>{t.label}<small>{t.en}</small></button>)}
       </div>
       <button className="scroll-close" onClick={dismissOverlay} aria-label="收起卷轴">收起 <kbd>Tab</kbd></button>
@@ -233,24 +233,24 @@ function CollectionPanel() {
   const orbs = useUiStore((state) => state.orbs), steles = useUiStore((state) => state.steles)
   const viewpoints = useUiStore((state) => state.viewpoints), arrays = useUiStore((state) => state.arrays)
   const groups = Object.keys(ORB_GROUP_LABELS) as OrbGroup[]
-  const bar = (value: number, total: number) => <span className="progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={value}><i style={{ width: `${(value / total) * 100}%` }} /></span>
+  const bar = (label: string, value: number, total: number) => <span className="progress-bar" role="progressbar" aria-label={`${label} ${value}/${total}`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={value}><i style={{ width: `${(value / total) * 100}%` }} /></span>
   const rows: [string, string, string[], SiteSpec[]][] = [
     ['碑文', 'STELES', steles, sitesOf('stele')], ['远眺', 'VIEWPOINTS', viewpoints, sitesOf('viewpoint')], ['传送阵', 'ARRAYS', arrays, sitesOf('teleport')],
   ]
   return <div className="collection-panel">
     <section className="collection-orbs">
-      <header><small>SPIRIT LIGHT</small><strong>灵光 <b>{orbs.length}</b> / {ORB_COUNT}</strong>{bar(orbs.length, ORB_COUNT)}</header>
+      <header><small>SPIRIT LIGHT</small><strong>灵光 <b>{orbs.length}</b> / {ORB_COUNT}</strong>{bar('灵光', orbs.length, ORB_COUNT)}</header>
       <ul>
         {groups.map((group) => {
           const all = ORBS.filter((o) => o.group === group), got = all.filter((o) => orbs.includes(o.id)).length
-          return <li key={group} data-done={got === all.length}><span>{ORB_GROUP_LABELS[group]}</span>{bar(got, all.length)}<em>{got} / {all.length}</em></li>
+          return <li key={group} data-done={got === all.length}><span>{ORB_GROUP_LABELS[group]}</span>{bar(ORB_GROUP_LABELS[group], got, all.length)}<em>{got} / {all.length}</em></li>
         })}
       </ul>
       <p className="map-hint">金色灵光可步行拾取；青碧与淡紫者，多在桥下、浮屿、石林与殿顶，需御剑方至。罗盘上的 ✦ 指向最近尚有灵光之处。</p>
     </section>
     <section className="collection-sites">
       {rows.map(([name, en, done, list]) => <div key={en} className="collection-row">
-        <header><small>{en}</small><strong>{name} <b>{done.length}</b> / {list.length}</strong>{bar(done.length, list.length)}</header>
+        <header><small>{en}</small><strong>{name} <b>{done.length}</b> / {list.length}</strong>{bar(name, done.length, list.length)}</header>
         <ul>{list.map((site) => <li key={site.id} data-done={done.includes(site.id)}>{done.includes(site.id) ? site.name : '？？？'}</li>)}</ul>
       </div>)}
     </section>

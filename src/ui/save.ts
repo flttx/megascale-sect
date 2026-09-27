@@ -5,6 +5,7 @@ import { groundHit, insideStructure, LAYOUT, terrainSlope } from '../world/world
 import { bodyInsideAnyCollider } from '../world/surfaces'
 import type { VolumeChannel } from '../world/audio/mixer'
 import { getPlayerRuntime } from '../world/player/playerHandle'
+import type { CharacterId } from '../world/player/characterAssets'
 import { QUALITY_LEVELS } from '../world/quality'
 import type { QualityLevel } from '../world/quality'
 import { INTERACT_SITES } from '../world/sites'
@@ -31,6 +32,7 @@ const CHANNELS: VolumeChannel[] = ['master', 'music', 'ambience', 'sfx']
 const TIME_SCALES = [0, 0.5, 1, 2, 4]
 
 export interface SavedSettings {
+  character: CharacterId
   quality: QualityLevel; autoQuality: boolean; mouseSensitivity: number; fov: number
   volumes: Record<VolumeChannel, number>; timeScale: number; autoWeather: boolean; soundEnabled: boolean
 }
@@ -65,6 +67,7 @@ function parseSettings(value: unknown): SavedSettings | null {
   const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
   return {
     quality, autoQuality, autoWeather, soundEnabled,
+    character: value.character === 'female' ? 'female' : 'male',
     mouseSensitivity: clamp(mouseSensitivity, 0.2, 3), fov: clamp(fov, 55, 90),
     volumes: Object.fromEntries(CHANNELS.map((c) => [c, clamp(volumes[c] as number, 0, 1)])) as Record<VolumeChannel, number>,
     timeScale: TIME_SCALES.includes(timeScale) ? timeScale : 1,
@@ -122,6 +125,7 @@ function snapshot(): SaveData {
     version: SAVE_VERSION,
     orbs: ui.orbs, steles: ui.steles, viewpoints: ui.viewpoints, arrays: ui.arrays,
     settings: {
+      character: world.character,
       quality: world.quality, autoQuality: world.autoQuality, mouseSensitivity: world.mouseSensitivity, fov: world.fov,
       volumes: ui.volumes, timeScale: world.timeScale, autoWeather: world.autoWeather, soundEnabled: world.soundEnabled,
     },
@@ -173,6 +177,7 @@ export function applySave(save: SaveData) {
   const settings = save.settings
   if (!settings) return
   const world = useWorldStore.getState()
+  world.selectCharacter(settings.character)
   const query = new URLSearchParams(window.location.search)
   if (!query.has('quality')) world.setQuality(settings.quality, settings.autoQuality)
   if (URL_OVERRIDES.weather === null) world.setAutoWeather(settings.autoWeather)
@@ -191,7 +196,7 @@ export function startAutosave() {
   const unsubUi = useUiStore.subscribe((s, p) => { if (s.orbs !== p.orbs || s.steles !== p.steles || s.viewpoints !== p.viewpoints || s.arrays !== p.arrays || s.volumes !== p.volumes) schedule() })
   const unsubWorld = useWorldStore.subscribe((s, p) => {
     if (s.quality !== p.quality || s.autoQuality !== p.autoQuality || s.mouseSensitivity !== p.mouseSensitivity || s.fov !== p.fov ||
-      s.timeScale !== p.timeScale || s.autoWeather !== p.autoWeather || s.soundEnabled !== p.soundEnabled) schedule()
+      s.timeScale !== p.timeScale || s.autoWeather !== p.autoWeather || s.soundEnabled !== p.soundEnabled || s.character !== p.character) schedule()
   })
   const interval = window.setInterval(() => { if (useWorldStore.getState().started) { samplePosition(); write() } }, 8000)
   const leave = () => { samplePosition(); write() }

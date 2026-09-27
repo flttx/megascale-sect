@@ -1,12 +1,10 @@
 import { useWorldStore } from '../store'
 
 export function DebugHud() {
-  const debug = useWorldStore((state) => state.debug)
   const telemetry = useWorldStore((state) => state.telemetry)
   const assets = useWorldStore((state) => state.assets)
   const quality = useWorldStore((state) => state.quality)
   const autoQuality = useWorldStore((state) => state.autoQuality)
-  if (!debug) return null
   return (
     <aside className="debug-hud">
       <div className="debug-heading">FIELD DIAGNOSTICS <span>F3</span></div>

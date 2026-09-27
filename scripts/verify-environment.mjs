@@ -1,13 +1,18 @@
-import { chromium } from 'playwright'
+import { launchBrowser } from './lib/chrome.mjs'
 import fs from 'node:fs/promises'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-const base = process.env.BASE_URL || 'http://127.0.0.1:5174/'
+const base = process.env.BASE_URL || 'http://127.0.0.1:5173/'
 const out = 'artifacts/t02r'
 const views = JSON.parse(await fs.readFile(new URL('../environment-pipeline/review-views.json', import.meta.url), 'utf8'))
 await fs.mkdir(out, { recursive: true })
-const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', args: ['--use-angle=d3d11'] })
+const browser = await launchBrowser({ headless: true, args: ['--use-angle=d3d11'] })
 const report = { views, before: [], after: [], errors: [], geometry: {}, protectedFiles: [] }
+// Source can evolve between releases; verification itself must never rewrite it.
+const sourcePaths = ['src/world/worldLayout.ts', ...(await fs.readdir('src/world/player')).filter((name) => /\.(ts|tsx)$/.test(name)).map((name) => `src/world/player/${name}`)]
+const digest = async (file) => createHash('sha256').update(await fs.readFile(file)).digest('hex').toUpperCase()
+const hashes = [...JSON.parse(await fs.readFile('environment-pipeline/protected-assets.json', 'utf8')),
+  ...await Promise.all(sourcePaths.map(async (Path) => ({ Path, Hash: await digest(Path) })))]
 try {
   for (const mode of ['before', 'after']) {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } })
@@ -50,7 +55,8 @@ try {
       assert.ok(report.geometry.platformError < .03, 'Tower slopes must not protrude through the playable platform')
       assert.ok(report.geometry.pathError < .01 && report.geometry.colliderCoverage, 'Carved road must cover the protected ground collider')
       const data = await page.evaluate(() => window.__environmentExport())
-      await fs.writeFile('environment-pipeline/runtime-environment.json', JSON.stringify(data))
+      await fs.writeFile(`${out}/runtime-environment.json`, JSON.stringify(data))
+      if (process.env.EXPORT_ENVIRONMENT === '1') await fs.writeFile('environment-pipeline/runtime-environment.json', JSON.stringify(data))
       assert.ok(report.after[0].terrainTriangles < 450000)
       assert.ok(report.after[0].rockInstances > 100)
       assert.ok(data.scatter.every(r => r.roadDistance > 10 && r.buildingDistance > 0))
@@ -58,9 +64,8 @@ try {
     await page.close()
   }
   assert.deepEqual(report.errors, [])
-  const hashes = JSON.parse((await fs.readFile(`${out}/backup/protected-hashes.json`, 'utf8')).replace(/^\uFEFF/,''))
   for (const record of hashes) {
-    const actual = createHash('sha256').update(await fs.readFile(record.Path)).digest('hex').toUpperCase()
+    const actual = await digest(record.Path)
     assert.equal(actual, record.Hash, `Protected file changed: ${record.Path}`)
     report.protectedFiles.push(record.Path)
   }

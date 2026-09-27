@@ -34,3 +34,4 @@ export const MG04_SIDE_TOWER: AssetConfig = {
 }
 
 export const ASSETS = [MG01_MAIN_BUILDING, MG02_GATE, MG04_SIDE_TOWER] as const
+export const worldAssetsReady = (loaded: Record<string, string>) => ASSETS.every((asset) => !asset.enabled || !!loaded[asset.id])

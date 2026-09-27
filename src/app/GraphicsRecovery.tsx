@@ -39,7 +39,7 @@ export function useGraphicsRecovery() {
       window.dispatchEvent(new Event('blur'))
       exitPhoto(); director.shot = null
       useWorldStore.getState().setCameraMode('player')
-      useUiStore.setState({ overlay: null, veil: false, caption: null, nearby: null })
+      useUiStore.setState({ overlay: null, veil: false, caption: null, nearby: null, photoUnlocked: false, lockError: null })
       transition('lost'); deadline()
     }
     const restored = () => { if (current.current === 'lost') retry() }

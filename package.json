@@ -22,6 +22,8 @@
     "verify:jumps": "node scripts/verify-jumps.mjs",
     "verify:kun": "node scripts/verify-kun.mjs",
     "verify:stability": "node scripts/verify-stability.mjs",
+    "verify:ui": "node scripts/verify-ui.mjs",
+    "verify:environment": "node scripts/verify-environment.mjs",
     "assets:optimize": "node scripts/optimize-characters.mjs",
     "assets:buildings": "node scripts/optimize-buildings.mjs && node asset-pipeline/buildings/meta.mjs"
   },
