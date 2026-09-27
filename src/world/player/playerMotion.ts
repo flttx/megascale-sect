@@ -3,7 +3,7 @@ import { groundHeight, groundHit, insideStructure, LAYOUT, terrainSlope } from '
 import { bodyInsideAnyCollider } from '../surfaces'
 import { stepFlight } from './FlightController'
 import { groundState, JUMP_SPEED, stepGround } from './GroundController'
-import { deckAnchor, evaluateDeckAnchor, kunDeckHit, kunDockable, kunState } from '../colossi/kunDeck'
+import { deckAnchor, evaluateDeckAnchor, kunBodyBlocked, kunClearance, kunDeckHit, kunDockable, kunState } from '../colossi/kunDeck'
 import type { DeckAnchor } from '../colossi/kunDeck'
 import { shiftCameraRig } from './CameraRig'
 import { useWorldStore } from '../store'
@@ -103,7 +103,7 @@ export function updatePlayerSupport(runtime: PlayerRuntime) {
   const p = runtime.position, hit = kunDeckHit(p.x, p.z, p.y)
   if (runtime.inAir) {
     if (runtime.aboard && runtime.velocity.y > 0) runtime.aboardJump = true
-    if (runtime.aboard && (!runtime.aboardJump || (runtime.velocity.y < 0 && p.y < runtime.aboard.point.y - 0.05 && !hit))) {
+    if (runtime.aboard && (!runtime.aboardJump || !hit)) {
       runtime.velocity.add(runtime.carrierVelocity); runtime.aboard = null; runtime.aboardJump = false
     }
     return
@@ -120,7 +120,13 @@ export function bodyClear(x: number, y: number, z: number) {
     !insideStructure(x, y + 0.45, z) && !insideStructure(x, y + 1.7, z)
 }
 /** Sweep the body all the way to its footing, not just the destination under a solid prop. */
+const descentRay = new Vector3(), DOWN = new Vector3(0, -1, 0)
 export function descentClear(x: number, fromY: number, toY: number, z: number) {
+  const length = Math.max(0, fromY - toY) + 1.25
+  for (const [dx, dz] of [[0, 0], [-0.3, 0], [0.3, 0], [0, -0.3], [0, 0.3]]) {
+    descentRay.set(x + dx, Math.max(fromY, toY) + 1.7, z + dz)
+    if (kunClearance(descentRay, DOWN, length) < length - 1e-5) return false
+  }
   const steps = Math.max(1, Math.ceil(Math.abs(fromY - toY) / 0.5))
   for (let i = 0; i <= steps; i++) if (!bodyClear(x, fromY + (toY - fromY) * i / steps, z)) return false
   return true
@@ -140,7 +146,8 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
       const x = position.x + Math.sin(direction) * FLIGHT_SEQUENCE.step
       const z = position.z - Math.cos(direction) * FLIGHT_SEQUENCE.step
       return { x, z, direction, height: groundHeight(x, z, position.y + 0.8) }
-    }).find((candidate) => candidate.height !== null && Math.abs(position.y - candidate.height) <= 0.8 && bodyClear(candidate.x, candidate.height, candidate.z))
+    }).find((candidate) => candidate.height !== null && Math.abs(position.y - candidate.height) <= 0.8 && bodyClear(candidate.x, candidate.height, candidate.z) &&
+      !kunBodyBlocked(position.x, position.y, position.z, candidate.x, candidate.z))
     if (!landing || landing.height === null) return '请在平稳、开阔的位置召剑'
     runtime.origin.copy(position)
     runtime.destination.set(landing.x, landing.height + FLIGHT_SEQUENCE.hover, landing.z)
@@ -241,6 +248,7 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
     case 'LANDING': {
       if (!descentClear(position.x, position.y, runtime.destination.y - FLIGHT_SEQUENCE.hover, position.z)) {
         changePhase(runtime, 'FLIGHT')
+        useWorldStore.getState().setNotice('降落路径出现遮挡，已停止降落')
         break
       }
       position.y = Math.max(runtime.destination.y, position.y - Math.min(28, (position.y - runtime.destination.y) * 2 + 1) * delta)

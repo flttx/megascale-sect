@@ -50,6 +50,28 @@ async function watchLaunch() {
     requestAnimationFrame(tick)
   })
 }
+async function walkTo(index) {
+  await page.keyboard.down('Shift'); await page.keyboard.down('w')
+  try {
+    return await page.evaluate(async (index) => {
+      const { kunOrbPosition } = await window.__liveImport('/src/world/colossi/kunDeck.ts')
+      const { getPlayerRuntime } = await window.__liveImport('/src/world/player/playerHandle.ts')
+      const { Vector3 } = await window.__liveImport('/node_modules/.vite/deps/three.js')
+      const target = new Vector3(), start = performance.now()
+      return new Promise((resolve, reject) => {
+        const tick = () => {
+          const r = getPlayerRuntime(), p = kunOrbPosition(index, target)
+          const gap = Math.hypot(r.position.x - p.x, r.position.z - p.z)
+          if (gap < 1.4) { resolve(gap); return }
+          if (!r.aboard || performance.now() - start > 12000) { reject(Error(`walk to orb ${index}: gap ${gap}, aboard ${!!r.aboard}`)); return }
+          r.yaw = Math.atan2(p.x - r.position.x, -(p.z - r.position.z))
+          requestAnimationFrame(tick)
+        }
+        tick()
+      })
+    }, index)
+  } finally { await page.keyboard.up('w'); await page.keyboard.up('Shift') }
+}
 try {
   await page.waitForFunction(async () => (await window.__liveImport('/src/world/colossi/kunDeck.ts')).kunState.ready, null, { timeout: 180000 })
   const safe = await page.evaluate(async () => {
@@ -77,13 +99,13 @@ try {
       await page.waitForTimeout(100)
       walkFeet.push(...(await snapshot()).feet.filter((f) => f.locked).map((f) => f.error))
     }
+    await page.screenshot({ path: `artifacts/kun/${character}-walking.png` })
     await page.keyboard.up('w')
     const walkingFootError = walkFeet.reduce((a, b) => a + b, 0) / walkFeet.length
     assert.ok(walkFeet.length && walkingFootError < 0.05, `walking feet ${walkingFootError}`)
     await page.waitForTimeout(900)
     assert.ok((await snapshot()).aboard, 'walk remains on deck')
     assert.ok(await drift(initial.aboard) > 4, 'walking changes the position relative to the deck')
-    await page.screenshot({ path: `artifacts/kun/${character}-walking.png` })
     const beforeJump = await snapshot()
     await page.keyboard.press('Space')
     await page.waitForFunction(() => window.__playerSnapshot().inAir)
@@ -108,7 +130,8 @@ try {
     report.push({ character, walkingFootError, jumpDrift, launch })
     console.log('PASS', character, JSON.stringify({ standingDrift, footError, walkingFootError, jumpDrift, launch }))
   }
-  for (let i = 0; i < 6; i++) { assert.ok(await visit(i)); await page.waitForTimeout(250) }
+  await resetTime(40); await visit(0)
+  for (let i = 1; i < 6; i++) { await walkTo(i); await page.waitForTimeout(200) }
   const collected = await page.evaluate(async () => {
     const save = await window.__liveImport('/src/ui/save.ts'); save.flushSave()
     const { ORB_COUNT } = await window.__liveImport('/src/world/interact/orbs.ts')
@@ -127,6 +150,18 @@ try {
   await page.screenshot({ path: 'artifacts/kun/map.png' })
   await page.keyboard.press('Tab')
   console.log('PASS six orbs, 66 total, moving map, static checkpoint')
+  const edge = await page.evaluate(async () => {
+    const { registerWalkables } = await window.__liveImport('/src/world/surfaces.ts')
+    const { stepGround } = await window.__liveImport('/src/world/player/GroundController.tsx')
+    const { Vector3 } = await window.__liveImport('/node_modules/.vite/deps/three.js')
+    const release = registerWalkables([{ kind: 'moving', hitAt: (x, z) => Math.hypot(x - 2000, z - 2000) < 5 ? { y: 500, normal: [0, 1, 0], normalY: 1, surfaceId: 'kun' } : null }])
+    const p = new Vector3(2000, 500, 1995.05), v = new Vector3(0, 0, -5.5)
+    try {
+      const result = stepGround(p, v, new Vector3(0, 0, -1), 0, false, false, 1 / 60)
+      return { p: p.toArray(), v: v.toArray(), grounded: result.grounded }
+    } finally { release() }
+  })
+  assert.ok(edge.p[2] < 1995 && edge.v[1] < 0 && !edge.grounded, 'walk off a flat carrier edge')
   const beforeMenu = await snapshot()
   await page.evaluate(() => document.exitPointerLock())
   await page.waitForTimeout(5000)
@@ -163,6 +198,18 @@ try {
     })
     assert.equal(refused.phase, 'FLIGHT'); assert.ok(refused.reason.includes('平飞'))
   }
+  await resetTime(148.5)
+  await page.evaluate(async () => {
+    const { kunOrbPosition } = await window.__liveImport('/src/world/colossi/kunDeck.ts')
+    const { teleportPlayer } = await window.__liveImport('/src/world/player/playerHandle.ts')
+    const { Vector3 } = await window.__liveImport('/node_modules/.vite/deps/three.js')
+    const p = kunOrbPosition(0, new Vector3()); teleportPlayer([p.x, p.y + 100, p.z])
+  })
+  await page.keyboard.press('f'); await phase('LANDING')
+  await page.evaluate(() => document.exitPointerLock())
+  await phase('FLIGHT')
+  assert.equal((await snapshot()).aboard, null, 'unfinished landing cancels at 150 even in a menu')
+  console.log('PASS flat deck edge and closing docking window')
   assert.deepEqual(errors, [])
   console.log('PASS menu carry and no browser errors')
 } finally {

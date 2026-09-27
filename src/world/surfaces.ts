@@ -9,7 +9,7 @@ export interface WalkableDisc { kind: 'disc'; x: number; z: number; y: number; r
 /** Walkable strip between two points whose deck sags by `sag` metres at mid-span (plank bridge). */
 export interface WalkableSpan { kind: 'span'; from: Vec3; to: Vec3; halfWidth: number; sag: number }
 export interface SurfaceAddress { triangle: number; u: number; v: number }
-export interface SurfaceHit { y: number; normalY: number; surfaceId: string; anchor?: SurfaceAddress }
+export interface SurfaceHit { y: number; normal: Vec3; normalY: number; surfaceId: string; anchor?: SurfaceAddress }
 export interface WalkableMoving { kind: 'moving'; hitAt(x: number, z: number, fromY: number): SurfaceHit | null }
 export type WalkableSurface = WalkableDisc | WalkableSpan | WalkableMoving
 
@@ -80,7 +80,7 @@ export function walkableHit(x: number, z: number, fromY = Infinity): SurfaceHit 
   for (const surface of walkables) {
     const hit = surface.kind === 'moving' ? surface.hitAt(x, z, fromY) : null
     const y = surface.kind === 'moving' ? hit?.y ?? null : surfaceY(surface, x, z)
-    if (y !== null && fromY >= y - 1 && (best === null || y > best.y)) best = hit ?? { y, normalY: 1, surfaceId: 'static' }
+    if (y !== null && fromY >= y - 1 && (best === null || y > best.y)) best = hit ?? { y, normal: [0, 1, 0], normalY: 1, surfaceId: 'static' }
   }
   return best
 }

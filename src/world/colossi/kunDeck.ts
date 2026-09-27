@@ -14,6 +14,7 @@ const key = (i: number, j: number) => (i + 32768) * 65536 + j + 32768
 const ab = new Vector3(), ac = new Vector3(), ray = new Ray(), hitPoint = new Vector3()
 const normal = new Vector3(), rayDirection = new Vector3()
 const packed = new Uint32Array(Uint8Array.from(atob(KUN_DECK.triangles), (c) => c.charCodeAt(0)).buffer)
+const obstacles = new Set<number>(KUN_DECK.obstacles)
 
 /** Registration owns no GLTF resources; StrictMode cleanup only releases references. */
 export function bindKunDeck(scene: Object3D) {
@@ -67,6 +68,7 @@ export function kunDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit |
   indexFrame()
   let best: SurfaceHit | null = null
   for (const triangle of grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? []) {
+    if (obstacles.has(triangle)) continue
     const t = triangles[triangle], a = t.a.point, b = t.b.point, c = t.c.point
     if (t.normal.y <= 0.05) continue
     const d = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
@@ -76,7 +78,7 @@ export function kunDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit |
     if (u < -1e-6 || v < -1e-6 || u + v > 1.000001) continue
     const y = a.y * u + b.y * v + c.y * (1 - u - v)
     if (y > fromY + 1 || (best && y <= best.y)) continue
-    best = { y, normalY: t.normal.y, surfaceId: 'kun', anchor: { triangle, u, v } }
+    best = { y, normal: [t.normal.x, t.normal.y, t.normal.z], normalY: t.normal.y, surfaceId: 'kun', anchor: { triangle, u, v } }
   }
   return best
 }

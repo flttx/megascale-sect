@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { groundHeight, insideMainFootprint, insideStructure, LAYOUT, terrainGradient } from '../worldLayout'
+import { groundHeight, groundHit, insideMainFootprint, insideStructure, LAYOUT, terrainGradient } from '../worldLayout'
 import { bodyInsideAnyCollider } from '../surfaces'
 import { kunBodyBlocked } from '../colossi/kunDeck'
 
@@ -41,8 +41,10 @@ const bodyBlocked = (x: number, y: number, z: number) =>
  * `steepHere`: already standing on ground too steep to hold (where a slide cannot continue), so any step
  * within the limits may lead off it.
  */
-function canStep(x: number, z: number, nx: number, nz: number, y: number, here: number, steepHere: boolean) {
+function canStep(x: number, z: number, nx: number, nz: number, y: number, here: number, steepHere: boolean, moving: boolean) {
   const next = groundHeight(nx, nz, y)
+  // Walking off a carrier is a fall; static cliff-edge protection must not trap its passenger.
+  if (moving && (next === null || here - next > MAX_DROP)) return !bodyBlocked(nx, y, nz)
   // Stepping down, the body must also clear the lower footing (a censer at the foot of a ledge).
   if (next === null || bodyBlocked(nx, Math.max(y, next), nz) || (next < y && bodyBlocked(nx, next, nz))) return false
   const dx = nx - x, dz = nz - z, length = Math.hypot(dx, dz)
@@ -87,7 +89,8 @@ export function stepGround(
   desired.copy(forward).multiplyScalar(-input.z).addScaledVector(right, input.x)
   if (desired.lengthSq() > 1) desired.normalize()
   desired.multiplyScalar(speed)
-  const ground = groundHeight(position.x, position.z, position.y)
+  const footing = groundHit(position.x, position.z, position.y)
+  const ground = footing?.y ?? null
   const here = ground ?? -Infinity
   const grounded = position.y <= here + 0.04
   // Footing pushes off quickly and stops sooner than it builds up; in the air the body only steers.
@@ -113,7 +116,7 @@ export function stepGround(
   const nextX = position.x + velocity.x * delta
   const nextZ = position.z + velocity.z * delta
   const allowed = (nx: number, nz: number) => !kunBodyBlocked(position.x, position.y, position.z, nx, nz) && (airborne ? canFly(nx, nz, position.y)
-    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep))
+    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep, footing?.surfaceId === 'kun'))
   // Blocked moves slide along the obstacle (cliff edge, steep bank) instead of stopping dead.
   if (allowed(nextX, nextZ)) {
     position.x = nextX

@@ -35,7 +35,7 @@ export function groundHit(x: number, z: number, fromY = Infinity): SurfaceHit | 
   const base = layoutGroundHeight(x, z)
   const extra = walkableHit(x, z, fromY)
   if (extra !== null && (base === null || extra.y > base)) return extra
-  return base === null ? null : { y: base, normalY: 1, surfaceId: 'terrain' }
+  return base === null ? null : { y: base, normal: [0, 1, 0], normalY: 1, surfaceId: 'terrain' }
 }
 
 function layoutGroundHeight(x: number, z: number): number | null {
