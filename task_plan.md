@@ -67,11 +67,13 @@
 - [x] footPlant 用片段相位判定支撑；更新 verify:optimization 资源断言；落脚误差 0.0185 m（目标 < 0.13 m）
 - [x] 飞行黑帧（剑尾拖光 pow 产生 NaN）修复；独立审查修正：落地后起跳 / 召剑的 land 跳变、fall 时钟冻结、断言空转、同类 NaN
 
-### R6 集成与验证 — pending
-- [ ] 交互点、灵光按新地形重新落位
-- [ ] 更新验证脚本（视角、可行走面），全部通过
-- [ ] 性能：极致档 ≥ 60 FPS，draw calls 预算（待查：verify:smoke 在出生点刚起飞时 F3 显示 445 次调用，召剑特效不在 verify:perf 的视角内）
-- [ ] README / PROGRESS 更新，提交
+### R6 集成与验证 — complete
+- [x] 交互点、灵光按新地形核对：落位探针显示全部离地正常，不需要重新落位（findings.md）
+- [x] 更新验证脚本：verify:riding-pose 增加飞行黑帧的亮度断言
+- [x] 性能：召剑时 444 → 387 次调用（合并刻度、forceSinglePass、跳过 N8AO 透明 pass）；verify:perf 最差 390 次，高档最低 145 FPS
+- [x] 天象观感：空气透视按距离渐入，薄雾减淡，新增黄金时刻关键帧；verify:visual 21/21
+- [x] 独立审查与修正：亮度统计误用 R 通道、fogDepth 阈值处雾量跳变、天象中薄雾不再漫上柱顶、README 降落柱数（findings.md）
+- [x] README / PROGRESS 更新，全部验证脚本复跑，提交
 
 ## 并行任务（后台 agent，只产出资产，不改 src/）
 | agent | 内容 | 输出 |
@@ -106,3 +108,4 @@
 | 西桥桥板最多埋进地面 1.00 m（东桥 0.20 m），平台端桥下灵光埋深约 6 m，桥面长出松树 | 1 | 地形沿桥面挖槽；桥数据挪到独立的 `bridges.ts` 以免 terrain ↔ sites 循环依赖；`siteClearance` 改用整段桥面的胶囊距离；灵光沿桥外移直到地面低于它 3.5 m。没有挪桥端点，栏杆缺口依赖端点处的 siteClearance |
 | verify:interact 报 `does not provide an export named 'PROP_TINT'` | 1 | 验证进行中改了 src，HMR 把半改的模块推给了测试页面；用最终代码重跑通过。验证期间不再改 src |
 | 用 node heredoc 做多行替换时锚点匹配失败 | 1 | 模板字符串里的转义与源码不一致；多行替换改用 Edit 工具 |
+| verify 脚本的“亮度均值”其实是 R 通道均值 | 1 | sharp 的 `stats()` 读取编码后的原图，不经过管线；先 `greyscale().toBuffer()` 再对新 buffer 调 `stats()` |

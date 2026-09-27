@@ -2,7 +2,7 @@
 
 **状态：PASS（生产级重建 P1–P7：性能、渲染、世界、天象、Tripo 道具、交互与界面、验证）**
 
-## 第二次重建 R0–R6（2026-09-26，进行中）
+## 第二次重建 R0–R6（2026-09-26 至 09-27）
 
 用户判定 P1–P7 成果“效果太差”，授权重建；重点是画面、操控与巨物氛围。计划见 `task_plan.md`，审查发现见 `findings.md`。
 
@@ -75,6 +75,22 @@
   - **飞行黑帧**：飞行中约 2/3 的帧整屏全黑（旧问题）。根因是剑尾拖光着色器对越界的 uv 做 pow，D3D 上得到 NaN，再被 Bloom 扩散到整屏。先 clamp 后修复，飞行采样 10/10 帧正常。
   - **审查修正**：落地后立刻起跳或召剑时，land 片段不再一帧清零，改为淡出（Hips 每帧最大转角 0.076 rad）；被剑接住时 fall 不再定格；verify:optimization 的步态断言不会空转通过；SwordWake 与钟声波纹里同类的 pow 改为先 clamp 或手动平方；片段参数为 0 时直接报错。
   - **验证**：tsc、build 通过；verify:optimization（落脚平均误差 0.0185 m，最大 0.31 m，50 个锁定采样）、verify:characters、verify:riding-pose、verify:smoke、verify:interact（37/37）通过；审查修正前另跑过 verify:navigation 与 verify:perf（最差 390 次调用），均通过。
+- 2026-09-27 R6（集成与验证）：
+  - **召剑 draw call**：召剑时从 444 次降到 387 次（预算 400）。12 道刻度合并为一个网格；叠加混合的透明双面材质设为单遍绘制；特效网格跳过 N8AO 的透明 pass。
+  - **天象观感**：
+    - 正午和黄昏的泛白来自空气透视（颜色取地平线天光，比背阴岩面亮得多）。现在空气透视按距离渐入（光程 d² / (d + 800 m)），中景石柱保住对比度，远山仍一层层淡入天色；薄雾同时减淡。
+    - 新增太阳高度约 6° 的黄金时刻关键帧：暖色低角度日光、玫瑰色薄雾、冷色阴影。17.5 时不再是泛黄的灰雾。
+    - 12 时俯瞰亮度均值 213 → 198，17.5 时俯瞰 185 → 158。
+  - **落位核对**：灵光与交互点全部离地正常，不需要重新落位。
+  - **验证脚本**：verify:riding-pose 每张截图检查亮度，防止飞行黑帧回归。
+  - **README**：按重建后的内容更新了按键、世界、巨物、植被、天象、操控和资产管线的说明。
+  - **验证**：tsc、build 通过；verify:visual 21/21；verify:riding-pose 通过；verify:perf 最差 390 次调用（高档 / 雷暴 / 道路），高档 145–235 FPS，中档 242–343，低档 512–887；verify:smoke、verify:navigation、verify:interact（37/37）、verify:characters、verify:optimization 通过。
+  - **审查修正**：
+    - 亮度统计：sharp 的 `stats()` 忽略前面的 `greyscale()`，原来统计的是 R 通道均值；verify:visual、verify:riding-pose 改为统计真实亮度，riding-pose 只看画面中心、避开 HUD。上面的亮度数字已按真实亮度重测。
+    - 雾的光程：直线近似改按光学指数 dist × k 判断，远处跨过阈值时雾量不再跳变（地平线下 0.64° 与 |dir.y| = 0.15 两处）。
+    - 天象中的薄雾：山岚、雨、雪、雷暴按雾量把衰减率插回旧值，雾仍能漫上柱顶。
+    - README：25 根石柱有可降落岩架，其中 13 根在柱顶。
+    - 复验：tsc、build、verify:visual（21/21）、verify:riding-pose、verify:smoke、verify:interact（37/37）通过。
 
 ## 生产级重建（2026-09）
 
