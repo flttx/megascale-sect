@@ -25,7 +25,8 @@ async function capture(name, extra = {}) {
   const buffer = await page.screenshot()
   const file = path.join(OUT, `${name}.png`)
   await fs.writeFile(file, buffer)
-  const { channels: [luma] } = await sharp(buffer).greyscale().stats()
+  // stats() reads the encoded input and ignores the pipeline, so greyscale into a new buffer first.
+  const { channels: [luma] } = await sharp(await sharp(buffer).greyscale().toBuffer()).stats()
   const frame = { name, file, mean: Math.round(luma.mean * 10) / 10, std: Math.round(luma.stdev * 10) / 10, ...extra }
   frame.ok = frame.mean >= LIMITS.minMean && frame.mean <= LIMITS.maxMean && frame.std >= LIMITS.minStd && extra.ok !== false
   frames.push(frame)

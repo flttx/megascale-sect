@@ -1,6 +1,7 @@
 import { chromium } from 'playwright'
 import fs from 'node:fs/promises'
 import assert from 'node:assert/strict'
+import sharp from 'sharp'
 
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', args: ['--use-angle=d3d11'] })
 const page = await browser.newPage({ viewport: { width: 2000, height: 1500 } })
@@ -19,7 +20,13 @@ async function orbit(angle) {
   await page.waitForTimeout(700)
 }
 async function capture(name) {
-  await page.screenshot({ path: `artifacts/riding-pose/${name}.png` })
+  const image = await page.screenshot({ path: `artifacts/riding-pose/${name}.png` })
+  // One NaN from any shader is smeared across the whole frame by bloom (flight black frames, R5b). Only the
+  // centre half is measured, clear of the HUD; stats() reads the encoded input, so greyscale into a new buffer.
+  const { width, height } = await sharp(image).metadata()
+  const centre = await sharp(image).extract({ left: width >> 2, top: height >> 2, width: width >> 1, height: height >> 1 }).greyscale().toBuffer()
+  const { channels: [luma] } = await sharp(centre).stats()
+  assert.ok(luma.mean > 8, `${name}: black frame (mean luma ${luma.mean.toFixed(1)})`)
   const state = await snapshot()
   poses.push({ name, phase: state.phase, ridingPose: state.ridingPose, contact: state.ridingContact })
   return state
