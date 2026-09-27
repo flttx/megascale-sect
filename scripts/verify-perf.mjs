@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import assert from 'node:assert/strict'
 import { openWorld, review, telemetry, VIEWS } from './lib/world-session.mjs'
 
 /*
@@ -27,7 +28,7 @@ const runs = []
 const errors = []
 for (const quality of QUALITIES) {
   for (const weather of quality === 'high' ? ['clear', 'storm'] : ['clear']) {
-    const { browser, page, errors: pageErrors } = await openWorld(`?quality=${quality}&hours=15&weather=${weather}`)
+    const { browser, page, errors: pageErrors } = await openWorld(`?quality=${quality}&hours=15&weather=${weather}&kunAt=40`)
     const views = weather === 'storm' ? ['hero', 'road'] : Object.keys(VIEWS)
     for (const view of views) {
       await review(page, VIEWS[view], 2200)
@@ -35,6 +36,19 @@ for (const quality of QUALITIES) {
       runs.push(result)
       console.log(`${quality.padEnd(4)} ${weather.padEnd(5)} ${view.padEnd(10)} ${String(result.fps).padStart(4)} fps  ${String(result.drawCalls).padStart(3)} calls  ${(result.triangles / 1e6).toFixed(2)}M tris`)
     }
+    await page.evaluate(async () => {
+      window.__environmentReview(null)
+      const { useWorldStore } = await window.__liveImport('/src/world/store.ts')
+      useWorldStore.getState().setCameraMode('player')
+      window.__kunSetTime(40)
+    })
+    await page.waitForTimeout(300)
+    assert.ok(await page.evaluate(() => window.__interact.visitOrb('orb_kun_0')), 'kun performance view must be reachable')
+    await page.waitForTimeout(2200)
+    assert.ok(await page.evaluate(() => !!window.__playerSnapshot().aboard && window.__playerSnapshot().cameraDistance < 20), 'measure the real camera aboard the kun')
+    const deck = { quality, weather, view: 'kun-deck', ...await measure(page) }
+    runs.push(deck)
+    console.log(`${quality} ${weather} kun-deck ${deck.fps} fps ${deck.drawCalls} calls`)
     errors.push(...pageErrors.map((e) => `${quality}/${weather}: ${e}`))
     await browser.close()
   }

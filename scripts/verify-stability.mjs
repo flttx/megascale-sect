@@ -19,6 +19,25 @@ try {
   assert.equal(audio.suspended, 'suspended'); assert.equal(audio.resumed, 'running')
   assert.deepEqual(audio.volumes, audio.after)
   console.log('PASS hidden audio suspends and resumes with volumes intact')
+  const audioFailure = await page.evaluate(async () => {
+    const { mixer } = await window.__liveImport('/src/world/audio/mixer.ts')
+    const context = mixer.audioContext, resume = context.resume.bind(context), warn = console.warn
+    const off1 = mixer.watchVisibility(), off2 = mixer.watchVisibility()
+    let warnings = 0
+    console.warn = (...args) => { if (String(args[0]).startsWith('[mixer]')) warnings++; else warn(...args) }
+    try {
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+      document.dispatchEvent(new Event('visibilitychange')); await new Promise((r) => setTimeout(r, 100))
+      context.resume = () => Promise.reject(Error('forced resume refusal'))
+      delete document.hidden
+      for (let n = 0; n < 3; n++) { document.dispatchEvent(new Event('visibilitychange')); await new Promise((r) => setTimeout(r, 30)) }
+      context.resume = resume; mixer.unlock()
+      await new Promise((r) => setTimeout(r, 100))
+      return { warnings, recovered: context.state }
+    } finally { delete document.hidden; context.resume = resume; console.warn = warn; off1(); off2() }
+  })
+  assert.equal(audioFailure.warnings, 1); assert.equal(audioFailure.recovered, 'running')
+  console.log('PASS audio resume refusal warns once and retries on interaction')
   await page.evaluate(() => window.__interact.visitOrb(0))
   await page.waitForTimeout(800)
   const checkpoint = await page.evaluate(async () => {
