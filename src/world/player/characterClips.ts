@@ -169,13 +169,15 @@ export class ClipLayer {
       // Stepping off an edge hangs in the reaching pose; falling faster than a jump comes down turns into the falling loop.
       const lead = JUMP.reach - JUMP.apex
       let toLand = Infinity
-      for (const ahead of [0, lead * 0.5, lead]) {
+      for (const ahead of [0, lead * 0.25, lead * 0.5, lead]) {
         const p = runtime.position, v = runtime.velocity
         const surface = groundHeight(p.x + v.x * ahead, p.z + v.z * ahead, p.y + 0.45)
         if (surface === null) continue
         const h = p.y - surface, g = LAYOUT.player.gravity
         const t = h <= 0 ? ahead : (v.y + Math.sqrt(v.y * v.y + 2 * g * h)) / g
-        if (t >= ahead - 0.04) toLand = Math.min(toLand, t)
+        // A raised edge can enter the horizontal path after we crossed its height. Ground motion
+        // still catches that edge within its 0.45 m step allowance; do not discard the contact.
+        if (p.y + v.y * ahead - 0.5 * g * ahead * ahead >= surface - 0.45) toLand = Math.min(toLand, Math.max(ahead, t))
       }
       const reaching = Number.isFinite(toLand) ? 1 - smooth(toLand / lead) : 0
       const byRise = rise > 0 ? JUMP.lift + (JUMP.apex - JUMP.lift) * (1 - Math.min(1, rise)) : JUMP.apex
@@ -231,6 +233,6 @@ export class ClipLayer {
   }
 
   snapshot() {
-    return { stride: this.stride, gait: this.gait, duty: this.duty, speed: this.speed, weight: this.weight, weights: { ...this.weights } }
+    return { stride: this.stride, gait: this.gait, duty: this.duty, speed: this.speed, weight: this.weight, weights: { ...this.weights }, jumpTime: this.jumpTime, jumpFade: this.jumpFade }
   }
 }
