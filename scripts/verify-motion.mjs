@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs/promises'
 import { openWorld } from './lib/world-session.mjs'
 const { browser, page, errors } = await openWorld('?quality=low')
 try {
@@ -26,13 +27,15 @@ try {
         const r = createPlayerRuntime(); r.phase = 'FLIGHT'; r.position.set(x, h + 0.55, z); r.yaw = r.facing = yaw; r.pitch = 0
         r.velocity.set(Math.sin(yaw) * 140, 0, -Math.cos(yaw) * 140)
         let rise = 0, pierced = false
+        const path = [{ time: 0, position: r.position.toArray() }]
         for (let n = 0; n < fps; n++) {
           const y = r.position.y; stepPlayer(r, new Vector3(0, 0, -1), true, 1 / fps)
           rise = Math.max(rise, r.position.y - y)
           const floor = groundHeight(r.position.x, r.position.z, r.position.y)
           pierced ||= floor !== null && r.position.y < floor + 0.54
+          path.push({ time: (n + 1) / fps, position: r.position.toArray() })
         }
-        return { fps, position: r.position.toArray(), rise, pierced }
+        return { fps, position: r.position.toArray(), rise, pierced, path }
       })
       routes.push({ x, z, runs })
       if (routes.length === 3) break outer
@@ -41,11 +44,23 @@ try {
   })
   for (const [name, ok] of result.checks) { assert.ok(ok, name); console.log('PASS', name) }
   assert.equal(result.routes.length, 3, 'Need three real steep-cliff fixtures')
-  for (const { x, z, runs } of result.routes) {
+  for (const route of result.routes) {
+    const { x, z, runs } = route
     for (const run of runs) assert.ok(!run.pierced, `terrain penetration at ${x}/${z}/${run.fps}`)
-    const ref = runs.at(-1).position
-    for (const run of runs) assert.ok(Math.hypot(...run.position.map((v, i) => v - ref[i])) < 1, `frame-rate route ${JSON.stringify({ x, z, runs })}`)
+    const at = (run, time) => {
+      const frame = time * run.fps, lo = Math.floor(frame), hi = Math.min(run.fps, lo + 1), mix = frame - lo
+      return run.path[lo].position.map((v, i) => v + (run.path[hi].position[i] - v) * mix)
+    }
+    let maxDifference = 0
+    for (let i = 1; i <= 20; i++) {
+      const time = i / 20, reference = at(runs.at(-1), time)
+      for (const run of runs) maxDifference = Math.max(maxDifference, Math.hypot(...at(run, time).map((v, axis) => v - reference[axis])))
+    }
+    route.maxDifference = maxDifference
+    assert.ok(maxDifference < 1, `whole trajectory ${x}/${z}: ${maxDifference} m`)
   }
-  console.log('PASS three cliffs at 20/60/144 fps', JSON.stringify(result.routes))
+  console.log('PASS three cliffs at 20/60/144 fps', JSON.stringify(result.routes.map(({ x, z, maxDifference }) => ({ x, z, maxDifference }))))
   assert.deepEqual(errors, [])
+  await fs.mkdir('artifacts/motion', { recursive: true })
+  await fs.writeFile('artifacts/motion/report.json', JSON.stringify(result, null, 2))
 } finally { await browser.close() }
