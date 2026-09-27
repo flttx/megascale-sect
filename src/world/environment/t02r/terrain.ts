@@ -213,8 +213,11 @@ export function makeTerrain() {
   const X = [...new Set(xs)].sort((a, b) => a - b), Z = [...new Set(zs)].sort((a, b) => a - b)
   const g = heightMesh(X, Z, terrainHeight)
   g.setAttribute('surfaceMask', new Float32BufferAttribute(surfaceMask(X, Z, g.getAttribute('position').array), 2))
+  // The grid lines, so the grass can sample the rendered triangles rather than the analytic height.
+  g.userData.grid = { xs: X, zs: Z } satisfies TerrainGrid
   return g
 }
+export interface TerrainGrid { xs: number[]; zs: number[] }
 /**
  * Per-vertex hints for the terrain shader: R = worn verges beside the road and the platform rim,
  * G = concavity (hollows and cliff feet, where scree and soil collect), from the grid's own curvature.

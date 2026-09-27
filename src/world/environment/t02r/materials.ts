@@ -7,6 +7,30 @@ export type Surface = 'terrain' | 'rock' | 'karst' | 'scholar' | 'paving' | 'gra
 const layer = (set: (typeof SURFACE_SETS)[number]) => `${SURFACE_SETS.indexOf(set)}.0`
 
 /**
+ * World-space value noise and the ground-cover masks, shared with the grass blades (Grass.tsx) so blades
+ * grow exactly where the terrain is painted with grass and moss.
+ */
+export const ENV_COVER_GLSL = /* glsl */ `
+float envHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float envNoise(vec2 p) {
+  vec2 a = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(envHash(a), envHash(a + vec2(1, 0)), f.x), mix(envHash(a + vec2(0, 1)), envHash(a + vec2(1, 1)), f.x), f.y);
+}
+float envFbm(vec2 p) { return envNoise(p) * 0.55 + envNoise(p * 2.07 + 5.3) * 0.3 + envNoise(p * 4.31 + 1.7) * 0.15; }
+/** Moss and grass on gentle slopes above the clouds (veg); scree where material collects (collect) or below them. */
+void envCover(vec3 p, vec3 n, float collect, out float veg, out float scree) {
+  float gentle = smoothstep(0.62, 0.86, n.y + (envFbm(p.xz * 0.021) - 0.5) * 0.34);
+  float above = smoothstep(-150.0, -60.0, p.y);
+  scree = smoothstep(0.25, 0.75, max(collect, (1.0 - above) * 0.6) + (envFbm(p.xz * 0.11) - 0.5) * 0.55) * smoothstep(0.35, 0.6, n.y);
+  veg = gentle * above * (1.0 - scree * 0.85);
+}
+/** Grass (1) rather than moss (0): the broad, sunny shelves; moss toward edges, shade and the damp lower slopes. */
+float envGrassy(vec3 p, vec3 n) {
+  return smoothstep(0.35, 0.7, envFbm(p.xz * 0.013 + 3.1)) * smoothstep(0.84, 0.95, n.y) * smoothstep(-40.0, 10.0, p.y);
+}
+`
+
+/**
  * Shared sampling helpers. Every lookup is world-space (triplanar or top-down) with explicit gradients, so
  * layers can sit behind distance and mask branches without breaking mip selection. Normals use the UDN
  * blend in world space; the arrays keep image row 0 at t = 0, so OpenGL green points toward -t.
@@ -21,12 +45,7 @@ varying vec3 vEnvPosition; varying vec3 vEnvNormal;
   varying vec4 vRockMask;
 #endif
 vec3 surfP, surfDx, surfDy, surfN, surfW;
-float envHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float envNoise(vec2 p) {
-  vec2 a = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(envHash(a), envHash(a + vec2(1, 0)), f.x), mix(envHash(a + vec2(0, 1)), envHash(a + vec2(1, 1)), f.x), f.y);
-}
-float envFbm(vec2 p) { return envNoise(p) * 0.55 + envNoise(p * 2.07 + 5.3) * 0.3 + envNoise(p * 4.31 + 1.7) * 0.15; }
+${ENV_COVER_GLSL}
 vec2 surfTangent(vec4 d) { return vec2(d.r * 2.0 - 1.0, 1.0 - d.g * 2.0); }
 
 /** Triplanar sample of one layer tiled every \`scale\` metres; n is the perturbed world normal. */
@@ -131,21 +150,18 @@ const SURFACES: Record<Surface, string> = {
     ${ROCK(16, 71.3)}
     // Ground cover on gentle slopes: moss and forest grass above the clouds, scree and gravel where
     // material collects (vSurfMask.r near paths, .g in hollows and at the foot of cliffs).
-    float gentle = smoothstep(0.62, 0.86, surfN.y + (envFbm(sp.xz * 0.021) - 0.5) * 0.34);
-    float above = smoothstep(-150.0, -60.0, sp.y);
     #ifdef SURF_MASK
       float collect = clamp(vSurfMask.r + vSurfMask.g * 0.8, 0.0, 1.0);
     #else
       float collect = 0.0;
     #endif
-    float scree = smoothstep(0.25, 0.75, max(collect, (1.0 - above) * 0.6) + (envFbm(sp.xz * 0.11) - 0.5) * 0.55) * smoothstep(0.35, 0.6, surfN.y);
-    float veg = gentle * above * (1.0 - scree * 0.85);
+    float veg, scree;
+    envCover(sp, surfN, collect, veg, scree);
     if (veg + scree > 0.01) {
       vec4 mA, mD, vA, vD; vec3 mN, vN;
       surfTop(${layer('moss')}, 12.0, mA, mD, mN);
       surfTop(${layer('grass')}, 2.2, vA, vD, vN);
-      // Grass on the broad, sunny shelves; moss toward edges, shade and the damp lower slopes.
-      float grassy = smoothstep(0.35, 0.7, envFbm(sp.xz * 0.013 + 3.1)) * smoothstep(0.84, 0.95, surfN.y) * smoothstep(-40.0, 10.0, sp.y);
+      float grassy = envGrassy(sp, surfN);
       vec3 coverA = mix(mA.rgb, vA.rgb, grassy); float coverR = mix(mA.a, vA.a, grassy);
       vec3 coverN = normalize(mix(mN, vN, grassy)); float coverAO = mix(mD.b, vD.b, grassy), coverH = mix(mD.a, vD.a, grassy);
       if (scree > 0.01) {
@@ -227,7 +243,7 @@ export function environmentMaterial(surface: Surface) {
   const material = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, metalness: 0 })
   material.name = `T02R_${surface}`
   const masked = surface === 'terrain', rockMasked = surface === 'karst'
-  material.customProgramCacheKey = () => `t02r-${surface}-11`
+  material.customProgramCacheKey = () => `t02r-${surface}-12`
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, surfaceTextures)
     if (masked) shader.defines = { ...shader.defines, SURF_MASK: '' }

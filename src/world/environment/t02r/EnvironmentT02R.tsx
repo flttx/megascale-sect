@@ -4,6 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { BoxGeometry, BufferGeometry, Euler, Group, InstancedMesh, Matrix4, Mesh, Object3D, Quaternion, Raycaster, Vector2, Vector3 } from 'three'
 import { LAYOUT } from '../../worldLayout'
 import { GrandStairs } from '../GrandStairs'
+import { Grass } from '../Grass'
 import { environmentMaterial } from './materials'
 import { FAR_RING_RADII, makeDistantRidge, makeFarRing, makeRoad, makeTerrain, roadSamples } from './terrain'
 import { loadSurfaceTextures } from '../terrainTextures'
@@ -87,7 +88,7 @@ export function EnvironmentT02R() {
   // The scanned surface maps decode in a worker; until then the materials show flat per-layer tints.
   useEffect(() => { loadSurfaceTextures().catch((error: unknown) => console.warn('[surfaces] texture load failed', error)) }, [])
   return <group name="ENV_T02R">
-    <group name="Terrain"><mesh name="Continuous_Main_Terrain" geometry={geometry} material={material} /></group>
+    <group name="Terrain"><mesh name="Continuous_Main_Terrain" geometry={geometry} material={material} /><Grass terrain={geometry} /></group>
     <Terraces /><Roads />
     <group name="Cliffs" userData={{ strategy: 'Continuous shoulder / cliff face / talus heightfield with authored ridge branches' }} />
     <group name="HeroRocks"><Suspense fallback={null}><Rocks /></Suspense></group>
