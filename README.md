@@ -3,10 +3,15 @@
 桌面端 Web 3D 探索游戏：一座 420 m 高的仙宗主殿坐落在云海之上的山巅平台，四周是石林、浮空仙岛与悬桥。玩家可在两位主角之间切换，步行登阶或御剑飞行，寻访碑文、钟楼、天象祭坛、观景台和传送阵，收集灵光，并在昼夜流转与五种天象中拍照留念。没有战斗与任务，重点是氛围、尺度与探索。
 
 ```bash
-npm install
-npm run dev      # 开发服务器（含 DEV 验证钩子）
-npm run build    # 类型检查 + 生产构建到 dist/
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev        # 开发服务器（含 DEV 验证钩子）
+pnpm build      # 类型检查 + 生产构建到 dist/
 ```
+
+依赖统一使用 `package.json` 声明的 **pnpm 10.34.5**，只维护 `pnpm-lock.yaml`。增删依赖使用 `pnpm add` / `pnpm remove`，同时提交 `package.json` 和锁文件。下文的 `npm run …` 仅运行脚本，可继续使用；安装依赖请使用 pnpm。
+
+Vercel 使用 Vite 预设，构建命令 `pnpm run build`，输出目录 `dist`，安装命令保持自动检测。CI 保留冻结锁文件检查；如需在 Vercel 严格采用 `packageManager` 指定版本，启用项目环境变量 `ENABLE_EXPERIMENTAL_COREPACK=1`，见 [Vercel 包管理器说明](https://vercel.com/docs/package-managers)。
 
 打开开发服务器地址，选择角色，载入完成后点击「进入仙宗」锁定鼠标，也可用 Tab、Enter 或 Space 进入。仅支持桌面浏览器（Chrome / Edge，独立显卡）。
 

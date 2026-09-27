@@ -2,6 +2,12 @@
 
 **状态：PASS（R9 后续修复与本机验收完成，2026-09-27）**
 
+## Vercel 冻结安装修复
+
+`fc6e5bf` 部署失败发生在依赖安装阶段：7 个新增依赖只写入了 npm 锁文件，`pnpm-lock.yaml` 未同步。现从已验证的 npm 锁文件导入 pnpm，补齐全部依赖，并声明 `packageManager: pnpm@10.34.5`；删除重复的 `package-lock.json`，README 改用 pnpm 安装。
+
+在独立干净检出中使用 Node 22.23.1 / pnpm 10.34.5 / Windows，`CI=true pnpm install --frozen-lockfile` 与 `pnpm run build`（含类型检查）均通过。20 个直接依赖版本保持一致，主要 JS 产物文件哈希与 R9 相同。未在此处执行远端部署。
+
 ## R9 最新交付与验收
 
 已完成帧率一致性、UI / 音频 / 存档收尾、验证入口整理，以及依据采样结果选择的鲲蒙皮缓存和可选面板延迟加载。真实低端设备复测及有条件开展的贴图、阴影优化仍列在 [REMAINING_ISSUES.md](REMAINING_ISSUES.md)。R8 的 66 团灵光、鲲背规则和桌面双角色范围保持有效。
