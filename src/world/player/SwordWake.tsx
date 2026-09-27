@@ -2,12 +2,11 @@ import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Matrix4, Mesh, ShaderMaterial, Vector3 } from 'three'
 import type { PlayerRuntime } from './playerMotion'
+import { WakeHistory, WAKE_COUNT as COUNT } from './wakeHistory'
 
-const COUNT = 28
 export function SwordWake({ runtime, color, active }: { runtime: RefObject<PlayerRuntime>; color: string; active: boolean }) {
   const mesh = useRef<Mesh>(null)
-  const history = useMemo(() => Array.from({ length: COUNT }, () => new Vector3()), [])
-  const initialized = useRef(false)
+  const trail = useMemo(() => new WakeHistory(), [])
   const scratch = useMemo(() => ({ inverse: new Matrix4(), point: new Vector3() }), [])
   const geometry = useMemo(() => {
     const result = new BufferGeometry(), uv = new Float32Array(COUNT * 4), indices: number[] = []
@@ -26,17 +25,13 @@ export function SwordWake({ runtime, color, active }: { runtime: RefObject<Playe
     transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide,
   }), [color])
   useEffect(() => () => { geometry.dispose(); material.dispose() }, [geometry, material])
-  useFrame(() => {
+  useFrame((_, dt) => {
     if (!mesh.current) return
     const state = runtime.current, speed = state.velocity.length()
     mesh.current.visible = active && state.phase === 'FLIGHT' && speed > 0.8
-    if (!mesh.current.visible) { initialized.current = false; return }
-    if (!initialized.current || history[0].distanceTo(state.position) > 8) {
-      history.forEach((point) => point.copy(state.position).setY(state.position.y - 0.04))
-      initialized.current = true
-    }
-    for (let i = COUNT - 1; i > 0; i--) history[i].copy(history[i - 1])
-    history[0].copy(state.position).y -= 0.04
+    if (!mesh.current.visible) { trail.clear(); return }
+    trail.update(state.position, speed, Math.min(dt, 0.05), state.relocation)
+    const history = trail.points
     mesh.current.updateWorldMatrix(true, false)
     scratch.inverse.copy(mesh.current.matrixWorld).invert()
     const positions = geometry.attributes.position as BufferAttribute
@@ -46,7 +41,7 @@ export function SwordWake({ runtime, color, active }: { runtime: RefObject<Playe
       const width = (0.11 + speed * 0.0015) * (1 - i / COUNT)
       for (let side = 0; side < 2; side++) {
         const sign = side ? 1 : -1
-        scratch.point.set(point.x + dz / length * width * sign, point.y, point.z - dx / length * width * sign).applyMatrix4(scratch.inverse)
+        scratch.point.set(point.x + dz / length * width * sign, point.y - 0.04, point.z - dx / length * width * sign).applyMatrix4(scratch.inverse)
         positions.setXYZ(i * 2 + side, scratch.point.x, scratch.point.y, scratch.point.z)
       }
     }

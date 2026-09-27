@@ -18,6 +18,7 @@
     "verify:controls": "node scripts/verify-controls.mjs",
     "verify:save": "node scripts/verify-save.mjs",
     "verify:motion": "node scripts/verify-motion.mjs",
+    "verify:framerate": "node scripts/verify-framerate.mjs",
     "verify:jumps": "node scripts/verify-jumps.mjs",
     "verify:kun": "node scripts/verify-kun.mjs",
     "verify:stability": "node scripts/verify-stability.mjs",

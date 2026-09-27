@@ -14,6 +14,8 @@ const SLIDE_SPEED = 6
 /** Take-off speed for the jump height; in the air the feet can clear a ledge this far above them. */
 export const JUMP_SPEED = Math.sqrt(2 * LAYOUT.player.gravity * LAYOUT.player.jumpHeight)
 const AIR_STEP = 0.45
+/** A single stair remains grounded at every frame rate; larger drops still require a jump. */
+const STEP_DOWN = 0.45
 /** Longest drop that still ends on foot: the sword catches a fall at 20 m/s, about 7 m down. */
 const LANDING_DROP = 8
 /** Torso (knee to crown) and radius tested against props, steles and rock for walking. */
@@ -134,14 +136,14 @@ export function stepGround(
   const surface = groundHeight(position.x, position.z, position.y + (airborne ? AIR_STEP : 0)) ?? -Infinity
   // Walking downhill keeps the feet planted: a grounded step follows the ground down as far as a walkable drop.
   const stepLength = Math.hypot(position.x - startX, position.z - startZ)
-  if (!airborne && velocity.y <= 0 && position.y > surface && position.y - surface <= stepLength * DROP_GRADIENT + 0.05) {
+  if (!airborne && velocity.y <= 0 && position.y > surface && position.y - surface <= Math.max(STEP_DOWN + 1e-6, stepLength * DROP_GRADIENT + 0.05)) {
     velocity.y = 0
     position.y = surface
     return { touchdown: 0, grounded: true, sliding }
   }
   if (velocity.y > 0 || position.y > surface + 0.04) {
+    position.y += velocity.y * delta - 0.5 * LAYOUT.player.gravity * delta * delta
     velocity.y -= LAYOUT.player.gravity * delta
-    position.y += velocity.y * delta
     if (position.y > surface) return { touchdown: 0, grounded: false, sliding }
   }
   const landing = Math.max(0, -velocity.y)

@@ -1,6 +1,7 @@
 import { PropertyBinding, Quaternion, Vector3 } from 'three'
 import type { AnimationClip, Interpolant, KeyframeTrack } from 'three'
 import { JUMP_SPEED } from './GroundController'
+import { JUMP } from './jumpMarks'
 import { FLIGHT_SEQUENCE, smooth, type PlayerRuntime } from './playerMotion'
 import { groundHeight, LAYOUT } from '../worldLayout'
 
@@ -29,7 +30,6 @@ const STANCE: Record<Locomotion, number> = { walk: 0.47, run: 0.24, sprint: 0.11
  * apex, the legs reach for the ground. The crouch plays over the take-off wind-up; in the air the clip follows the
  * vertical speed on ascent and the estimated time to contact when reaching for the ground.
  */
-const JUMP = { crouch: 0.1, lift: 0.2, apex: 11 / 30, reach: 16 / 30 } as const
 /** Boarding the sword: the feet leave the ground at 16 % of the sequence, the legs reach for the blade by 70 %. */
 const BOARD = { lift: 0.16, reach: 0.7 } as const
 /** Ground speed (m/s) at which the sprint clip has fully taken over from the run. */
