@@ -15,6 +15,10 @@
     "verify:interact": "node scripts/verify-interact.mjs",
     "verify:perf": "node scripts/verify-perf.mjs",
     "verify:visual": "node scripts/verify-visual.mjs",
+    "verify:controls": "node scripts/verify-controls.mjs",
+    "verify:save": "node scripts/verify-save.mjs",
+    "verify:motion": "node scripts/verify-motion.mjs",
+    "verify:kun": "node scripts/verify-kun.mjs",
     "assets:optimize": "node scripts/optimize-characters.mjs",
     "assets:buildings": "node scripts/optimize-buildings.mjs && node asset-pipeline/buildings/meta.mjs"
   },
