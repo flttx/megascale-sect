@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Mesh, MeshBasicMaterial, PlaneGeometry, PointsMaterial, ShaderMaterial, Vector3 } from 'three'
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Mesh, MeshBasicMaterial, PlaneGeometry, PointsMaterial, Quaternion, ShaderMaterial, Vector3 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { RefObject } from 'react'
 import { CHARACTER_ASSETS, type CharacterId } from './characterAssets'
@@ -22,6 +22,7 @@ export function SwordEffects({ runtime, character, active }: { runtime: RefObjec
   const burstMaterial = useRef<MeshBasicMaterial>(null)
   const column = useRef<Group>(null)
   const offset = useMemo(() => new Vector3(), [])
+  const streak = useMemo(() => ({ direction: new Vector3(), inverse: new Quaternion() }), [])
   const colors = CHARACTER_ASSETS[character]
   const geometry = useMemo(() => {
     const g = new BufferGeometry()
@@ -88,17 +89,25 @@ export function SwordEffects({ runtime, character, active }: { runtime: RefObjec
       burst.current.scale.setScalar(0.5 + (1 - state.impact) * 3)
       burstMaterial.current.opacity = state.impact * 0.85
     }
+    // The streak and sparks trail opposite the actual travel, not behind the rider: strafing with A / D (or climbing)
+    // would otherwise split them from the world-space wake. The 1 m/s bias keeps them behind when hovering.
+    const back = streak.direction.copy(state.velocity).negate().applyQuaternion(root.current.getWorldQuaternion(streak.inverse).invert())
+    back.z += 1
+    back.normalize()
     const points = geometry.attributes.position as BufferAttribute
     for (let i = 0; i < points.count; i++) {
       const fraction = i / points.count
       const angle = fraction * Math.PI * 10 + state.time * (summoning ? 5 : 2)
       const radius = summoning ? (1.6 - smooth(t) * 1.25) * (0.35 + fraction * 0.65) : 0.35 + fraction * 0.35
       const life = (fraction + state.time * 0.5) % 1
-      points.setXYZ(i, Math.cos(angle) * radius, circle.current.position.y + life * (summoning ? 1.4 : 0.3), circle.current.position.z + Math.sin(angle) * radius + (airborne ? fraction * (2 + speed * 0.07) : 0))
+      const trailing = airborne ? fraction * (2 + speed * 0.07) : 0
+      points.setXYZ(i, Math.cos(angle) * radius + back.x * trailing, circle.current.position.y + life * (summoning ? 1.4 : 0.3) + back.y * trailing, circle.current.position.z + Math.sin(angle) * radius + back.z * trailing)
     }
     points.needsUpdate = true
     if (particleMaterial.current) particleMaterial.current.opacity = summoning || boarding ? Math.max(0.1, energy) : Math.min(0.7, speed / 35 + 0.15)
     tail.current.visible = state.phase === 'FLIGHT' || state.phase === 'LANDING'
+    tail.current.position.set(back.x * 0.6, -0.12 + back.y * 0.6, back.z * 0.6)
+    tail.current.rotation.set(-Math.asin(back.y), Math.atan2(back.x, back.z), 0, 'YXZ')
     tail.current.scale.set(1, 1, 0.35 + Math.min(speed, 70) / 12)
     trail.uniforms.opacity.value = Math.min(0.6, 0.12 + speed / 100)
   })
@@ -133,7 +142,7 @@ export function SwordEffects({ runtime, character, active }: { runtime: RefObjec
       <points geometry={geometry} frustumCulled={false}>
         <pointsMaterial ref={particleMaterial} color={colors.color} size={0.035} sizeAttenuation transparent blending={AdditiveBlending} depthWrite={false} />
       </points>
-      <group ref={tail} position={[0, -0.12, 0.6]}>
+      <group ref={tail}>
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.7]} material={trail}>
           <planeGeometry args={[0.4, 1.6]} />
         </mesh>
