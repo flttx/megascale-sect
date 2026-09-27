@@ -1,5 +1,6 @@
 import { Vector3 } from 'three'
-import { groundHeight, LAYOUT, terrainSlope } from '../worldLayout'
+import { groundHeight, insideStructure, LAYOUT, terrainSlope } from '../worldLayout'
+import { bodyInsideAnyCollider } from '../surfaces'
 import { stepFlight } from './FlightController'
 import { groundState, JUMP_SPEED, stepGround } from './GroundController'
 
@@ -59,6 +60,17 @@ export function isAirborne(phase: PlayerPhase) {
   return phase === 'FLIGHT' || phase === 'LANDING' || phase === 'DISMOUNTING'
 }
 
+export function bodyClear(x: number, y: number, z: number) {
+  return !bodyInsideAnyCollider(x, y + 0.45, y + 1.7, z, 0.35, 0, true) &&
+    !insideStructure(x, y + 0.45, z) && !insideStructure(x, y + 1.7, z)
+}
+/** Sweep the body all the way to its footing, not just the destination under a solid prop. */
+export function descentClear(x: number, fromY: number, toY: number, z: number) {
+  const steps = Math.max(1, Math.ceil(Math.abs(fromY - toY) / 0.5))
+  for (let i = 0; i <= steps; i++) if (!bodyClear(x, fromY + (toY - fromY) * i / steps, z)) return false
+  return true
+}
+
 export function requestFlightToggle(runtime: PlayerRuntime): string | null {
   if (!runtime.ready) return '角色与动作正在载入，请稍候'
   if (runtime.phase === 'GROUND' && runtime.inAir) {
@@ -73,7 +85,7 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
       const x = position.x + Math.sin(direction) * FLIGHT_SEQUENCE.step
       const z = position.z - Math.cos(direction) * FLIGHT_SEQUENCE.step
       return { x, z, direction, height: groundHeight(x, z, position.y + 0.8) }
-    }).find((candidate) => candidate.height !== null && Math.abs(position.y - candidate.height) <= 0.8)
+    }).find((candidate) => candidate.height !== null && Math.abs(position.y - candidate.height) <= 0.8 && bodyClear(candidate.x, candidate.height, candidate.z))
     if (!landing || landing.height === null) return '请在平稳、开阔的位置召剑'
     runtime.origin.copy(position)
     runtime.destination.set(landing.x, landing.height + FLIGHT_SEQUENCE.hover, landing.z)
@@ -87,6 +99,7 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
     const surface = groundHeight(runtime.position.x, runtime.position.z, runtime.position.y)
     if (surface === null) return '请飞到地面、平台或浮岛上方，再按 F 落地'
     if (terrainSlope(runtime.position.x, runtime.position.z, runtime.position.y) > 40) return '下方地势陡峭，请飞到平缓处再落地'
+    if (!descentClear(runtime.position.x, runtime.position.y, surface, runtime.position.z)) return '下方有遮挡，请移到开阔处落地'
     runtime.destination.copy(runtime.position).setY(surface + FLIGHT_SEQUENCE.hover)
     runtime.velocity.set(0, 0, 0)
     changePhase(runtime, 'LANDING')
@@ -160,11 +173,6 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
       const angle = Math.atan2(Math.sin(runtime.yaw - runtime.facing), Math.cos(runtime.yaw - runtime.facing))
       runtime.facing += angle * (1 - Math.exp(-7 * delta))
       stepFlight(position, velocity, input, runtime.facing, runtime.pitch, boosting, delta, runtime.braking)
-      const surface = groundHeight(position.x, position.z, position.y + FLIGHT_SEQUENCE.hover)
-      if (surface !== null && position.y < surface + FLIGHT_SEQUENCE.hover) {
-        position.y = surface + FLIGHT_SEQUENCE.hover
-        velocity.y = Math.max(0, velocity.y)
-      }
       const turn = Math.atan2(Math.sin(runtime.facing - previousFacing), Math.cos(runtime.facing - previousFacing))
       const targetBank = Math.max(-0.38, Math.min(0.38, turn / Math.max(delta, 0.001) * -0.11 - input.x * 0.12))
       runtime.bank += (targetBank - runtime.bank) * (1 - Math.exp(-5 * delta))
@@ -172,6 +180,10 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
       break
     }
     case 'LANDING': {
+      if (!descentClear(position.x, position.y, runtime.destination.y - FLIGHT_SEQUENCE.hover, position.z)) {
+        changePhase(runtime, 'FLIGHT')
+        break
+      }
       position.y = Math.max(runtime.destination.y, position.y - Math.min(28, (position.y - runtime.destination.y) * 2 + 1) * delta)
       runtime.bank *= Math.exp(-6 * delta)
       runtime.climb *= Math.exp(-6 * delta)

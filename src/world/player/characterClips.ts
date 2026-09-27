@@ -2,6 +2,7 @@ import { PropertyBinding, Quaternion, Vector3 } from 'three'
 import type { AnimationClip, Interpolant, KeyframeTrack } from 'three'
 import { JUMP_SPEED } from './GroundController'
 import { FLIGHT_SEQUENCE, smooth, type PlayerRuntime } from './playerMotion'
+import { groundHeight, LAYOUT } from '../worldLayout'
 
 /** A bone the clips drive: its rest pose, and this frame's blended pose in `rotation` / `position`. */
 export interface ClipTarget {
@@ -26,7 +27,7 @@ const STANCE: Record<Locomotion, number> = { walk: 0.47, run: 0.24, sprint: 0.11
 /**
  * Marks in the jump clip (s, asset-pipeline/anim/build.mjs): the crouch bottoms out, the feet leave the ground, the
  * apex, the legs reach for the ground. The crouch plays over the take-off wind-up; in the air the clip follows the
- * vertical speed, so the apex and the reach land on the real apex and touchdown however high the ground is.
+ * vertical speed on ascent and the estimated time to contact when reaching for the ground.
  */
 const JUMP = { crouch: 0.1, lift: 0.2, apex: 11 / 30, reach: 16 / 30 } as const
 /** Boarding the sword: the feet leave the ground at 16 % of the sequence, the legs reach for the blade by 70 %. */
@@ -79,6 +80,7 @@ export class ClipLayer {
   private air = 0; private airTime = 0; private jumped = false; private wasInAir = false
   private landTime = Infinity; private landStrength = 0; private land = 0; private fallTime = 0
   private jumpTime: number = JUMP.reach; private toFall = 0
+  private jumpFrom: number = JUMP.reach; private jumpFade = 1; private wasTakeoff = false
   /** Foot-plant phase (left mid-stance at π) and threshold: a foot plants while cos(stride + side) < −duty; 1 never plants. */
   stride = Math.PI; duty = 1
   /** Share of the pose that comes from the clips (the rest is the rest pose), and the land clip's part of it. */
@@ -144,6 +146,9 @@ export class ClipLayer {
     // A sword catching a fall takes over from the falling pose, not from a stand. The take-off crouch is brief, so the
     // jump clip comes in faster for it.
     const takeoff = onFoot && runtime.takeoffTime > 0
+    if (takeoff && !this.wasTakeoff) { this.jumpFrom = this.jumpTime; this.jumpFade = 0 }
+    this.wasTakeoff = takeoff
+    this.jumpFade = Math.min(1, this.jumpFade + delta / 0.08)
     this.air += ((inAir || takeoff || boarding || runtime.phase === 'FLIGHT' ? 1 : 0) - this.air) * (1 - Math.exp(-(takeoff ? 30 : 14) * delta))
     const jump = this.clip('jump'), fall = this.clip('fall'), land = this.clip('land')
     const rise = runtime.velocity.y / JUMP_SPEED, running = smooth((v - walk.speed) / (run.speed - walk.speed))
@@ -160,7 +165,19 @@ export class ClipLayer {
       this.toFall = 0
     } else if (inAir) {
       // Stepping off an edge hangs in the reaching pose; falling faster than a jump comes down turns into the falling loop.
-      this.jumpTime = !this.jumped ? JUMP.reach : rise > 0 ? JUMP.lift + (JUMP.apex - JUMP.lift) * (1 - rise) : JUMP.apex + (JUMP.reach - JUMP.apex) * Math.min(1, -rise / 0.9)
+      const lead = JUMP.reach - JUMP.apex
+      let toLand = Infinity
+      for (const ahead of [0, lead * 0.5, lead]) {
+        const p = runtime.position, v = runtime.velocity
+        const surface = groundHeight(p.x + v.x * ahead, p.z + v.z * ahead, p.y + 0.45)
+        if (surface === null) continue
+        const h = p.y - surface, g = LAYOUT.player.gravity
+        const t = h <= 0 ? ahead : (v.y + Math.sqrt(v.y * v.y + 2 * g * h)) / g
+        if (t >= ahead - 0.04) toLand = Math.min(toLand, t)
+      }
+      const reaching = Number.isFinite(toLand) ? 1 - smooth(toLand / lead) : 0
+      const byRise = rise > 0 ? JUMP.lift + (JUMP.apex - JUMP.lift) * (1 - Math.min(1, rise)) : JUMP.apex
+      this.jumpTime = !this.jumped ? JUMP.reach : byRise + (JUMP.reach - byRise) * reaching
       this.toFall = smooth((-rise - 1.1) / 0.6)
     }
     const jumpTime = this.jumpTime, toFall = this.toFall
@@ -189,7 +206,8 @@ export class ClipLayer {
       const clip = this.clip(name)
       sample(clip, ((this.gait / CYCLES[name] + this.gaits[name].leftStance) % 1) * clip.duration, w[name])
     }
-    sample(jump, Math.min(jumpTime, jump.duration), w.jump)
+    sample(jump, Math.min(this.jumpFrom, jump.duration), w.jump * (1 - this.jumpFade))
+    sample(jump, Math.min(jumpTime, jump.duration), w.jump * this.jumpFade)
     sample(fall, this.fallTime % fall.duration, w.fall)
     sample(land, Math.min(this.landTime, land.duration), w.land)
     // Whatever the clips leave over is the rest pose.
@@ -207,6 +225,7 @@ export class ClipLayer {
     this.speed = 0; this.air = 0
     this.wasInAir = false; this.landTime = Infinity; this.land = 0; this.fallTime = 0
     this.jumpTime = JUMP.reach; this.toFall = 0; this.leap = 0
+    this.jumpFrom = JUMP.reach; this.jumpFade = 1; this.wasTakeoff = false
   }
 
   snapshot() {

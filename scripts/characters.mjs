@@ -117,6 +117,10 @@ try {
     const unsafeLanding = requestFlightToggle(state)
     const unsafePhase = state.phase
     state.position.set(0, 80, 100)
+    const overheadBeam = requestFlightToggle(state)
+    const beamPhase = state.phase
+    // z=100 is beneath the pailou beam; a clear descent is at the spawn instead.
+    state.position.set(0, 80, 150)
     requestFlightToggle(state)
     const landingPhase = state.phase
     requestFlightToggle(state)
@@ -124,7 +128,7 @@ try {
     state.position.set(0, 0.55, 100)
     state.velocity.set(0, -10, 0)
     stepPlayer(state, state.position.clone().set(0, -1, 0), false, 1 / 60)
-    return { unloaded, wall, wallPhase, wallDestination, unsafeLanding, unsafePhase, landingPhase, cancelledPhase, minHeight: state.position.y }
+    return { unloaded, wall, wallPhase, wallDestination, unsafeLanding, unsafePhase, overheadBeam, beamPhase, landingPhase, cancelledPhase, minHeight: state.position.y }
   })
   assert.ok(boundaryChecks.unloaded)
   assert.equal(boundaryChecks.wall, null)
@@ -132,6 +136,8 @@ try {
   assert.ok(Math.abs(boundaryChecks.wallDestination[0]) > 1, 'Wall summon must find a clear side')
   assert.ok(boundaryChecks.unsafeLanding)
   assert.equal(boundaryChecks.unsafePhase, 'FLIGHT')
+  assert.ok(boundaryChecks.overheadBeam)
+  assert.equal(boundaryChecks.beamPhase, 'FLIGHT')
   assert.equal(boundaryChecks.landingPhase, 'LANDING')
   assert.equal(boundaryChecks.cancelledPhase, 'FLIGHT')
   assert.equal(boundaryChecks.minHeight, 0.55)

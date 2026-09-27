@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { insideStructure, LAYOUT } from '../worldLayout'
+import { groundHeight, insideStructure, LAYOUT, TERRAIN_WALK_FLOOR } from '../worldLayout'
 import { insideAnyCollider } from '../surfaces'
 
 /**
@@ -14,6 +14,18 @@ const SUBSTEP = 1
 const forward = new Vector3(), right = new Vector3(), desired = new Vector3(), step = new Vector3()
 /** Pointing straight down raises the target speed by this fraction: a dive trades height for speed. */
 const DIVE_GAIN = 0.4
+const HOVER = 0.55, MAX_CLIMB = 1.5
+
+/** Resolve terrain in each collision substep. A cliff blocks sideways travel instead of lifting to its top. */
+function moveAcross(position: Vector3, nx: number, nz: number) {
+  const floor = groundHeight(nx, nz, position.y + HOVER)
+  const rise = floor === null ? 0 : Math.max(0, floor + HOVER - position.y)
+  if (rise > MAX_CLIMB * Math.hypot(nx - position.x, nz - position.z) + 1e-6) return false
+  const y = position.y + rise
+  if (blocked(nx, y, nz)) return false
+  position.set(nx, y, nz)
+  return true
+}
 
 export function stepFlight(
   position: Vector3, velocity: Vector3, input: Vector3,
@@ -37,15 +49,18 @@ export function stepFlight(
   const substeps = Math.max(1, Math.ceil(step.length() / SUBSTEP))
   step.divideScalar(substeps)
   for (let i = 0; i < substeps; i++) {
-    if (!blocked(position.x + step.x, position.y, position.z)) position.x += step.x
-    else { velocity.x = 0; step.x = 0 }
-    if (!blocked(position.x, position.y, position.z + step.z)) position.z += step.z
-    else { velocity.z = 0; step.z = 0 }
+    if (step.x && !moveAcross(position, position.x + step.x, position.z)) { velocity.x = 0; step.x = 0 }
+    if (step.z && !moveAcross(position, position.x, position.z + step.z)) { velocity.z = 0; step.z = 0 }
     // A flight that starts inside a structure (a dev teleport, a save from before the hall's roofs were re-measured) can always climb out.
-    if (!blocked(position.x, position.y + step.y, position.z, !(step.y > 0 && insideStructure(position.x, position.y, position.z)))) position.y += step.y
+    const floor = groundHeight(position.x, position.z, position.y + HOVER)
+    const nextY = floor !== null && position.y >= floor + HOVER - 1e-5 ? Math.max(floor + HOVER, position.y + step.y) : position.y + step.y
+    if (!blocked(position.x, nextY, position.z, !(step.y > 0 && insideStructure(position.x, position.y, position.z)))) {
+      if (nextY > position.y + step.y) { velocity.y = Math.max(0, velocity.y); step.y = 0 }
+      position.y = nextY
+    }
     else { velocity.y = 0; step.y = 0 }
   }
   position.x = Math.max(-LAYOUT.worldLimit, Math.min(LAYOUT.worldLimit, position.x))
-  position.y = Math.max(-50, Math.min(1100, position.y))
+  position.y = Math.max(TERRAIN_WALK_FLOOR, Math.min(1100, position.y))
   position.z = Math.max(-LAYOUT.worldLimit, Math.min(LAYOUT.worldLimit, position.z))
 }

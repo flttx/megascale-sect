@@ -46,7 +46,7 @@ function layoutGroundHeight(x: number, z: number): number | null {
 }
 
 /** Natural ground is walkable down to just above the cloud tops; below that there is nothing to stand on. */
-const TERRAIN_WALK_FLOOR = -60
+export const TERRAIN_WALK_FLOOR = -60
 
 function naturalGround(x: number, z: number): number | null {
   if (x < TERRAIN.minX || x > TERRAIN.maxX || z < TERRAIN.minZ || z > TERRAIN.maxZ || insideTowerFootprint(x, z)) return null
