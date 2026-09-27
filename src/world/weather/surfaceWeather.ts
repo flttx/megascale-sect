@@ -62,10 +62,10 @@ const FRAGMENT_ROUGHNESS = /* glsl */ `
   roughnessFactor = mix(roughnessFactor, mix(0.34, 0.05, wxPuddle), wxWet);
   roughnessFactor = mix(roughnessFactor, 0.78, wxSnowAmt);
 `
-// The scene-wide IBL is kept dim for matte stone; standing water mirrors the sky at full strength.
+// The scene-wide IBL is kept dim for matte stone; wet ground and puddles mirror a little more of the sky.
 const FRAGMENT_SHEEN = /* glsl */ `
   #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
-    radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness ) * (wxWet * 0.7 + wxPuddle * 1.8);
+    radiance += getIBLRadiance( geometryViewDir, geometryNormal, material.roughness ) * (wxWet * 0.3 + wxPuddle * 0.5);
   #endif
 `
 const FRAGMENT_METALNESS = /* glsl */ `

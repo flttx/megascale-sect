@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CSM } from 'three/examples/jsm/csm/CSM.js'
-import { DirectionalLight, HemisphereLight, Mesh, Vector3, type Material, type Object3D, type PerspectiveCamera } from 'three'
+import { DirectionalLight, HemisphereLight, Mesh, ShaderChunk, Vector3, type Material, type Object3D, type PerspectiveCamera } from 'three'
 import { atmosphere, keyLight } from './atmosphere'
 import { useWorldStore } from '../store'
 import { QUALITY_PRESETS } from '../quality'
@@ -15,6 +15,28 @@ const LIGHT_MARGIN = 900
 type Hook = Material['onBeforeCompile']
 const isLit = (material: Material) => ['isMeshStandardMaterial', 'isMeshLambertMaterial', 'isMeshPhongMaterial', 'isMeshToonMaterial'].some((flag) => flag in material)
 const keyDirection = new Vector3()
+
+/**
+ * three 0.186's CSMShader.lights_fragment_begin predates the DFG lookup the stock chunk does for standard
+ * materials. Without it `material.dfg` and `multiScatteringCompensation` stay zero, so every CSM-lit standard
+ * material loses both its IBL reflection and its direct specular. Ported from the stock chunk.
+ */
+const STANDARD_DFG = /* glsl */ `
+#ifdef STANDARD
+	float dotNVms = saturate( dot( geometryNormal, geometryViewDir ) );
+	material.dfg = texture2D( dfgLUT, vec2( material.roughness, dotNVms ) ).rg;
+	#if ( NUM_SUN_LIGHTS > 0 || NUM_DIR_LIGHTS > 0 || NUM_POINT_LIGHTS > 0 || NUM_SPOT_LIGHTS > 0 )
+		float EssMs = material.dfg.x + material.dfg.y;
+		material.multiScatteringCompensation = 1.0 + material.specularColorBlended * ( 1.0 / EssMs - 1.0 );
+	#endif
+#endif
+IncidentLight directLight;`
+function restoreStandardDfg() {
+  const chunk = ShaderChunk.lights_fragment_begin
+  if (chunk.includes('material.dfg')) return
+  if (import.meta.env.DEV && !chunk.includes('IncidentLight directLight;')) console.warn('[lighting] CSM lights chunk changed; standard materials may lose specular')
+  ShaderChunk.lights_fragment_begin = chunk.replace('IncidentLight directLight;', STANDARD_DFG)
+}
 
 /**
  * Sun/moon key light with cascaded shadows, plus hemisphere fill. Image-based fill comes from SkyDome.
@@ -43,6 +65,7 @@ export function Lighting() {
       mode: 'custom', customSplitsCallback: (_count: number, _near: number, _far: number, target: number[]) => target.push(...splits),
       lightMargin: LIGHT_MARGIN, lightFar: LIGHT_MARGIN + SHADOW_FAR * 2, shadowBias: -0.00015,
     })
+    restoreStandardDfg()
     instance.fade = true
     instance.lights.forEach((light) => { light.shadow.radius = 2 })
     lens.current = { fov: 0, aspect: 0 }
