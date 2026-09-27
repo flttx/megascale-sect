@@ -11,7 +11,7 @@ const MAX_DROP = PROBE * DROP_GRADIENT
 const SLIDE_GRADIENT = Math.tan((52 * Math.PI) / 180)
 const SLIDE_SPEED = 6
 /** Take-off speed for the jump height; in the air the feet can clear a ledge this far above them. */
-const JUMP_SPEED = Math.sqrt(2 * LAYOUT.player.gravity * LAYOUT.player.jumpHeight)
+export const JUMP_SPEED = Math.sqrt(2 * LAYOUT.player.gravity * LAYOUT.player.jumpHeight)
 const AIR_STEP = 0.45
 /** Longest drop that still ends on foot: the sword catches a fall at 20 m/s, about 7 m down. */
 const LANDING_DROP = 8

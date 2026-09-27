@@ -11,6 +11,8 @@ export const PHASE_LABELS: Record<PlayerPhase, string> = {
 export const FLIGHT_SEQUENCE = { summon: 1.2, board: 1.25, dismount: 0.75, step: 1.15, hover: 0.55 } as const
 /** A jump pressed this long before touchdown still fires on landing. */
 export const JUMP_BUFFER = 0.15
+/** The crouch before a jump leaves the ground (s): standing, and out of a run, whose stride has already loaded the legs. */
+const TAKEOFF = { standing: 0.1, running: 0.05 } as const
 /** Falling faster than this on foot (≈7 m of drop) calls the sword to catch the player. */
 const RESCUE_SPEED = 20
 export const smooth = (t: number) => { const v = Math.max(0, Math.min(1, t)); return v * v * (3 - 2 * v) }
@@ -22,6 +24,8 @@ export type PlayerRuntime = {
   rideMix: number; impact: number; braking: boolean; boostMix: number;
   /** Jump press still waiting for footing (s); off the ground on foot; its smoothed weight; landing crouch 0…1. */
   jumpBuffer: number; inAir: boolean; air: number; landing: number;
+  /** Time into the crouch before a jump, and its length (0 when no jump is winding up). */
+  takeoff: number; takeoffTime: number;
 }
 
 export function createPlayerRuntime(): PlayerRuntime {
@@ -30,7 +34,7 @@ export function createPlayerRuntime(): PlayerRuntime {
     elapsed: 0, time: 0, yaw: 0, pitch: 0.1, facing: 0, sequenceYaw: 0,
     origin: new Vector3(), destination: new Vector3(), bank: 0, climb: 0, ready: false,
     rideMix: 0, impact: 0, braking: false, boostMix: 0,
-    jumpBuffer: 0, inAir: false, air: 0, landing: 0,
+    jumpBuffer: 0, inAir: false, air: 0, landing: 0, takeoff: 0, takeoffTime: 0,
   }
 }
 
@@ -40,6 +44,7 @@ export function changePhase(runtime: PlayerRuntime, phase: PlayerPhase) {
   // A buffered jump or the airborne flag from the last stretch on foot never carries into the next phase.
   runtime.jumpBuffer = 0
   runtime.inAir = false
+  runtime.takeoff = runtime.takeoffTime = 0
 }
 
 /** The sword flashes in underfoot and carries the player straight into flight (a long fall, or F pressed mid-jump). */
@@ -105,8 +110,21 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
   switch (runtime.phase) {
     case 'GROUND': {
       runtime.jumpBuffer = Math.max(0, runtime.jumpBuffer - delta)
-      const touchdown = stepGround(position, velocity, input, runtime.yaw, boosting, runtime.jumpBuffer > 0, delta)
-      if (!runtime.inAir && velocity.y > 0) runtime.jumpBuffer = 0
+      // A press on the ground (or buffered into the landing) crouches first; the leap fires when the crouch bottoms out.
+      if (!runtime.takeoffTime && runtime.jumpBuffer > 0 && !runtime.inAir) {
+        runtime.jumpBuffer = 0
+        runtime.takeoff = 0
+        runtime.takeoffTime = TAKEOFF.standing + (TAKEOFF.running - TAKEOFF.standing) * smooth(Math.hypot(velocity.x, velocity.z) / LAYOUT.player.jogSpeed)
+      }
+      let leap = false
+      if (runtime.takeoffTime) {
+        runtime.takeoff += delta
+        leap = runtime.takeoff >= runtime.takeoffTime
+        if (leap) runtime.takeoff = runtime.takeoffTime = 0
+      }
+      const touchdown = stepGround(position, velocity, input, runtime.yaw, boosting, leap, delta)
+      // Stepping off an edge mid-crouch drops the jump.
+      if (velocity.y < 0) runtime.takeoff = runtime.takeoffTime = 0
       runtime.inAir = velocity.y !== 0
       runtime.air += ((runtime.inAir ? 1 : 0) - runtime.air) * (1 - Math.exp(-12 * delta))
       if (touchdown > 4) runtime.landing = Math.min(1, runtime.landing + touchdown / 18)

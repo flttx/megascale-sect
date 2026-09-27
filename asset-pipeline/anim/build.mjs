@@ -289,29 +289,39 @@ async function buildClips(c, T) {
   const feetMid = (f) => { const W = world(T, f); return W.get(PREFIX + 'LeftFoot').p.clone().add(W.get(PREFIX + 'RightFoot').p).multiplyScalar(0.5) }
   const restFeetMid = T.restW.get(PREFIX + 'LeftFoot').p.clone().add(T.restW.get(PREFIX + 'RightFoot').p).multiplyScalar(0.5)
 
-  // jump: jump_down crouch → push-off → early air (src 22..45) compressed to 0.5 s.
+  // jump: the second hop of the `jump` preset (a standing vertical jump, src 11..26) warped onto fixed marks that the
+  // game samples by phase (characterClips.ts JUMP_MARKS): crouch at 3, lift-off at 6, apex at 11, legs reaching for the
+  // ground at 16 (30 fps). jump_down, the old source, steps off a ledge: bent 94° and pitched 28° forward at take-off,
+  // then a seated tuck all the way down.
+  const hop = await src(c, T, 'jump')
+  const hopAt = (f) => poseAt(hop, hop.times[0] + f * (hop.times[1] - hop.times[0]))
+  const lowest = (f) => { const W = world(T, f); return Math.min(...FEET.map((b) => footRel(T, W, b))) }
   {
-    const frames = cut(jd, 22, 45, 15)
-    const platform = groundOf(T, frames.slice(0, 3))
-    const anchor = feetMid(frames[0]).sub(restFeetMid)
-    const lift = frames.findIndex((f) => { const W = world(T, f); return Math.min(footRel(T, W, 'LeftFoot'), footRel(T, W, 'RightFoot')) - platform > 0.03 })
-    const liftAt = frames[lift].hips.clone()
+    const LIFT = 6
+    const frames = warp(hop, [[11, 0], [13, 3], [16.5, LIFT], [21.5, 11], [26, 16]])
+    const platform = groundOf(T, frames.slice(0, LIFT))
+    const liftDrift = feetMid(frames[LIFT]).sub(restFeetMid), liftAt = frames[LIFT].hips.clone()
     frames.forEach((f, i) => {
-      // ground phase: feet planted on their rest spots; air phase: drift back over the root (game moves the body)
-      const x = f.hips.x - anchor.x, z = f.hips.z - anchor.z
-      const w = i < lift ? 0 : smooth((i - lift) / (frames.length - 1 - lift))
-      const ax = liftAt.x - anchor.x, az = liftAt.z - anchor.z
-      f.hips.x = i < lift ? x : ax + (restHips.x - ax) * w
-      f.hips.z = i < lift ? z : az + (restHips.z - az) * w
-      const y = f.hips.y - platform, k = 0.02
-      f.hips.y = y <= standY ? y : standY + k * Math.tanh((y - standY) / k)
+      if (i < LIFT) {
+        // On the ground: the crouch and push-off over feet planted on their rest spots.
+        const drift = feetMid(f).sub(restFeetMid)
+        f.hips.x -= drift.x; f.hips.z -= drift.z; f.hips.y -= platform
+        return
+      }
+      // In the air the game carries the body, so the hips drift back over the root and stay at standing height; the
+      // lowest foot sits on the root at lift-off and again as the legs reach down, and tucks up under the body between.
+      const u = (i - LIFT) / (frames.length - 1 - LIFT)
+      const w = smooth(u), ax = liftAt.x - liftDrift.x, az = liftAt.z - liftDrift.z
+      f.hips.set(ax + (restHips.x - ax) * w, standY, az + (restHips.z - az) * w)
+      f.hips.y -= lowest(f) * (1 - Math.sin(Math.PI * u))
     })
-    clips.jump = { frames, loop: false, source: 'jump_down', window: [22, 45], liftOff: lift / FPS, platform }
+    clips.jump = { frames, loop: false, source: 'jump', window: [11, 26], liftOff: LIFT / FPS, marks: { crouch: 3 / FPS, apex: 11 / FPS, reach: 16 / FPS }, platform }
   }
 
-  // fall: airborne loop blending two descent poses (src 48 / 55), arms a quarter cycle out of phase.
+  // fall: legs hanging a little apart, arms up and out: the hop's descent (src 22.5 / 25.5) rocked slowly, arms a quarter
+  // cycle out of phase.
   {
-    const A = poseAt(jd, sec(jd, 48)), B = poseAt(jd, sec(jd, 55))
+    const A = hopAt(22.5), B = hopAt(25.5)
     const N = 36
     const frames = Array.from({ length: N + 1 }, (_, i) => {
       const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N)
@@ -321,7 +331,7 @@ async function buildClips(c, T) {
       p.hips.set(restHips.x, standY, restHips.z)
       return p
     })
-    clips.fall = { frames, loop: true, source: 'jump_down', window: [48, 55] }
+    clips.fall = { frames, loop: true, source: 'jump', window: [22.5, 25.5] }
   }
 
   // land: touchdown → crouch → stand (src 62..95) warped to 0.5 s, crouch depth reduced, feet locked by IK.
@@ -404,7 +414,7 @@ function measure(c, T, name, clip) {
     out.footDrift = drift
   }
   if (clip.lockCorrectionM !== undefined) out.footLockMaxCorrectionM = +(clip.lockCorrectionM * HEIGHT_M[c]).toFixed(4)
-  for (const k of ['liftOff', 'touchdown', 'platform', 'ground', 'crouchKept', 'armsFrom', 'extraLeanDeg', 'stance']) if (clip[k] !== undefined) out[k] = typeof clip[k] === 'number' ? +clip[k].toFixed(4) : clip[k]
+  for (const k of ['liftOff', 'marks', 'touchdown', 'platform', 'ground', 'crouchKept', 'armsFrom', 'extraLeanDeg', 'stance']) if (clip[k] !== undefined) out[k] = typeof clip[k] === 'number' ? +clip[k].toFixed(4) : clip[k]
   return out
 }
 

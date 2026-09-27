@@ -1,5 +1,6 @@
 import { PropertyBinding, Quaternion, Vector3 } from 'three'
 import type { AnimationClip, Interpolant, KeyframeTrack } from 'three'
+import { JUMP_SPEED } from './GroundController'
 import { FLIGHT_SEQUENCE, smooth, type PlayerRuntime } from './playerMotion'
 
 /** A bone the clips drive: its rest pose, and this frame's blended pose in `rotation` / `position`. */
@@ -22,8 +23,14 @@ const LOCOMOTION: Locomotion[] = ['walk', 'run', 'sprint']
 /** Gait cycles (a left and a right step) in each clip, and the share of a cycle each foot is planted (both characters). */
 const CYCLES: Record<Locomotion, number> = { walk: 2, run: 1, sprint: 1 }
 const STANCE: Record<Locomotion, number> = { walk: 0.47, run: 0.24, sprint: 0.11 }
-/** The jump clip leaves the ground here (s); the crouch before it only plays when leaping onto the sword. */
-const LIFT_OFF = 0.2333
+/**
+ * Marks in the jump clip (s, asset-pipeline/anim/build.mjs): the crouch bottoms out, the feet leave the ground, the
+ * apex, the legs reach for the ground. The crouch plays over the take-off wind-up; in the air the clip follows the
+ * vertical speed, so the apex and the reach land on the real apex and touchdown however high the ground is.
+ */
+const JUMP = { crouch: 0.1, lift: 0.2, apex: 11 / 30, reach: 16 / 30 } as const
+/** Boarding the sword: the feet leave the ground at 16 % of the sequence, the legs reach for the blade by 70 %. */
+const BOARD = { lift: 0.16, reach: 0.7 } as const
 /** Ground speed (m/s) at which the sprint clip has fully taken over from the run. */
 const SPRINT_FULL = 8.5
 const CLIPS = ['idle', ...LOCOMOTION, 'jump', 'fall', 'land'] as const
@@ -58,8 +65,9 @@ function sample(clip: Clip, time: number, weight: number) {
  * Blends the character's baked clips (anim.glb) into a base pose for the procedural layer on top (R5b).
  * Locomotion follows the ground actually covered: idle, walk, run and sprint are weighted by speed and share one
  * gait phase, so their footfalls line up and a player pushing against a wall marks time instead of running in place.
- * Jumps play from lift-off into the falling loop, a hard landing plays the land clip, and all of it gives way to the
- * rest pose as the player boards the sword.
+ * A jump crouches, then tracks the vertical speed up to the apex and down, turning into the falling loop past a
+ * jump's worth of fall; a hard landing plays the land clip, and all of it gives way to the rest pose as the player
+ * boards the sword.
  */
 export class ClipLayer {
   private clips = new Map<string, Clip>()
@@ -70,10 +78,13 @@ export class ClipLayer {
   private speed = 0; private gait = 0; private idleTime = 0
   private air = 0; private airTime = 0; private jumped = false; private wasInAir = false
   private landTime = Infinity; private landStrength = 0; private land = 0; private fallTime = 0
+  private jumpTime: number = JUMP.reach; private toFall = 0
   /** Foot-plant phase (left mid-stance at π) and threshold: a foot plants while cos(stride + side) < −duty; 1 never plants. */
   stride = Math.PI; duty = 1
   /** Share of the pose that comes from the clips (the rest is the rest pose), and the land clip's part of it. */
   weight = 0; landWeight = 0
+  /** How much of a running leap to split the legs into (0…1), and which leg leads: 1 left, −1 right. */
+  leap = 0; leapSide = 1
   private weights: Record<(typeof CLIPS)[number], number> = { idle: 0, walk: 0, run: 0, sprint: 0, jump: 0, fall: 0, land: 0 }
 
   constructor(targets: ReadonlyMap<string, ClipTarget>, animations: AnimationClip[], private gaits: Gaits) {
@@ -121,19 +132,41 @@ export class ClipLayer {
     this.idleTime += delta
     this.stride = 2 * Math.PI * (this.gait + 0.5)
 
-    if (inAir && !this.wasInAir) { this.airTime = 0; this.jumped = runtime.velocity.y > 0 }
-    else if (inAir) this.airTime += delta
-    // Touchdown after more than a hop: the land clip, stronger the longer the fall.
-    if (onFoot && this.wasInAir) { this.landTime = 0; this.landStrength = smooth((this.airTime - 0.15) / 0.25) }
+    if (inAir && !this.wasInAir) {
+      this.airTime = 0; this.jumped = runtime.velocity.y > 0
+      // The foot on the ground pushes off and trails; the swinging one leads (left mid-stance at stride π).
+      this.leapSide = Math.cos(this.stride) < 0 ? -1 : 1
+    } else if (inAir) this.airTime += delta
+    // Touchdown after more than a hop: the land clip, stronger the longer the fall (about half for a jump on the level,
+    // 0.6 s in the air; a full crouch from a second or more).
+    if (onFoot && this.wasInAir) { this.landTime = 0; this.landStrength = smooth((this.airTime - 0.2) / 0.7) }
     this.wasInAir = inAir
     this.landTime += delta
-    // A sword catching a fall takes over from the falling pose, not from a stand.
-    this.air += ((inAir || boarding || runtime.phase === 'FLIGHT' ? 1 : 0) - this.air) * (1 - Math.exp(-14 * delta))
+    // A sword catching a fall takes over from the falling pose, not from a stand. The take-off crouch is brief, so the
+    // jump clip comes in faster for it.
+    const takeoff = onFoot && runtime.takeoffTime > 0
+    this.air += ((inAir || takeoff || boarding || runtime.phase === 'FLIGHT' ? 1 : 0) - this.air) * (1 - Math.exp(-(takeoff ? 30 : 14) * delta))
     const jump = this.clip('jump'), fall = this.clip('fall'), land = this.clip('land')
-    // Boarding plays the crouch too, timed so the feet leave the ground as the leap starts (at 16 % of boarding).
-    const jumpTime = boarding ? runtime.elapsed * LIFT_OFF / (0.16 * FLIGHT_SEQUENCE.board) : this.jumped ? LIFT_OFF + this.airTime : Infinity
-    const toFall = smooth((jumpTime - (jump.duration - 0.12)) / 0.2)
-    const landTarget = onFoot ? this.landStrength * smooth(this.landTime / 0.06) * (1 - smooth((this.landTime - (land.duration - 0.2)) / 0.2)) * (1 - smooth(v / 3)) : 0
+    const rise = runtime.velocity.y / JUMP_SPEED, running = smooth((v - walk.speed) / (run.speed - walk.speed))
+    // Only the wind-up, the leap and boarding move the jump clock; a landing, or a sword catching the player, holds
+    // it (and the share of the falling loop) while the clip fades out.
+    if (boarding) {
+      const e = runtime.elapsed / FLIGHT_SEQUENCE.board
+      this.jumpTime = e < BOARD.lift ? JUMP.lift * e / BOARD.lift : JUMP.lift + (JUMP.reach - JUMP.lift) * Math.min(1, (e - BOARD.lift) / (BOARD.reach - BOARD.lift))
+      this.toFall = 0
+    } else if (takeoff) {
+      // Out of a run the stride has already dipped, so the wind-up starts nearer the bottom of the crouch.
+      const from = JUMP.crouch * running
+      this.jumpTime = from + (JUMP.lift - from) * Math.min(1, runtime.takeoff / runtime.takeoffTime)
+      this.toFall = 0
+    } else if (inAir) {
+      // Stepping off an edge hangs in the reaching pose; falling faster than a jump comes down turns into the falling loop.
+      this.jumpTime = !this.jumped ? JUMP.reach : rise > 0 ? JUMP.lift + (JUMP.apex - JUMP.lift) * (1 - rise) : JUMP.apex + (JUMP.reach - JUMP.apex) * Math.min(1, -rise / 0.9)
+      this.toFall = smooth((-rise - 1.1) / 0.6)
+    }
+    const jumpTime = this.jumpTime, toFall = this.toFall
+    this.leap = inAir && this.jumped ? running * (1 - smooth((jumpTime - JUMP.apex) / (JUMP.reach - JUMP.apex))) : 0
+    const landTarget = onFoot && !takeoff ? this.landStrength * smooth(this.landTime / 0.06) * (1 - smooth((this.landTime - (land.duration - 0.2)) / 0.2)) * (1 - smooth(v / 3)) : 0
     // Leaving the ground mid-landing (a quick hop, a summon) fades the land clip out, still playing, instead of cutting it.
     this.land = landTarget >= this.land ? landTarget : this.land + (landTarget - this.land) * (1 - Math.exp(-14 * delta))
     const landing = this.land
@@ -174,6 +207,7 @@ export class ClipLayer {
     this.placed = false
     this.speed = 0; this.air = 0
     this.wasInAir = false; this.landTime = Infinity; this.land = 0; this.fallTime = 0
+    this.jumpTime = JUMP.reach; this.toFall = 0; this.leap = 0
   }
 
   snapshot() {

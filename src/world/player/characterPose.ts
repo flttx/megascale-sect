@@ -61,8 +61,11 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
   const riding = runtime.rideMix
   const breathe = Math.sin(runtime.time * 1.8)
   const landing = (runtime.phase === 'DISMOUNTING' ? Math.sin(Math.PI * runtime.elapsed / FLIGHT_SEQUENCE.dismount) : 0) + runtime.impact * 0.7 + (moving ? runtime.landing * 0.8 * (1 - rig.clips.landWeight) : 0)
+  // A running jump is a stride, not a hop: the swinging leg reaches forward, the one that pushed off trails, the body
+  // leans into it. The legs come back together for the landing.
+  const leadL = rig.clips.leap * (rig.clips.leapSide > 0 ? 1 : 0), leadR = rig.clips.leap - leadL
   const pose: Record<string, [number, number, number]> = {
-    Spine: [0, 0, (-0.02 - breathe * 0.008) * still - riding * (0.01 + speed * 0.00015)],
+    Spine: [0, 0, (-0.02 - breathe * 0.008) * still - riding * (0.01 + speed * 0.00015) - rig.clips.leap * 0.12],
     Spine1: [riding * runtime.bank * -0.18, 0, -summon * 0.035],
     Spine2: [0, summon * -0.13, breathe * 0.009 * still],
     Neck: [0, 0, riding * 0.045], Head: [0, Math.sin(runtime.time * 0.6) * 0.015 * still, 0],
@@ -71,10 +74,10 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
     RightHand: [summon * -0.25, 0, summon * -0.1],
     LeftArm: [riding * (0.17 - breathe * 0.025) + summon * -0.12, 0, summon * 0.4 + riding * 0.15],
     LeftForeArm: [0, summon * -0.3, summon * 0.7],
-    LeftUpLeg: [0, 0, riding * 0.11 + landing * 0.18],
-    RightUpLeg: [0, 0, riding * 0.04 + landing * 0.18],
-    LeftLeg: [0, 0, -riding * 0.14 - landing * 0.36],
-    RightLeg: [0, 0, -riding * 0.12 - landing * 0.36],
+    LeftUpLeg: [0, 0, riding * 0.11 + landing * 0.18 + leadL * 0.55 - leadR * 0.4],
+    RightUpLeg: [0, 0, riding * 0.04 + landing * 0.18 + leadR * 0.55 - leadL * 0.4],
+    LeftLeg: [0, 0, -riding * 0.14 - landing * 0.36 - leadL * 0.35 - leadR * 0.6],
+    RightLeg: [0, 0, -riding * 0.12 - landing * 0.36 - leadR * 0.35 - leadL * 0.6],
     LeftFoot: [0, 0, riding * 0.04],
     RightFoot: [0, 0, riding * 0.06],
   }
