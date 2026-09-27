@@ -95,6 +95,11 @@
   - **贴图**：运行时只读 `.1k` 贴图，2k 母版与没有材质使用的 roof_tiles 移到 `asset-pipeline/textures/hi/`；`build.mjs` 的 2k 输出改到这里，`meta.mjs`、`contact.mjs` 改按实际发布的 1k 文件生成清单与对照图。
   - **模型**：删除不再加载的 Tripo 道具（pine_tall / pine_guest / pine_small / rock_moss，已由 Blender 松树与巨石替代；floating_isle_a/b、banner_pole 从未使用）和未使用的 kun.lod1，可按 `scripts/tripo/manifest.lock.json` 与 `asset-pipeline/kun/` 重新生成。
   - **结果**：dist 103 → 67 MB（贴图 38 → 7.2 MB）。`vite preview` 实跑（进入世界、换人、御剑）无 4xx 请求；dist 中未被请求的只剩两份说明文件与 56 KB 的 meditation_platform.lod1。
+- 2026-09-27 R7b（琉璃降饱和）：
+  - **来源**：画面里刺眼的宝蓝屋顶不是建筑，是 Tripo 生成的牌坊、亭子和钟架；主殿、山门、侧塔的瓦实测为石板灰，不改。
+  - **修正**：新增 `props/glaze.ts`，在基础色之后、天象湿润之前，把纯钴蓝的纹素（(b − max(r, g)) / b > 0.45）拉向石板靛青，只挂在牌坊、亭子、钟架的材质上；传送阵的青色法光保留。
+  - **结果**：山门视角里牌坊屋顶的像素从 (0, 28, 162)…(18, 86, 236) 变为 (42, 61, 101)…(117, 138, 178)，整幅亮度不变（12 时 μ 109.1）。
+  - **验证**：tsc、build、verify:smoke、verify:interact（37/37）、verify:visual（21/21）通过。
 
 ## 生产级重建（2026-09）
 

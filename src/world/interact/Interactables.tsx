@@ -12,6 +12,7 @@ import { dismissOverlay, useUiStore } from '../../ui/uiStore'
 import { environmentMaterial } from '../environment/t02r/materials'
 import { terrainHeight } from '../environment/t02r/terrain'
 import { getPlayerRuntime, teleportPlayer } from '../player/playerHandle'
+import { withGlazeTamed } from '../props/glaze'
 import type { InteractKind } from '../sites'
 import { yawToward } from '../sites'
 import { useWorldStore } from '../store'
@@ -37,11 +38,11 @@ import { playChime } from './sounds'
  * Draw calls on high ≈ 22 worst case (shadow casters: steles, bell, altar).
  */
 
-interface ModelSpec { id: string; kind: InteractKind; scale: number; squash: number; cast: boolean }
+interface ModelSpec { id: string; kind: InteractKind; scale: number; squash: number; cast: boolean; glaze?: boolean }
 /** Real size = unit model × `scaleToHeight` (scripts/tripo/manifest.lock.json). Arrays are squashed into a walkable floor disc. */
 const MODELS: ModelSpec[] = [
   { id: 'stele_turtle', kind: 'stele', scale: 4.5, squash: 1, cast: true },
-  { id: 'bell_frame', kind: 'bell', scale: 6, squash: 1, cast: true },
+  { id: 'bell_frame', kind: 'bell', scale: 6, squash: 1, cast: true, glaze: true },
   { id: 'weather_altar', kind: 'altar', scale: 6.723, squash: 1, cast: true },
   { id: 'meditation_platform', kind: 'meditation', scale: 2.353, squash: 1, cast: false },
   { id: 'teleport_array', kind: 'teleport', scale: 9.2, squash: 0.2, cast: false },
@@ -76,6 +77,7 @@ function SiteModel({ spec }: { spec: ModelSpec }) {
     scene.updateMatrixWorld(true)
     const source = scene.getObjectByProperty('isMesh', true)
     if (!(source instanceof Mesh)) { console.warn(`[interact] ${spec.id} has no mesh`); return null }
+    if (spec.glaze && !Array.isArray(source.material)) withGlazeTamed(source.material)
     const sites = sitesOf(spec.kind)
     const instanced = new InstancedMesh(source.geometry, source.material, sites.length)
     sites.forEach((site, i) => {

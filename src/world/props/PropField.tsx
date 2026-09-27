@@ -11,6 +11,7 @@ import { registerColliders } from '../surfaces'
 import type { Collider } from '../surfaces'
 import { withSurfaceWeather } from '../weather/surfaceWeather'
 import { Cranes } from './Cranes'
+import { withGlazeTamed } from './glaze'
 import { glowQuad, makeGlowSpriteMaterial, syncGlowFog, withGlowMask } from './glow'
 import { buildPropLayout } from './placement'
 import { advancePines, extractPine } from './pineSource'
@@ -29,6 +30,8 @@ const LAMP_COLOR = new Color('#ffab5c')
 const CRYSTAL_COLOR = new Color('#6fe3ff')
 /** Props drawn in the scanned environment stone, whose material already carries the weather patch. */
 const STONE: Partial<Record<PropId, (scene: Object3D) => Source>> = { rock_moss: extractBoulders, rock_scholar: extractStone }
+/** Roofs Tripo glazed in pure cobalt (see glaze.ts). */
+const GLAZED = new Set<PropId>(['pailou', 'pavilion'])
 
 const URLS = PROP_IDS.flatMap((id) => [propUrl(id, false), ...(PROPS[id].lod1 ? [propUrl(id, true)] : [])])
 URLS.forEach((url) => useGLTF.preload(url))
@@ -109,6 +112,7 @@ function PropFieldContent() {
       for (const [source, tag] of [[lod0, 'lod0'], [lod1, 'lod1']] as const) {
         if (!source) continue
         if (spec.glow) glowMaterials.push(withGlowMask(source.material, spec.glow, glowColor(id), `${id}-${tag}`))
+        if (GLAZED.has(id)) withGlazeTamed(source.material)
         if (!STONE[id]) withSurfaceWeather(source.material)
       }
       return new PropBucket(spec, layout.props[id], lod0, lod1, glowMaterials)
