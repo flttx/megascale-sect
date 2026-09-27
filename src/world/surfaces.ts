@@ -8,7 +8,10 @@ export type Vec3 = readonly [number, number, number]
 export interface WalkableDisc { kind: 'disc'; x: number; z: number; y: number; radius: number }
 /** Walkable strip between two points whose deck sags by `sag` metres at mid-span (plank bridge). */
 export interface WalkableSpan { kind: 'span'; from: Vec3; to: Vec3; halfWidth: number; sag: number }
-export type WalkableSurface = WalkableDisc | WalkableSpan
+export interface SurfaceAddress { triangle: number; u: number; v: number }
+export interface SurfaceHit { y: number; normalY: number; surfaceId: string; anchor?: SurfaceAddress }
+export interface WalkableMoving { kind: 'moving'; hitAt(x: number, z: number, fromY: number): SurfaceHit | null }
+export type WalkableSurface = WalkableDisc | WalkableSpan | WalkableMoving
 
 /**
  * Solid volume flight cannot enter. Cylinders are vertical; an `open` one only loosely wraps something thin (a chain),
@@ -54,7 +57,7 @@ export function registerColliders(list: Collider[]) {
   return () => { list.forEach((collider) => colliders.delete(collider)); grid = null }
 }
 
-function surfaceY(surface: WalkableSurface, x: number, z: number): number | null {
+function surfaceY(surface: WalkableDisc | WalkableSpan, x: number, z: number): number | null {
   if (surface.kind === 'disc') return Math.hypot(x - surface.x, z - surface.z) <= surface.radius ? surface.y : null
   const [ax, ay, az] = surface.from, [bx, by, bz] = surface.to
   const dx = bx - ax, dz = bz - az, lengthSq = dx * dx + dz * dz
@@ -70,10 +73,14 @@ function surfaceY(surface: WalkableSurface, x: number, z: number): number | null
  * surfaces more than 1 m above it (e.g. an island overhead) are ignored.
  */
 export function walkableHeight(x: number, z: number, fromY = Infinity): number | null {
-  let best: number | null = null
+  return walkableHit(x, z, fromY)?.y ?? null
+}
+export function walkableHit(x: number, z: number, fromY = Infinity): SurfaceHit | null {
+  let best: SurfaceHit | null = null
   for (const surface of walkables) {
-    const y = surfaceY(surface, x, z)
-    if (y !== null && fromY >= y - 1 && (best === null || y > best)) best = y
+    const hit = surface.kind === 'moving' ? surface.hitAt(x, z, fromY) : null
+    const y = surface.kind === 'moving' ? hit?.y ?? null : surfaceY(surface, x, z)
+    if (y !== null && fromY >= y - 1 && (best === null || y > best.y)) best = hit ?? { y, normalY: 1, surfaceId: 'static' }
   }
   return best
 }

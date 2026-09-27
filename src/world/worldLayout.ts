@@ -1,5 +1,6 @@
 import { TERRAIN, terrainHeight } from './environment/t02r/terrain'
-import { walkableHeight } from './surfaces'
+import { walkableHit } from './surfaces'
+import type { SurfaceHit } from './surfaces'
 import { HALL_TOP } from './assets/hallMeta'
 
 export const LAYOUT = {
@@ -28,9 +29,13 @@ export const LAYOUT = {
  * island never snaps onto its top.
  */
 export function groundHeight(x: number, z: number, fromY = Infinity): number | null {
+  return groundHit(x, z, fromY)?.y ?? null
+}
+export function groundHit(x: number, z: number, fromY = Infinity): SurfaceHit | null {
   const base = layoutGroundHeight(x, z)
-  const extra = walkableHeight(x, z, fromY)
-  return extra === null ? base : base === null ? extra : Math.max(base, extra)
+  const extra = walkableHit(x, z, fromY)
+  if (extra !== null && (base === null || extra.y > base)) return extra
+  return base === null ? null : { y: base, normalY: 1, surfaceId: 'terrain' }
 }
 
 function layoutGroundHeight(x: number, z: number): number | null {

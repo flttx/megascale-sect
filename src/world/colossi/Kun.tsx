@@ -9,6 +9,8 @@ import { useWorldStore } from '../store'
 import { withSceneWeather } from '../weather/surfaceWeather'
 import { KUN, KUN_PATH } from './layout'
 import { playKunCall } from './kunVoice'
+import { bindKunDeck, kunDeckHit, updateKunDeck } from './kunDeck'
+import { registerWalkables } from '../surfaces'
 
 const KUN_URL = `${import.meta.env.BASE_URL}assets/colossi/kun.glb`.replace(/\/{2,}/g, '/')
 useGLTF.preload(KUN_URL)
@@ -59,6 +61,11 @@ export function Kun() {
     })
     return { scene: gltf.scene, meshes }
   }, [gltf.scene])
+  useEffect(() => {
+    const unbind = bindKunDeck(scene)
+    const unregister = registerWalkables([{ kind: 'moving', hitAt: kunDeckHit }])
+    return () => { unregister(); unbind() }
+  }, [scene])
 
   const anim = useMemo(() => {
     const mixer = new AnimationMixer(scene)
@@ -159,7 +166,9 @@ export function Kun() {
     if (breach) { breach.time = Math.min(Math.max(since, 0), duration); breach.setEffectiveWeight(w) }
     swim?.setEffectiveWeight(1 - w)
     anim.mixer.update(dt)
-  })
+    group.updateMatrixWorld(true)
+    updateKunDeck(state.position, state.distance / KUN.speed % (length / KUN.speed), state.heading, state.head.y)
+  }, -2)
 
   return (
     <group ref={root} name="Colossus_kun">
