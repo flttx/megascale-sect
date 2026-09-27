@@ -1,5 +1,5 @@
 import { Vector3 } from 'three'
-import { groundHeight, insideStructure, LAYOUT, terrainGradient } from '../worldLayout'
+import { groundHeight, insideMainFootprint, insideStructure, LAYOUT, terrainGradient } from '../worldLayout'
 import { bodyInsideAnyCollider } from '../surfaces'
 
 /** Horizontal probe for slope checks, and the rise it may climb (45°) or drop (55°) over that distance. */
@@ -22,8 +22,9 @@ const forward = new Vector3(), right = new Vector3(), desired = new Vector3()
 /** Set for a step that starts inside a prop collider (e.g. an uneven pillar top), so the player can walk out of it. */
 let ignoreProps = false
 
+/** The main hall's whole footprint is off limits on foot: its roofs are for flight, and there is no floor under them. */
 const bodyBlocked = (x: number, y: number, z: number) =>
-  insideStructure(x, y + 1, z) || (!ignoreProps && bodyInsideAnyCollider(x, y + BODY.bottom, y + BODY.top, z, BODY.radius))
+  insideMainFootprint(x, z) || insideStructure(x, y + 1, z) || (!ignoreProps && bodyInsideAnyCollider(x, y + BODY.bottom, y + BODY.top, z, BODY.radius))
 
 /**
  * Whether a step from (x, z) to (nx, nz) lands on ground and stays within the climb and drop limits, measured

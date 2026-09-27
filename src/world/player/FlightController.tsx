@@ -8,7 +8,7 @@ import { insideAnyCollider } from '../surfaces'
  * tests none, so it can always fly back out.
  */
 let margin = 1
-const blocked = (x: number, y: number, z: number) => insideStructure(x, y, z) || (margin >= 0 && insideAnyCollider(x, y, z, margin, true))
+const blocked = (x: number, y: number, z: number, structures = true) => (structures && insideStructure(x, y, z)) || (margin >= 0 && insideAnyCollider(x, y, z, margin, true))
 /** Longest collision substep (m): every collider grown by its 1 m margin is at least 2 m across, so none is skipped. */
 const SUBSTEP = 1
 const forward = new Vector3(), right = new Vector3(), desired = new Vector3(), step = new Vector3()
@@ -41,7 +41,8 @@ export function stepFlight(
     else { velocity.x = 0; step.x = 0 }
     if (!blocked(position.x, position.y, position.z + step.z)) position.z += step.z
     else { velocity.z = 0; step.z = 0 }
-    if (!blocked(position.x, position.y + step.y, position.z)) position.y += step.y
+    // A flight that starts inside a structure (a dev teleport, a save from before the hall's roofs were re-measured) can always climb out.
+    if (!blocked(position.x, position.y + step.y, position.z, !(step.y > 0 && insideStructure(position.x, position.y, position.z)))) position.y += step.y
     else { velocity.y = 0; step.y = 0 }
   }
   position.x = Math.max(-LAYOUT.worldLimit, Math.min(LAYOUT.worldLimit, position.x))

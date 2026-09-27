@@ -67,8 +67,8 @@ function placeOrbs(): OrbSite[] {
     .forEach(({ pillar, summit: [x, y, z] }) => push([x, y + 2.4, z], 'pillar', pillar.id))
   ISLANDS.forEach((island, index) => { if (island.chains) islandOrbs(island, index) })
 
-  // Main hall roof tiers (heights probed from above; each sits ~3 m over the tiles).
-  const roof: Vec3[] = [[0, 447, -320], [0, 384, -346], [0, 380, -292], [0, 235, -400], [0, 234, -240], [78, 178, -320], [-78, 178, -320], [48, 231, -272]]
+  // Main hall roof tiers: each floats 4–9 m over the tiles directly below and is reached by flying down onto it.
+  const roof: Vec3[] = [[0, 447, -320], [0, 384, -346], [0, 380, -292], [0, 235, -400], [0, 234, -240], [78, 178, -320], [-78, 178, -320], [48, 234, -272]]
   roof.forEach((position) => push(position, 'roof', 'roof'))
 
   // Open sky along the flight lines between the sect and its islands.

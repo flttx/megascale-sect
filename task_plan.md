@@ -78,6 +78,7 @@
 ### R7 后续优化（2026-09-27，用户同意“按建议来”）— in_progress
 - [x] R7a 资产瘦身：2k 贴图与 roof_tiles 移出 public（留在 asset-pipeline/textures/hi/），删除不再加载的 Tripo 道具（pine_* / rock_moss / floating_isle_* / banner_pole）与 kun.lod1；build.mjs 的 2k 输出改到 hi/；构建后无 404。dist 103 → 67 MB；vite preview 实跑无 4xx，dist 中未被请求的只剩说明文件与 56 KB 的 meditation_platform.lod1
 - [x] R7b 屋顶降饱和：画面里的纯蓝琉璃来自 Tripo 牌坊 / 亭子 / 钟架（建筑实测为石板灰，不改），着色器按色相把纯钴蓝拉向石板靛青，不改源 GLB；截图前后对比
+- [x] 用户报告：主殿檐顶的 8 团灵光被空气墙挡住。主殿飞行碰撞从包围盒改为按 LOD0 实测的屋顶高度场（2 m 格，逐格精确裁剪、外扩 1 m），8 团全部可以飞到并收集；审查修正：步行时整个占地范围算实心（修正边缘起跳掉进台面），orb_52 按实测屋面抬高；二轮复审：在建筑碰撞内起飞可向上升出，生成器补查旋转与缩放
 - [ ] R7c 腾出绘制预算：按物体统计最差视角（高档 / 雷暴 / 道路）的调用来源，远处 LOD1 不投影、小物体不进远级联等；verify:perf
 - [ ] R7d 主平台分层台地（原 R4 未完成项）：中轴御道、分层台阶、栏杆、铜鼎、旗杆、树池、水池，铺装磨损与色差；新内容实例化 / 合并；行走面、碰撞体、交互点与导航不回归
 - [ ] R7e 独立审查、README / PROGRESS / findings 更新、全部验证复跑
@@ -115,4 +116,5 @@
 | 西桥桥板最多埋进地面 1.00 m（东桥 0.20 m），平台端桥下灵光埋深约 6 m，桥面长出松树 | 1 | 地形沿桥面挖槽；桥数据挪到独立的 `bridges.ts` 以免 terrain ↔ sites 循环依赖；`siteClearance` 改用整段桥面的胶囊距离；灵光沿桥外移直到地面低于它 3.5 m。没有挪桥端点，栏杆缺口依赖端点处的 siteClearance |
 | verify:interact 报 `does not provide an export named 'PROP_TINT'` | 1 | 验证进行中改了 src，HMR 把半改的模块推给了测试页面；用最终代码重跑通过。验证期间不再改 src |
 | 用 node heredoc 做多行替换时锚点匹配失败 | 1 | 模板字符串里的转义与源码不一致；多行替换改用 Edit 工具 |
+| 探针 `import('/src/world/player/playerHandle.ts')` 调用 teleportPlayer 没有效果 | 1 | HMR 后应用加载的 URL 带时间戳，裸路径得到另一份模块实例；改为从 `performance.getEntriesByType('resource')` 取页面实际加载的 URL |
 | verify 脚本的“亮度均值”其实是 R 通道均值 | 1 | sharp 的 `stats()` 读取编码后的原图，不经过管线；先 `greyscale().toBuffer()` 再对新 buffer 调 `stats()` |

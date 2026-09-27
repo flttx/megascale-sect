@@ -16,7 +16,7 @@
     "verify:perf": "node scripts/verify-perf.mjs",
     "verify:visual": "node scripts/verify-visual.mjs",
     "assets:optimize": "node scripts/optimize-characters.mjs",
-    "assets:buildings": "node scripts/optimize-buildings.mjs"
+    "assets:buildings": "node scripts/optimize-buildings.mjs && node asset-pipeline/buildings/meta.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

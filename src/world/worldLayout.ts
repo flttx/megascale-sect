@@ -1,5 +1,6 @@
 import { TERRAIN, terrainHeight } from './environment/t02r/terrain'
 import { walkableHeight } from './surfaces'
+import { HALL_TOP } from './assets/hallMeta'
 
 export const LAYOUT = {
   spawn: { position: [0, 0, 150] as const, size: [30, 24] as const },
@@ -8,7 +9,7 @@ export const LAYOUT = {
   stairs: { startZ: 20, endZ: -65, height: 24, width: 18, steps: 96 },
   platform: { frontZ: -65, backZ: -515, width: 380, height: 24, slabDepth: 12 },
   main: { position: [0, 24, -320] as const, rotation: [0, 0, 0] as const },
-  mainCollider: { halfWidth: 136, halfDepth: 147, minY: 24, maxY: 446 },
+  mainCollider: { halfWidth: 136, halfDepth: 147, minY: 24 },
   towers: [
     { position: [-200, 24, -170] as const, rotation: [0, 0.22, 0] as const, scaleMultiplier: 1 },
     { position: [200, 24, -185] as const, rotation: [0, -0.19, 0] as const, scaleMultiplier: 0.96 },
@@ -86,11 +87,21 @@ export function insideMainFootprint(x: number, z: number): boolean {
     Math.abs(z - LAYOUT.main.position[2]) < LAYOUT.mainCollider.halfDepth
 }
 
-export function insideMainCollider(x: number, y: number, z: number): boolean {
-  return insideMainFootprint(x, z) && y >= LAYOUT.mainCollider.minY - 1 && y <= LAYOUT.mainCollider.maxY + 1
+const hallTops = new Uint16Array(Uint8Array.from(atob(HALL_TOP.data), (c) => c.charCodeAt(0)).buffer)
+
+/** Highest point of the main hall within 1 m of (x, z)'s cell (hallMeta.ts); eaves count as solid down to the platform. */
+export function mainHallTop(x: number, z: number): number {
+  const i = Math.min(HALL_TOP.nx - 1, Math.max(0, Math.floor((x - HALL_TOP.x0) / HALL_TOP.cell)))
+  const j = Math.min(HALL_TOP.nz - 1, Math.max(0, Math.floor((z - HALL_TOP.z0) / HALL_TOP.cell)))
+  return HALL_TOP.y0 + hallTops[j * HALL_TOP.nx + i] / 10
 }
 
-/** Inside the main hall's box or a side tower (footing plus its 120 m × multiplier height). */
+/** Under the main hall's roofs, so flight and the camera can reach the eaves and the orbs on them. */
+export function insideMainCollider(x: number, y: number, z: number): boolean {
+  return insideMainFootprint(x, z) && y >= LAYOUT.mainCollider.minY - 1 && y <= mainHallTop(x, z) + 1
+}
+
+/** Under the main hall's roofs or inside a side tower (footing plus its 120 m × multiplier height). */
 export function insideStructure(x: number, y: number, z: number): boolean {
   if (insideMainCollider(x, y, z)) return true
   if (!insideTowerFootprint(x, z)) return false
