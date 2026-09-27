@@ -36,3 +36,25 @@ This updates `rock-modules.blend`, `rock-report.json`, and
 `public/assets/environment/t02r/hero-rocks.glb`. These small outputs remain tracked.
 `review-views.json` is shared with `scripts/verify-environment.mjs` so Blender and
 browser captures use the same six viewpoints.
+
+## Verify and refresh the snapshot
+
+With the Vite development server running, use `npm run verify:environment`.
+`BASE_URL` selects the server (default `http://127.0.0.1:5173/`), and
+`CHROME_PATH` optionally selects Chrome. The script captures six graybox and
+six runtime views, checks geometry, and verifies the original building hashes
+in `protected-assets.json`. It also compares player and world-layout source
+hashes before and after verification to ensure the check does not rewrite them.
+
+By default, the current runtime export goes to
+`artifacts/t02r/runtime-environment.json`; verification leaves the committed
+snapshot unchanged. To refresh the snapshot used by Blender explicitly:
+
+```powershell
+$env:EXPORT_ENVIRONMENT = '1'
+npm run verify:environment
+Remove-Item Env:EXPORT_ENVIRONMENT
+```
+
+Review the resulting `environment-pipeline/runtime-environment.json` diff before
+committing it or rebuilding the Blender inspection scene.
