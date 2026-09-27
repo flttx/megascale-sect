@@ -34,10 +34,13 @@ export class FootPlant {
     }
   }
   update(state: PlayerRuntime) {
-    const walking = state.phase === 'GROUND' && state.gait > 0.25 && state.velocity.length() > 0.12
+    const walking = state.phase === 'GROUND' && !state.inAir && state.gait > 0.25 && state.velocity.length() > 0.12
     this.scene.getWorldScale(scale)
+    // A run spends less of each cycle on the ground (with a flight phase between steps), so the plant narrows with
+    // speed and the body's travel during a plant stays within what the leg can sweep.
+    const duty = Math.min(0.75, 0.12 + Math.max(0, Math.hypot(state.velocity.x, state.velocity.z) - 2) * 0.11)
     for (const chain of this.chains) {
-      const stance = walking && Math.cos(state.stride + chain.offset) < -0.12
+      const stance = walking && Math.cos(state.stride + chain.offset) < -duty
       if (!stance) { chain.locked = false; continue }
       if (!chain.locked) { chain.foot.getWorldPosition(chain.anchor); chain.locked = true }
       const surface = groundHeight(chain.anchor.x, chain.anchor.z, chain.anchor.y + 0.5)

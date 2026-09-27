@@ -3,7 +3,8 @@ import { FLIGHT_SEQUENCE, smooth, type PlayerRuntime } from './playerMotion'
 
 export function ridingPoseWeight(state: PlayerRuntime) {
   if (state.phase === 'BOARDING') return smooth((state.elapsed / FLIGHT_SEQUENCE.board - 0.53) / 0.29)
-  if (state.phase === 'FLIGHT' || state.phase === 'LANDING') return 1
+  // rideMix is already ~1 after boarding; it eases the stance in when the sword catches a fall.
+  if (state.phase === 'FLIGHT' || state.phase === 'LANDING') return smooth(state.rideMix / 0.9)
   if (state.phase === 'DISMOUNTING') return 1 - smooth(state.elapsed / FLIGHT_SEQUENCE.dismount / 0.45)
   return 0
 }

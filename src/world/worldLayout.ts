@@ -17,7 +17,7 @@ export const LAYOUT = {
     { position: [-273, 48, -425] as const, rotation: [0, 0.62, 0] as const, scaleMultiplier: 0.68 },
     { position: [268, 42, -465] as const, rotation: [0, -0.55, 0] as const, scaleMultiplier: 0.72 },
   ],
-  player: { height: 1.75, walkSpeed: 3.2, runSpeed: 7, flightSpeed: 30, flightBoostSpeed: 70, gravity: 28 },
+  player: { height: 1.75, jogSpeed: 5.5, sprintSpeed: 10, jumpHeight: 1.3, flightSpeed: 45, flightBoostSpeed: 140, gravity: 28 },
   worldLimit: 1100,
 } as const
 
@@ -88,4 +88,11 @@ export function insideMainFootprint(x: number, z: number): boolean {
 
 export function insideMainCollider(x: number, y: number, z: number): boolean {
   return insideMainFootprint(x, z) && y >= LAYOUT.mainCollider.minY - 1 && y <= LAYOUT.mainCollider.maxY + 1
+}
+
+/** Inside the main hall's box or a side tower (footing plus its 120 m × multiplier height). */
+export function insideStructure(x: number, y: number, z: number): boolean {
+  if (insideMainCollider(x, y, z)) return true
+  if (!insideTowerFootprint(x, z)) return false
+  return LAYOUT.towers.some(({ position: [px, py, pz], scaleMultiplier: m }) => Math.hypot(x - px, z - pz) < 40 && y >= py - 3 && y <= py + 120 * m + 1)
 }

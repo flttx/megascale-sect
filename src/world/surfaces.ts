@@ -10,13 +10,38 @@ export interface WalkableDisc { kind: 'disc'; x: number; z: number; y: number; r
 export interface WalkableSpan { kind: 'span'; from: Vec3; to: Vec3; halfWidth: number; sag: number }
 export type WalkableSurface = WalkableDisc | WalkableSpan
 
-/** Solid volume flight cannot enter. Cylinders are vertical. */
-export interface CylinderCollider { kind: 'cylinder'; x: number; z: number; radius: number; minY: number; maxY: number }
+/**
+ * Solid volume flight cannot enter. Cylinders are vertical; an `open` one only loosely wraps something thin (a chain),
+ * so flight keeps clear of it while walking and the camera pass through.
+ */
+export interface CylinderCollider { kind: 'cylinder'; x: number; z: number; radius: number; minY: number; maxY: number; open?: boolean }
 export interface BoxCollider { kind: 'box'; min: Vec3; max: Vec3 }
 export type Collider = CylinderCollider | BoxCollider
 
 const walkables = new Set<WalkableSurface>()
 const colliders = new Set<Collider>()
+
+/** Colliders bucketed by xz cell (CELL m, bounds grown by MAX_MARGIN), rebuilt lazily after any (un)registration. */
+const CELL = 32, MAX_MARGIN = 2
+let grid: Map<number, Collider[]> | null = null
+const cellKey = (i: number, j: number) => (i + 32768) * 65536 + (j + 32768)
+
+function colliderGrid() {
+  if (grid) return grid
+  grid = new Map()
+  for (const c of colliders) {
+    const [x0, z0, x1, z1] = c.kind === 'cylinder' ? [c.x - c.radius, c.z - c.radius, c.x + c.radius, c.z + c.radius] : [c.min[0], c.min[2], c.max[0], c.max[2]]
+    for (let i = Math.floor((x0 - MAX_MARGIN) / CELL); i <= Math.floor((x1 + MAX_MARGIN) / CELL); i++) {
+      for (let j = Math.floor((z0 - MAX_MARGIN) / CELL); j <= Math.floor((z1 + MAX_MARGIN) / CELL); j++) {
+        const key = cellKey(i, j), list = grid.get(key)
+        if (list) list.push(c); else grid.set(key, [c])
+      }
+    }
+  }
+  return grid
+}
+const NONE: Collider[] = []
+const collidersNear = (x: number, z: number) => colliderGrid().get(cellKey(Math.floor(x / CELL), Math.floor(z / CELL))) ?? NONE
 
 export function registerWalkables(list: WalkableSurface[]) {
   list.forEach((surface) => walkables.add(surface))
@@ -25,7 +50,8 @@ export function registerWalkables(list: WalkableSurface[]) {
 
 export function registerColliders(list: Collider[]) {
   list.forEach((collider) => colliders.add(collider))
-  return () => list.forEach((collider) => colliders.delete(collider))
+  grid = null
+  return () => { list.forEach((collider) => colliders.delete(collider)); grid = null }
 }
 
 function surfaceY(surface: WalkableSurface, x: number, z: number): number | null {
@@ -52,11 +78,21 @@ export function walkableHeight(x: number, z: number, fromY = Infinity): number |
   return best
 }
 
-export function insideAnyCollider(x: number, y: number, z: number, margin = 1): boolean {
-  for (const c of colliders) {
+/** Whether a point is inside a collider grown by `margin` (≤ 2 m) on every side; `open` colliders count only with `open`. */
+export function insideAnyCollider(x: number, y: number, z: number, margin = 1, open = false): boolean {
+  return bodyInsideAnyCollider(x, y, y, z, margin, margin, open)
+}
+
+/**
+ * Whether a vertical body from `bottom` to `top` at (x, z), `radius` wide, overlaps a collider (each grown by
+ * `vertical` above and below). Walking tests the torso with no vertical margin, so a rock or pillar top the
+ * player stands on never blocks them.
+ */
+export function bodyInsideAnyCollider(x: number, bottom: number, top: number, z: number, radius: number, vertical = 0, open = false): boolean {
+  for (const c of collidersNear(x, z)) {
     if (c.kind === 'cylinder') {
-      if (y >= c.minY - margin && y <= c.maxY + margin && Math.hypot(x - c.x, z - c.z) < c.radius + margin) return true
-    } else if (x > c.min[0] - margin && x < c.max[0] + margin && y > c.min[1] - margin && y < c.max[1] + margin && z > c.min[2] - margin && z < c.max[2] + margin) return true
+      if ((open || !c.open) && top >= c.minY - vertical && bottom <= c.maxY + vertical && Math.hypot(x - c.x, z - c.z) < c.radius + radius) return true
+    } else if (x > c.min[0] - radius && x < c.max[0] + radius && top > c.min[1] - vertical && bottom < c.max[1] + vertical && z > c.min[2] - radius && z < c.max[2] + radius) return true
   }
   return false
 }

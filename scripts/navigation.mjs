@@ -30,6 +30,11 @@ await page.waitForFunction(() => window.__playerSnapshot().position[2] < 15, nul
 await sample('nav-gate')
 await page.waitForFunction(() => window.__playerSnapshot().position[2] < -80, null, { timeout: 25000 })
 await sample('nav-platform')
+// The forecourt censer stands on the axis at z −160 and blocks the body: step left around it.
+await page.waitForFunction(() => window.__playerSnapshot().position[2] < -140, null, { timeout: 25000 })
+await page.keyboard.down('a')
+await page.waitForFunction(() => window.__playerSnapshot().position[0] < -6, null, { timeout: 5000 })
+await page.keyboard.up('a')
 await page.waitForFunction(() => window.__playerSnapshot().position[2] < -172.7, null, { timeout: 25000 })
 await page.keyboard.up('w')
 await page.keyboard.up('Shift')

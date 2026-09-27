@@ -49,24 +49,29 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
   const running = runtime.runMix
   const stride = runtime.stride
   const wave = Math.sin(stride)
-  const amplitude = moving ? (0.48 + running * 0.14) * runtime.gait : 0
+  // Sprinting lengthens the leg and arm swing beyond the run cycle.
+  const sprint = moving ? smooth((speed - 6) / 4) : 0
+  const amplitude = moving ? (0.48 + running * 0.14 + sprint * 0.1) * runtime.gait : 0
+  const swing = 0.8 + sprint * 0.25
   const summon = runtime.phase === 'SUMMONING' ? Math.sin(Math.PI * Math.min(1, runtime.elapsed / FLIGHT_SEQUENCE.summon)) : 0
   const jumpTime = runtime.elapsed / FLIGHT_SEQUENCE.board
   const airborneTime = Math.max(0, Math.min(1, (jumpTime - 0.16) / 0.66))
-  const tuck = runtime.phase === 'BOARDING' ? Math.sin(Math.PI * airborneTime) : 0
+  // A jump on foot draws the knees up while rising and opens out toward the fall.
+  const hop = moving ? runtime.air * (0.6 + 0.4 * Math.max(0, Math.min(1, runtime.velocity.y / 8))) : 0
+  const tuck = (runtime.phase === 'BOARDING' ? Math.sin(Math.PI * airborneTime) : 0) + hop * 0.7
   const anticipation = runtime.phase === 'BOARDING' && jumpTime < 0.22 ? Math.sin(Math.PI * Math.min(1, jumpTime / 0.22)) : 0
   const riding = runtime.rideMix
   const breathe = Math.sin(runtime.time * 1.8)
-  const landing = (runtime.phase === 'DISMOUNTING' ? Math.sin(Math.PI * runtime.elapsed / FLIGHT_SEQUENCE.dismount) : 0) + runtime.impact * 0.7 + anticipation
+  const landing = (runtime.phase === 'DISMOUNTING' ? Math.sin(Math.PI * runtime.elapsed / FLIGHT_SEQUENCE.dismount) : 0) + runtime.impact * 0.7 + anticipation + (moving ? runtime.landing * 0.8 : 0)
   const pose: Record<string, [number, number, number]> = {
-    Spine: [0, 0, -0.02 - breathe * 0.008 - riding * (0.01 + speed * 0.00015) - tuck * 0.15],
+    Spine: [0, 0, -0.02 - breathe * 0.008 - riding * (0.01 + speed * 0.00015) - tuck * 0.15 - (moving ? Math.min(speed, 11) * 0.01 * runtime.gait : 0)],
     Spine1: [riding * runtime.bank * -0.18, 0, -summon * 0.035],
     Spine2: [0, summon * -0.13, breathe * 0.009],
     Neck: [0, 0, riding * 0.045], Head: [0, Math.sin(runtime.time * 0.6) * 0.015, 0],
-    RightArm: [riding * (-0.14 + breathe * 0.025), 0, -wave * amplitude * 0.8 + summon * 1.12 + tuck * 0.85 + riding * 0.1],
+    RightArm: [riding * (-0.14 + breathe * 0.025), 0, -wave * amplitude * swing + summon * 1.12 + tuck * 0.85 + riding * 0.1],
     RightForeArm: [0, 0, summon * 0.85 + (moving ? 0.18 : 0) + tuck * 0.3],
     RightHand: [summon * -0.25, 0, summon * -0.1],
-    LeftArm: [riding * (0.17 - breathe * 0.025) + summon * -0.12, 0, wave * amplitude * 0.8 + summon * 0.4 + tuck * 0.75 + riding * 0.15],
+    LeftArm: [riding * (0.17 - breathe * 0.025) + summon * -0.12, 0, wave * amplitude * swing + summon * 0.4 + tuck * 0.75 + riding * 0.15],
     LeftForeArm: [0, summon * -0.3, summon * 0.7 + (moving ? 0.18 : 0) + tuck * 0.35],
     LeftUpLeg: [0, 0, wave * amplitude + tuck * 0.75 + riding * 0.11 + landing * 0.18],
     RightUpLeg: [0, 0, -wave * amplitude + tuck * 0.65 + riding * 0.04 + landing * 0.18],
@@ -88,7 +93,7 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
   }
   rig.scene.updateMatrixWorld(true)
   const correction = Math.max(-0.18, Math.min(0.18, rig.restFootY - lowestFoot(rig)))
-  const base = runtime.phase === 'BOARDING' && jumpTime > 0.16 ? correction * smooth((jumpTime - 0.68) / 0.14) : correction
+  const base = runtime.phase === 'BOARDING' && jumpTime > 0.16 ? correction * smooth((jumpTime - 0.68) / 0.14) : correction * (moving ? 1 - runtime.air : 1)
   const ridingWeight = ridingPoseWeight(runtime)
   return base * (1 - ridingWeight) - 0.045 * ridingWeight
 }

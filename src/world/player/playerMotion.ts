@@ -9,6 +9,10 @@ export const PHASE_LABELS: Record<PlayerPhase, string> = {
   FLIGHT: '御剑飞行', LANDING: '御剑降落', DISMOUNTING: '收剑落地',
 }
 export const FLIGHT_SEQUENCE = { summon: 1.2, board: 1.25, dismount: 0.75, step: 1.15, hover: 0.55 } as const
+/** A jump pressed this long before touchdown still fires on landing. */
+export const JUMP_BUFFER = 0.15
+/** Falling faster than this on foot (≈7 m of drop) calls the sword to catch the player. */
+const RESCUE_SPEED = 20
 export const smooth = (t: number) => { const v = Math.max(0, Math.min(1, t)); return v * v * (3 - 2 * v) }
 
 export type PlayerRuntime = {
@@ -16,6 +20,8 @@ export type PlayerRuntime = {
   yaw: number; pitch: number; facing: number; sequenceYaw: number; origin: Vector3; destination: Vector3;
   bank: number; climb: number; ready: boolean;
   stride: number; gait: number; runMix: number; rideMix: number; impact: number; braking: boolean; boostMix: number;
+  /** Jump press still waiting for footing (s); off the ground on foot; its smoothed weight; landing crouch 0…1. */
+  jumpBuffer: number; inAir: boolean; air: number; landing: number;
 }
 
 export function createPlayerRuntime(): PlayerRuntime {
@@ -24,12 +30,24 @@ export function createPlayerRuntime(): PlayerRuntime {
     elapsed: 0, time: 0, yaw: 0, pitch: 0.1, facing: 0, sequenceYaw: 0,
     origin: new Vector3(), destination: new Vector3(), bank: 0, climb: 0, ready: false,
     stride: 0, gait: 0, runMix: 0, rideMix: 0, impact: 0, braking: false, boostMix: 0,
+    jumpBuffer: 0, inAir: false, air: 0, landing: 0,
   }
 }
 
 export function changePhase(runtime: PlayerRuntime, phase: PlayerPhase) {
   runtime.phase = phase
   runtime.elapsed = 0
+  // A buffered jump or the airborne flag from the last stretch on foot never carries into the next phase.
+  runtime.jumpBuffer = 0
+  runtime.inAir = false
+}
+
+/** The sword flashes in underfoot and carries the player straight into flight (a long fall, or F pressed mid-jump). */
+function catchWithSword(runtime: PlayerRuntime) {
+  changePhase(runtime, 'FLIGHT')
+  runtime.velocity.y *= 0.35
+  runtime.impact = 1
+  runtime.air = 0
 }
 
 export function isAirborne(phase: PlayerPhase) {
@@ -38,6 +56,10 @@ export function isAirborne(phase: PlayerPhase) {
 
 export function requestFlightToggle(runtime: PlayerRuntime): string | null {
   if (!runtime.ready) return '角色与动作正在载入，请稍候'
+  if (runtime.phase === 'GROUND' && runtime.inAir) {
+    catchWithSword(runtime)
+    return null
+  }
   if (runtime.phase === 'GROUND') {
     const { position, yaw } = runtime
     // At a wall or path edge, turn toward a clear patch before summoning.
@@ -76,23 +98,32 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
   runtime.time += delta
   runtime.elapsed += delta
   runtime.impact *= Math.exp(-8 * delta)
+  runtime.landing *= Math.exp(-6 * delta)
   runtime.rideMix += ((isAirborne(runtime.phase) || (runtime.phase === 'BOARDING' && runtime.elapsed / FLIGHT_SEQUENCE.board > 0.75) ? 1 : 0) - runtime.rideMix) * (1 - Math.exp(-9 * delta))
   runtime.boostMix += ((boosting && runtime.phase === 'FLIGHT' && !runtime.braking && input.lengthSq() > 0 ? 1 : 0) - runtime.boostMix) * (1 - Math.exp(-3 * delta))
   const { position, velocity } = runtime
   switch (runtime.phase) {
     case 'GROUND': {
       const x = position.x, z = position.z
-      stepGround(position, velocity, input, runtime.yaw, boosting, delta)
-      const distance = Math.hypot(position.x - x, position.z - z)
+      runtime.jumpBuffer = Math.max(0, runtime.jumpBuffer - delta)
+      const touchdown = stepGround(position, velocity, input, runtime.yaw, boosting, runtime.jumpBuffer > 0, delta)
+      if (!runtime.inAir && velocity.y > 0) runtime.jumpBuffer = 0
+      runtime.inAir = velocity.y !== 0
+      runtime.air += ((runtime.inAir ? 1 : 0) - runtime.air) * (1 - Math.exp(-12 * delta))
+      if (touchdown > 4) runtime.landing = Math.min(1, runtime.landing + touchdown / 18)
+      const distance = runtime.inAir ? 0 : Math.hypot(position.x - x, position.z - z)
       const actualSpeed = distance / Math.max(delta, 0.001)
       runtime.gait += ((actualSpeed > 0.12 ? Math.min(1, actualSpeed / 2) : 0) - runtime.gait) * (1 - Math.exp(-14 * delta))
-      runtime.runMix += ((boosting && actualSpeed > 3.5 ? 1 : 0) - runtime.runMix) * (1 - Math.exp(-6 * delta))
-      runtime.stride += distance / (2.0 + runtime.runMix * 1.15) * Math.PI * 2
+      if (!runtime.inAir) runtime.runMix += (Math.min(1, Math.max(0, (actualSpeed - 2) / 3.5)) - runtime.runMix) * (1 - Math.exp(-6 * delta))
+      // Stride lengthens with speed, so cadence stays near a runner's ~3 steps/s from jog to sprint.
+      runtime.stride += distance / (1.7 + Math.min(actualSpeed, 11) * 0.28) * Math.PI * 2
       if (Math.hypot(velocity.x, velocity.z) > 0.2) {
         const desired = Math.atan2(velocity.x, -velocity.z)
         const difference = Math.atan2(Math.sin(desired - runtime.facing), Math.cos(desired - runtime.facing))
         runtime.facing += difference * (1 - Math.exp(-12 * delta))
       }
+      // A long fall on foot (off a cliff, into the clouds): the sword flashes in underfoot and catches the player.
+      if (runtime.inAir && velocity.y < -RESCUE_SPEED) catchWithSword(runtime)
       break
     }
     case 'SUMMONING':

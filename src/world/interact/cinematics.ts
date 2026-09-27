@@ -1,6 +1,7 @@
 import { CatmullRomCurve3, MathUtils, Vector3 } from 'three'
 import type { PerspectiveCamera } from 'three'
 import { useUiStore } from '../../ui/uiStore'
+import { resetCameraRig } from '../player/CameraRig'
 import { getPlayerRuntime } from '../player/playerHandle'
 import { useWorldStore } from '../store'
 import { groundHeight } from '../worldLayout'
@@ -108,18 +109,10 @@ function poseMeditation(shot: Shot, camera: PerspectiveCamera, delta: number) {
   camera.updateProjectionMatrix()
 }
 
-/** Puts the camera where the player rig would (behind and above the player) so the hand-back is seamless. */
+/** Hands the camera back to the player rig, which snaps straight to its framing on its next update. */
 export function handBack(camera: PerspectiveCamera) {
-  const runtime = getPlayerRuntime()
-  const fov = useWorldStore.getState().fov
-  if (runtime) {
-    const p = runtime.position, fx = Math.sin(runtime.yaw), fz = -Math.cos(runtime.yaw)
-    camera.position.set(p.x - fx * 4.8, p.y + 2.75, p.z - fz * 4.8)
-    camera.lookAt(p.x + fx * 3, p.y + 1.05 + Math.tan(runtime.pitch) * 7, p.z + fz * 3)
-    const previous = camera.userData.followPrevious as Vector3 | undefined
-    if (previous) previous.copy(p)
-  }
-  camera.fov = fov
+  resetCameraRig()
+  camera.fov = useWorldStore.getState().fov
   camera.updateProjectionMatrix()
 }
 

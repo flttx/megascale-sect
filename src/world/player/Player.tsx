@@ -4,8 +4,9 @@ import { Group, PerspectiveCamera, Vector3 } from 'three'
 import { LAYOUT } from '../worldLayout'
 import { useWorldStore } from '../store'
 import { CameraRig, updateCameraRig } from './CameraRig'
+import { SpeedLines } from './SpeedLines'
 import { CharacterVisual } from './CharacterVisual'
-import { createPlayerRuntime, isAirborne, requestFlightToggle, stepPlayer } from './playerMotion'
+import { createPlayerRuntime, isAirborne, JUMP_BUFFER, requestFlightToggle, stepPlayer } from './playerMotion'
 import { type CharacterId } from './characterAssets'
 import { playerAudio } from './playerAudio'
 import { bindPlayerRuntime } from './playerHandle'
@@ -42,6 +43,7 @@ export function Player() {
       if (!store.started || !store.locked) return
       if (['w', 'a', 's', 'd', 'control'].includes(key)) event.preventDefault()
       keys.current.add(key)
+      if (key === ' ' && runtime.current.phase === 'GROUND' && runtime.current.ready && store.cameraMode === 'player') runtime.current.jumpBuffer = JUMP_BUFFER
       if (key === 'f' && store.cameraMode === 'player') {
         store.setNotice(requestFlightToggle(runtime.current))
         store.setPhase(runtime.current.phase)
@@ -129,7 +131,7 @@ export function Player() {
         if (Math.abs(difference) < 0.002 && Math.abs(state.pitch - viewPitch.current) < 0.002) freeLook.current = false
       } else { viewYaw.current = state.yaw; viewPitch.current = state.pitch }
     }
-    if (store.cameraMode === 'player') updateCameraRig(camera, state.position, viewYaw.current, viewPitch.current, mode, delta, state.velocity.length(), state.bank, state.impact, store.fov)
+    if (store.cameraMode === 'player') updateCameraRig(camera, state.position, viewYaw.current, viewPitch.current, mode, delta, mode === 'FLIGHT' ? state.velocity.length() : Math.hypot(state.velocity.x, state.velocity.z), state.bank, state.impact, store.fov, state.landing)
     elapsed.current += rawDelta
     frames.current++
     if (elapsed.current >= 0.25) {
@@ -152,5 +154,6 @@ export function Player() {
       </Suspense>)}
     </group>
     <CameraRig camera={camera} />
+    <SpeedLines />
   </>
 }

@@ -82,7 +82,7 @@ export function chainRuns(): ChainRun[] {
 const pointAt = (run: ChainRun, t: number, out = new Vector3()) =>
   out.copy(run.from).lerp(run.to, t).addScaledVector(UP, -run.sag * 4 * t * (1 - t))
 
-/** Flight colliders: the bollards, and each chain as a string of short vertical cylinders covering it. */
+/** Flight colliders: the bollards, and each chain as a string of short vertical cylinders (open: walking and the camera pass). */
 export function chainColliders(): CylinderCollider[] {
   const out: CylinderCollider[] = [], a = new Vector3(), b = new Vector3()
   for (const run of chainRuns()) {
@@ -91,7 +91,7 @@ export function chainColliders(): CylinderCollider[] {
     for (let k = 0; k < n; k++) {
       pointAt(run, k / n, a); pointAt(run, (k + 1) / n, b)
       out.push({ kind: 'cylinder', x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, radius: Math.hypot(b.x - a.x, b.z - a.z) / 2 + LINK_WIDTH / 2 + 0.3,
-        minY: Math.min(a.y, b.y) - LINK_WIDTH / 2, maxY: Math.max(a.y, b.y) + LINK_WIDTH / 2 })
+        minY: Math.min(a.y, b.y) - LINK_WIDTH / 2, maxY: Math.max(a.y, b.y) + LINK_WIDTH / 2, open: true })
     }
   }
   return out

@@ -1,4 +1,5 @@
 import { groundHeight } from '../worldLayout'
+import { resetCameraRig } from './CameraRig'
 import { changePhase, type PlayerRuntime } from './playerMotion'
 
 /** Imperative access to the live player for systems outside the Player component (interactables, UI, save). */
@@ -26,6 +27,8 @@ export function teleportPlayer(position: readonly [number, number, number], yaw?
   runtime.position.set(x, onGround ? surface : y, z)
   runtime.velocity.set(0, 0, 0)
   runtime.bank = 0; runtime.climb = 0
+  runtime.jumpBuffer = 0; runtime.inAir = false; runtime.air = 0; runtime.landing = 0
+  resetCameraRig()
   if (yaw !== undefined) { runtime.yaw = yaw; runtime.facing = yaw }
   const phase = onGround ? 'GROUND' : 'FLIGHT'
   if (runtime.phase !== phase) {

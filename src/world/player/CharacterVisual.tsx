@@ -89,7 +89,8 @@ export function CharacterVisual({ runtime, character, active }: { runtime: RefOb
     } else {
       sword.current.position.set(0, config.swordDeckOffset, 0)
       sword.current.quaternion.copy(ridingSword)
-      sword.current.scale.setScalar(1)
+      // Grows in underfoot when it catches a fall (rideMix is already ~1 after boarding).
+      sword.current.scale.setScalar(smooth(state.rideMix * 2.5))
     }
     if (state.phase !== 'GROUND') sword.current.position.x += config.swordLateralOffset
   })
