@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Bloom, EffectComposer, GodRays, N8AO, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { Effect, ToneMappingMode } from 'postprocessing'
+import type { EffectComposer as Composer } from 'postprocessing'
 import { Mesh, MeshBasicMaterial, SphereGeometry, Uniform, Vector3, type PerspectiveCamera } from 'three'
 import { atmosphere } from './atmosphere'
 import { AtmosphereEffect } from './atmosphereEffect'
@@ -56,6 +57,7 @@ function useSunProxy() {
 }
 
 export function PostFX() {
+  const composer = useRef<Composer>(null)
   const camera = useThree((state) => state.camera)
   const gl = useThree((state) => state.gl)
   const quality = useWorldStore((state) => state.quality)
@@ -63,6 +65,12 @@ export function PostFX() {
   const fog = useMemo(() => new AtmosphereEffect(camera as PerspectiveCamera, preset.volumetricClouds), [camera, preset.volumetricClouds])
   const grade = useMemo(() => new GradeEffect(), [])
   const sun = useSunProxy()
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    const target = window as Window & { __postfx?: () => unknown }
+    target.__postfx = () => ({ composer: composer.current, renderer: gl })
+    return () => { delete target.__postfx }
+  }, [gl])
 
   // Composer passes each call gl.render; accumulate draw stats over the whole frame for telemetry.
   useEffect(() => {
@@ -79,7 +87,8 @@ export function PostFX() {
   return (
     <>
       <primitive object={sun} />
-      <EffectComposer key={quality} multisampling={preset.msaa} enableNormalPass={false} autoClear={false}>
+      <EffectComposer ref={composer} key={quality} multisampling={preset.msaa} enableNormalPass={false} autoClear={false}
+        mergeMode={import.meta.env.DEV && new URLSearchParams(window.location.search).has('profileGpu') ? 'none' : 'auto'}>
         {preset.ao && <N8AO halfRes quality="performance" aoRadius={3.5} distanceFalloff={1.2} intensity={2.2} color="#27303c" />}
         <primitive object={fog} dispose={null} />
         {preset.godRays && <GodRays sun={sun} samples={48} density={0.94} decay={0.925} weight={0.32} exposure={0.42} clampMax={1} blur />}

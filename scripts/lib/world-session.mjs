@@ -23,6 +23,9 @@ const NOISE = [/warning X\d+/, /THREE\.Clock: This module has been deprecated/]
 export async function openWorld(query = '', viewport = { width: 1600, height: 900 }) {
   const browser = await launchBrowser({ headless: true, args: ['--use-angle=d3d11', '--disable-gpu-vsync', '--disable-frame-rate-limit'] })
   const page = await browser.newPage({ viewport, deviceScaleFactor: 1 })
+  const rate = Number(process.env.CPU_THROTTLE || 1)
+  if (!Number.isFinite(rate) || rate < 1) { await browser.close(); throw new Error('CPU_THROTTLE must be a number >= 1') }
+  if (rate > 1) await (await page.context().newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate })
   const errors = []
   const record = (text) => { if (!NOISE.some((pattern) => pattern.test(text))) errors.push(text.slice(0, 300)) }
   page.on('pageerror', (error) => record(error.message))

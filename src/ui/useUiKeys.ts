@@ -4,7 +4,7 @@ import { director, endShot } from '../world/interact/cinematics'
 import { useWorldStore } from '../world/store'
 import { enterPhoto, exitPhoto, uiBridge } from './bridge'
 import { dismissOverlay, showOverlay, useUiStore } from './uiStore'
-import { isUiInput } from './gameKeys'
+import { hasGameInput, isUiInput } from './gameKeys'
 
 /**
  * Global game-UI keys: E interact, Tab scroll, P photo mode, H hide HUD, Esc back out of shots/overlays.
@@ -18,7 +18,7 @@ export function useUiKeys() {
       const world = useWorldStore.getState(), ui = useUiStore.getState()
       if (key === 'KeyE' && ui.overlay?.kind === 'lore' && !(event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))) { dismissOverlay(); return }
       if (isUiInput(event)) return
-      const inputOk = world.locked || (import.meta.env.DEV && ui.devInput)
+      const inputOk = hasGameInput()
       const playing = world.started && world.cameraMode === 'player' && inputOk
       if (key === 'Tab' && playing) event.preventDefault()
       if (world.cameraMode === 'photo') {

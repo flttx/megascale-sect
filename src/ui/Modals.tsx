@@ -5,8 +5,9 @@ import { WEATHER_KINDS, WEATHER_LABELS } from '../world/weather/weatherMachine'
 import type { WeatherKind } from '../world/weather/weatherMachine'
 import { Dialog } from './Dialog'
 import { STELE_LORE } from './lore'
-import { ScrollOverlay } from './ScrollOverlay'
 import { dismissOverlay, useUiStore } from './uiStore'
+
+const ScrollOverlay = lazy(() => import('./ScrollOverlay').then((module) => ({ default: module.ScrollOverlay })))
 
 /** The open modal layer (lore card, weather picker, teleport list or the Tab scroll). */
 export function Modals() {
@@ -16,7 +17,7 @@ export function Modals() {
     case 'lore': return <LoreCard id={overlay.id} />
     case 'weather': return <WeatherPicker />
     case 'teleport': return <TeleportList from={overlay.from} />
-    case 'scroll': return <ScrollOverlay />
+    case 'scroll': return <Suspense fallback={<Dialog title="卷轴" onClose={dismissOverlay} onTab={dismissOverlay}><p role="status">正在展开卷轴…</p></Dialog>}><ScrollOverlay /></Suspense>
   }
 }
 
@@ -98,3 +99,4 @@ function TeleportList({ from }: { from: string }) {
     </div>
   </Dialog>
 }
+import { lazy, Suspense } from 'react'

@@ -1,4 +1,4 @@
-import { Profiler, useEffect, useState } from 'react'
+import { lazy, Profiler, Suspense, useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useProgress } from '@react-three/drei'
 import { World } from '../world/World'
@@ -15,14 +15,21 @@ import { recordUiRender } from '../ui/renderProfile'
 import { Hud } from '../ui/Hud'
 import { IntroScreen } from '../ui/IntroScreen'
 import { Modals } from '../ui/Modals'
-import { PhotoMode } from '../ui/PhotoMode'
 import { applySave, loadSave, safePosition, startAutosave } from '../ui/save'
 import type { SavedPosition } from '../ui/save'
 import { SettingsMenu } from '../ui/SettingsMenu'
 import { dismissOverlay, showOverlay, useUiStore } from '../ui/uiStore'
 import type { Overlay } from '../ui/uiStore'
 import { useUiKeys } from '../ui/useUiKeys'
+import { usePhotoInput } from '../ui/usePhotoInput'
 import { RecoveryOverlay, RecoveryProbe, useGraphicsRecovery } from './GraphicsRecovery'
+
+const PhotoMode = lazy(() => import('../ui/PhotoMode').then((module) => ({ default: module.PhotoMode })))
+function PhotoLayer() {
+  const active = useWorldStore((state) => state.cameraMode === 'photo')
+  usePhotoInput(active)
+  return active ? <Suspense fallback={<div className="photo-ui"><p className="player-notice" role="status">正在载入拍照工具…</p></div>}><PhotoMode /></Suspense> : null
+}
 
 const ROUTES = [
   { name: '山门前路', number: '01 / 04', progress: 12, next: '目标 · 穿山门，登主平台，接近主殿' },
@@ -190,7 +197,7 @@ export default function App() {
       <div className="interface" inert={graphics.status !== 'ready'}>
         {import.meta.env.DEV ? <Profiler id="interface" onRender={recordUiRender}><Interface /></Profiler> : <Interface />}
         <Hud />
-        <PhotoMode />
+        <PhotoLayer />
         <Modals />
         <SettingsMenu />
         {!started && <IntroScreen saved={save?.position ?? null} onEnter={enter} />}

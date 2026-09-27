@@ -1,5 +1,6 @@
 import { STELE_LORE, VIEWPOINT_LINES, VIEWPOINT_REGIONS } from '../../ui/lore'
 import { dismissOverlay, showOverlay, useUiStore } from '../../ui/uiStore'
+import { hasGameInput } from '../../ui/gameKeys'
 import { worldEvents } from '../events'
 import { getPlayerRuntime, teleportPlayer } from '../player/playerHandle'
 import { useWorldStore } from '../store'
@@ -84,7 +85,7 @@ export function interactPressed(): boolean {
   const world = useWorldStore.getState(), ui = useUiStore.getState()
   if (ui.overlay?.kind === 'lore') { dismissOverlay(); return true }
   if (!world.started || world.cameraMode !== 'player' || ui.overlay) return false
-  if (!world.locked && !(import.meta.env.DEV && ui.devInput)) return false
+  if (!hasGameInput()) return false
   return ui.nearby ? triggerSite(ui.nearby.id) : false
 }
 

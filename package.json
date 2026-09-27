@@ -24,6 +24,8 @@
     "verify:stability": "node scripts/verify-stability.mjs",
     "verify:ui": "node scripts/verify-ui.mjs",
     "verify:environment": "node scripts/verify-environment.mjs",
+    "verify:profile": "node scripts/verify-profile.mjs",
+    "verify:loading": "node scripts/verify-loading.mjs",
     "assets:optimize": "node scripts/optimize-characters.mjs",
     "assets:buildings": "node scripts/optimize-buildings.mjs && node asset-pipeline/buildings/meta.mjs"
   },

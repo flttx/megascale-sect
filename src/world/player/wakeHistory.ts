@@ -25,8 +25,8 @@ export class WakeHistory {
       for (let i = WAKE_COUNT - 1; i > 0; i--) this.samples[i].copy(this.samples[i - 1])
       this.samples[0].lerpVectors(this.previous, position, Math.min(1, time / delta))
     }
-    this.phase = (this.phase + delta + 1e-9) % WAKE_INTERVAL
-    if (this.phase < 1e-8) this.phase = 0
+    const elapsed = this.phase + delta
+    this.phase = Math.max(0, elapsed - Math.floor((elapsed + 1e-9) / WAKE_INTERVAL) * WAKE_INTERVAL)
     const alpha = this.phase / WAKE_INTERVAL
     this.points[0].copy(position)
     for (let i = 1; i < WAKE_COUNT; i++) this.points[i].lerpVectors(this.samples[i], this.samples[i - 1], alpha)

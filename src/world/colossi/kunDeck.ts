@@ -1,4 +1,4 @@
-import { Ray, Vector3 } from 'three'
+import { Matrix4, Ray, Vector3, Vector4 } from 'three'
 import type { Object3D, SkinnedMesh } from 'three'
 import type { SurfaceAddress, SurfaceHit } from '../surfaces'
 import { KUN_DECK } from './kunDeckMeta'
@@ -6,15 +6,19 @@ import { KUN_DECK } from './kunDeckMeta'
 export type DeckAnchor = SurfaceAddress & { point: Vector3; yaw: number }
 export const kunState = { ready: false, time: 0, heading: 0, headY: -Infinity, frame: 0, center: new Vector3() }
 export const kunDockable = () => kunState.ready && kunState.time >= 30 && kunState.time < 150
-type Vertex = { mesh: SkinnedMesh; index: number; point: Vector3; frame: number }
+type SkinPalette = { mesh: SkinnedMesh; matrices: Matrix4[]; world: Matrix4; frame: number }
+type Vertex = { mesh: SkinnedMesh; index: number; point: Vector3; frame: number; palette: SkinPalette; rest: Vector4; influences: { matrix: Matrix4; weight: number }[] }
 type Triangle = { a: Vertex; b: Vertex; c: Vertex; normal: Vector3 }
 let triangles: Triangle[] = [], owner: Object3D | null = null, indexedFrame = -1
+let validationVertices: Vertex[] = []
 const grid = new Map<number, number[]>(), CELL = 4
 const key = (i: number, j: number) => (i + 32768) * 65536 + j + 32768
 const ab = new Vector3(), ac = new Vector3(), ray = new Ray(), hitPoint = new Vector3()
 const normal = new Vector3(), rayDirection = new Vector3()
 const packed = new Uint32Array(Uint8Array.from(atob(KUN_DECK.triangles), (c) => c.charCodeAt(0)).buffer)
 const obstacles = new Set<number>(KUN_DECK.obstacles)
+/** Opt-in DEV timings. Disabled outside explicit performance capture. */
+export const kunProfile = { enabled: false, indexes: 0, indexMs: 0, maxIndexMs: 0, anchors: 0, anchorMs: 0 }
 
 /** Registration owns no GLTF resources; StrictMode cleanup only releases references. */
 export function bindKunDeck(scene: Object3D) {
@@ -22,10 +26,19 @@ export function bindKunDeck(scene: Object3D) {
   scene.traverse((object) => { if ((object as SkinnedMesh).isSkinnedMesh) meshes.push(object as SkinnedMesh) })
   if (meshes.length !== KUN_DECK.meshes) throw new Error('Kun deck metadata does not match the loaded mesh')
   const vertices = new Map<string, Vertex>()
+  const palettes = meshes.map((mesh): SkinPalette => ({ mesh, matrices: mesh.skeleton.bones.map(() => new Matrix4()), world: new Matrix4(), frame: -1 }))
   const vertex = (mesh: number, index: number) => {
     const id = `${mesh}/${index}`
     let value = vertices.get(id)
-    if (!value) { value = { mesh: meshes[mesh], index, point: new Vector3(), frame: -1 }; vertices.set(id, value) }
+    if (!value) {
+      const palette = palettes[mesh], geometry = palette.mesh.geometry
+      const { position, skinWeight, skinIndex } = geometry.attributes
+      const rest = new Vector4(position.getX(index), position.getY(index), position.getZ(index), 1).applyMatrix4(palette.mesh.bindMatrix)
+      const weights = [skinWeight.getX(index), skinWeight.getY(index), skinWeight.getZ(index), skinWeight.getW(index)]
+      const indices = [skinIndex.getX(index), skinIndex.getY(index), skinIndex.getZ(index), skinIndex.getW(index)]
+      const influences = weights.map((weight, i) => ({ matrix: palette.matrices[indices[i]], weight })).filter((i) => i.weight !== 0)
+      value = { mesh: palette.mesh, index, point: new Vector3(), frame: -1, palette, rest, influences }; vertices.set(id, value)
+    }
     return value
   }
   triangles = []
@@ -35,7 +48,8 @@ export function bindKunDeck(scene: Object3D) {
     triangles.push({ a: vertex(m, index.getX(offset)), b: vertex(m, index.getX(offset + 1)), c: vertex(m, index.getX(offset + 2)), normal: new Vector3() })
   }
   owner = scene; kunState.ready = false; indexedFrame = -1
-  return () => { if (owner === scene) { owner = null; triangles = []; grid.clear(); kunState.ready = false } }
+  if (import.meta.env.DEV) validationVertices = [...vertices.values()]
+  return () => { if (owner === scene) { owner = null; triangles = []; validationVertices = []; grid.clear(); kunState.ready = false } }
 }
 
 export function updateKunDeck(center: Vector3, time: number, heading: number, headY: number) {
@@ -44,13 +58,44 @@ export function updateKunDeck(center: Vector3, time: number, heading: number, he
 }
 function skin(v: Vertex) {
   if (v.frame !== kunState.frame) {
-    v.mesh.getVertexPosition(v.index, v.point).applyMatrix4(v.mesh.matrixWorld)
+    // Three's reference path multiplies bone world/inverse matrices for every influence of every
+    // vertex. Cache that palette once per animated frame, retaining the exact bind/world transforms.
+    const p = v.palette
+    if (v.mesh.geometry.morphAttributes.position?.length) v.mesh.getVertexPosition(v.index, v.point).applyMatrix4(v.mesh.matrixWorld)
+    else {
+      if (p.frame !== kunState.frame) {
+        const skeleton = p.mesh.skeleton
+        p.matrices.forEach((m, i) => m.multiplyMatrices(skeleton.bones[i].matrixWorld, skeleton.boneInverses[i]))
+        p.world.multiplyMatrices(p.mesh.matrixWorld, p.mesh.bindMatrixInverse); p.frame = kunState.frame
+      }
+      const { x, y, z, w } = v.rest
+      let px = 0, py = 0, pz = 0
+      for (const { matrix, weight } of v.influences) {
+        const e = matrix.elements
+        px += (e[0] * x + e[4] * y + e[8] * z + e[12] * w) * weight
+        py += (e[1] * x + e[5] * y + e[9] * z + e[13] * w) * weight
+        pz += (e[2] * x + e[6] * y + e[10] * z + e[14] * w) * weight
+      }
+      v.point.set(px, py, pz).applyMatrix4(p.world)
+    }
     v.frame = kunState.frame
   }
   return v.point
 }
+/** DEV reference comparison against Three's full skinning path, across the whole candidate deck. */
+export function kunSkinError() {
+  if (!import.meta.env.DEV || !kunState.ready) return null
+  const reference = new Vector3()
+  let maximum = 0
+  for (const v of validationVertices) {
+    v.mesh.getVertexPosition(v.index, reference).applyMatrix4(v.mesh.matrixWorld)
+    maximum = Math.max(maximum, reference.distanceTo(skin(v)))
+  }
+  return { vertices: validationVertices.length, maximum }
+}
 function indexFrame() {
   if (indexedFrame === kunState.frame) return
+  const start = import.meta.env.DEV && kunProfile.enabled ? performance.now() : -1
   grid.clear(); indexedFrame = kunState.frame
   triangles.forEach((t, i) => {
     const a = skin(t.a), b = skin(t.b), c = skin(t.c)
@@ -62,6 +107,10 @@ function indexFrame() {
       if (bucket) bucket.push(i); else grid.set(k, [i])
     }
   })
+  if (start >= 0) {
+    const ms = performance.now() - start
+    kunProfile.indexes++; kunProfile.indexMs += ms; kunProfile.maxIndexMs = Math.max(kunProfile.maxIndexMs, ms)
+  }
 }
 export function kunDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit | null {
   if (!kunState.ready || Math.hypot(x - kunState.center.x, z - kunState.center.z) > 220) return null
@@ -83,9 +132,12 @@ export function kunDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit |
   return best
 }
 export function evaluateDeckAnchor(address: SurfaceAddress, out: Vector3): Vector3 | null {
+  const start = import.meta.env.DEV && kunProfile.enabled ? performance.now() : -1
   const t = triangles[address.triangle]
   if (!kunState.ready || !t) return null
-  return out.copy(skin(t.a)).multiplyScalar(address.u).addScaledVector(skin(t.b), address.v).addScaledVector(skin(t.c), 1 - address.u - address.v)
+  out.copy(skin(t.a)).multiplyScalar(address.u).addScaledVector(skin(t.b), address.v).addScaledVector(skin(t.c), 1 - address.u - address.v)
+  if (start >= 0) { kunProfile.anchors++; kunProfile.anchorMs += performance.now() - start }
+  return out
 }
 export function deckAnchor(hit: SurfaceHit): DeckAnchor | null {
   if (!hit.anchor) return null

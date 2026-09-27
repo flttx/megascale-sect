@@ -11,8 +11,7 @@ import { simulationDelta } from '../simulation'
 import { type CharacterId } from './characterAssets'
 import { playerAudio } from './playerAudio'
 import { bindPlayerRuntime } from './playerHandle'
-import { isUiInput } from '../../ui/gameKeys'
-import { useUiStore } from '../../ui/uiStore'
+import { hasGameInput, isUiInput } from '../../ui/gameKeys'
 import { uiBridge } from '../../ui/bridge'
 
 export function Player() {
@@ -41,7 +40,7 @@ export function Player() {
       if (isUiInput(event)) return
       const key = event.code
       const store = useWorldStore.getState()
-      if (!store.started || !(store.locked || (import.meta.env.DEV && useUiStore.getState().devInput))) return
+      if (!store.started || !hasGameInput()) return
       if (event.ctrlKey) { keys.current.clear(); return }
       if (['Space', 'AltLeft', 'AltRight', 'F3', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(key)) event.preventDefault()
       if (event.repeat) return
@@ -73,11 +72,12 @@ export function Player() {
       }
     }
     const clear = () => keys.current.clear()
+    const lockChanged = () => { if (document.pointerLockElement !== gl.domElement) clear() }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
     window.addEventListener('mousemove', mouse)
     window.addEventListener('blur', clear)
-    document.addEventListener('pointerlockchange', clear)
+    document.addEventListener('pointerlockchange', lockChanged)
     const debugWindow = window as Window & { __playerSnapshot?: (inspectContact?: boolean) => unknown }
     if (import.meta.env.DEV) debugWindow.__playerSnapshot = (inspectContact = false) => ({
       character: useWorldStore.getState().character,
@@ -105,7 +105,7 @@ export function Player() {
       window.removeEventListener('keyup', up)
       window.removeEventListener('mousemove', mouse)
       window.removeEventListener('blur', clear)
-      document.removeEventListener('pointerlockchange', clear)
+      document.removeEventListener('pointerlockchange', lockChanged)
       delete debugWindow.__playerSnapshot
       unbind()
       playerAudio.dispose()

@@ -12,6 +12,8 @@ import { openWorld, review, telemetry, VIEWS } from './lib/world-session.mjs'
 const MAX_DRAW_CALLS = 400
 const MIN_FPS = Number(process.env.MIN_FPS || 0)
 const QUALITIES = (process.env.QUALITIES || 'high,mid,low').split(',')
+const viewport = { width: Number(process.env.WIDTH || 1600), height: Number(process.env.HEIGHT || 900) }
+if (!Object.values(viewport).every((v) => Number.isInteger(v) && v >= 320)) throw new Error('WIDTH/HEIGHT must be integers >= 320')
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]
 
 async function measure(page) {
@@ -28,7 +30,7 @@ const runs = []
 const errors = []
 for (const quality of QUALITIES) {
   for (const weather of quality === 'high' ? ['clear', 'storm'] : ['clear']) {
-    const { browser, page, errors: pageErrors } = await openWorld(`?quality=${quality}&hours=15&weather=${weather}&kunAt=40`)
+    const { browser, page, errors: pageErrors } = await openWorld(`?quality=${quality}&hours=15&weather=${weather}&kunAt=40`, viewport)
     const views = weather === 'storm' ? ['hero', 'road'] : Object.keys(VIEWS)
     for (const view of views) {
       await review(page, VIEWS[view], 2200)
@@ -56,7 +58,7 @@ for (const quality of QUALITIES) {
 
 const breaches = runs.filter((r) => r.drawCalls > MAX_DRAW_CALLS || (MIN_FPS && r.fps < MIN_FPS))
 await fs.mkdir('artifacts', { recursive: true })
-await fs.writeFile('artifacts/perf.json', JSON.stringify({ maxDrawCalls: MAX_DRAW_CALLS, minFps: MIN_FPS || null, runs, breaches, errors }, null, 2))
+await fs.writeFile(process.env.PERF_OUT || 'artifacts/perf.json', JSON.stringify({ viewport, cpuThrottle: Number(process.env.CPU_THROTTLE || 1), maxDrawCalls: MAX_DRAW_CALLS, minFps: MIN_FPS || null, runs, breaches, errors }, null, 2))
 const worst = runs.reduce((a, b) => (b.drawCalls > a.drawCalls ? b : a))
 console.log(`worst: ${worst.drawCalls} calls (${worst.quality}/${worst.weather}/${worst.view}); budget ${MAX_DRAW_CALLS}`)
 if (breaches.length) console.log('BUDGET BREACH', JSON.stringify(breaches))
