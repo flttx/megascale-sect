@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3 } from 'three'
-import type { Group, Material, MeshStandardMaterial, ShaderMaterial } from 'three'
+import type { Group, Material, MeshStandardMaterial, Object3D, ShaderMaterial } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { environmentMaterial } from '../environment/t02r/materials'
 import { atmosphere } from '../sky/atmosphere'
@@ -13,10 +13,12 @@ import { withSurfaceWeather } from '../weather/surfaceWeather'
 import { Cranes } from './Cranes'
 import { glowQuad, makeGlowSpriteMaterial, syncGlowFog, withGlowMask } from './glow'
 import { buildPropLayout } from './placement'
+import { advancePines, extractPine } from './pineSource'
 import { extractSource } from './propSource'
 import type { Source } from './propSource'
 import type { Placement } from './placement'
-import { PROP_IDS, PROP_TINT, PROPS, propUrl } from './propCatalog'
+import { extractBoulders, extractStone } from './stoneSource'
+import { isPine, PROP_IDS, PROPS, propUrl } from './propCatalog'
 import type { PropId, PropSpec } from './propCatalog'
 
 const DENSITY = { low: 0.4, mid: 0.7, high: 1 } as const
@@ -25,6 +27,8 @@ const REBUCKET_INTERVAL = 0.25
 const REBUCKET_JUMP = 12
 const LAMP_COLOR = new Color('#ffab5c')
 const CRYSTAL_COLOR = new Color('#6fe3ff')
+/** Props drawn in the scanned environment stone, whose material already carries the weather patch. */
+const STONE: Partial<Record<PropId, (scene: Object3D) => Source>> = { rock_moss: extractBoulders, rock_scholar: extractStone }
 
 const URLS = PROP_IDS.flatMap((id) => [propUrl(id, false), ...(PROPS[id].lod1 ? [propUrl(id, true)] : [])])
 URLS.forEach((url) => useGLTF.preload(url))
@@ -52,6 +56,7 @@ class PropBucket {
       mesh.count = 0
       mesh.visible = false
       mesh.userData.castShadow = shadow
+      if (source.depth) mesh.customDepthMaterial = source.depth
       return mesh
     }
     this.near = make(lod0, spec.shadow, `Prop_${spec.id}_lod0`)
@@ -97,15 +102,14 @@ function PropFieldContent() {
     const byUrl = new Map(URLS.map((url, i) => [url, gltfs[i]]))
     return PROP_IDS.map((id) => {
       const spec = PROPS[id]
-      const lod0 = extractSource(byUrl.get(propUrl(id, false))!.scene)
-      const lod1 = spec.lod1 ? extractSource(byUrl.get(propUrl(id, true))!.scene) : null
+      const extract = STONE[id] ?? (isPine(id) ? extractPine : extractSource)
+      const lod0 = extract(byUrl.get(propUrl(id, false))!.scene)
+      const lod1 = spec.lod1 ? extract(byUrl.get(propUrl(id, true))!.scene) : null
       const glowMaterials: MeshStandardMaterial[] = []
       for (const [source, tag] of [[lod0, 'lod0'], [lod1, 'lod1']] as const) {
         if (!source) continue
-        const tint = PROP_TINT[id]
-        if (tint) source.material.color.multiply(new Color(...tint))
         if (spec.glow) glowMaterials.push(withGlowMask(source.material, spec.glow, glowColor(id), `${id}-${tag}`))
-        withSurfaceWeather(source.material)
+        if (!STONE[id]) withSurfaceWeather(source.material)
       }
       return new PropBucket(spec, layout.props[id], lod0, lod1, glowMaterials)
     })
@@ -147,7 +151,7 @@ function PropFieldContent() {
   useEffect(() => () => {
     for (const bucket of buckets) for (const mesh of [bucket.near, bucket.far]) {
       if (!mesh) continue
-      mesh.geometry.dispose(); (mesh.material as Material).dispose(); mesh.dispose()
+      mesh.geometry.dispose(); (mesh.material as Material).dispose(); mesh.customDepthMaterial?.dispose(); mesh.dispose()
     }
   }, [buckets])
   useEffect(() => () => { (glow.material as Material).dispose(); glow.dispose() }, [glow])
@@ -169,6 +173,7 @@ function PropFieldContent() {
   const state = useMemo(() => ({ last: new Vector3(Infinity, 0, 0), timer: 0, density: -1 }), [])
   useFrame(({ camera, clock }, delta) => {
     const density = DENSITY[quality]
+    advancePines(delta)
     state.timer -= delta
     if (state.timer <= 0 || state.density !== density || state.last.distanceToSquared(camera.position) > REBUCKET_JUMP ** 2) {
       state.timer = REBUCKET_INTERVAL; state.density = density; state.last.copy(camera.position)

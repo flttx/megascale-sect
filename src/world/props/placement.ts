@@ -1,6 +1,6 @@
 import { buildingDistance, hash, noise, roadAt, roadDistance, slopeAt, terrainHeight } from '../environment/t02r/terrain'
 import { towerFootings } from '../environment/t02r/scatter'
-import { PILLAR_LEDGES } from '../landmarks/rockLayout'
+import { PILLAR_LEDGES, PILLAR_PLACEMENTS } from '../landmarks/rockLayout'
 import { BRIDGES, ISLANDS, siteClearance, yawToward } from '../sites'
 import type { Vec3 } from '../surfaces'
 import { LAYOUT } from '../worldLayout'
@@ -29,7 +29,7 @@ const PLATFORM_Y = LAYOUT.platform.height
 export const PAILOU_Z = 100
 export const PAILOU_WIDTH = 60
 /** Canopy radius per tree (m at scale 1): trunks may stand off the road but crowns must not overhang it. */
-const CANOPY: Partial<Record<PropId, number>> = { pine_tall: 6.5, pine_guest: 9.3, pine_small: 2.9, bamboo: 3.2 }
+const CANOPY: Partial<Record<PropId, number>> = { pine_tall: 7.5, pine_guest: 9.3, pine_small: 4.1, bamboo: 3.2 }
 const MAX_SLOPE: Partial<Record<PropId, number>> = { pine_tall: 32, pine_guest: 30, pine_small: 34, bamboo: 28, rock_moss: 40, rock_scholar: 36, spirit_crystal: 36 }
 /** Rendered terrain is a 3–8 m grid of the analytic height; sinking bases hides interpolation gaps on slopes. */
 const SINK: Partial<Record<PropId, number>> = { pine_tall: 0.7, pine_guest: 0.6, pine_small: 0.45, bamboo: 0.5, rock_moss: 0.35, rock_scholar: 0.25 }
@@ -160,7 +160,7 @@ export function buildPropLayout(): PropLayout {
       tryAdd('spirit_crystal', approach + 1.9 + c * 0.32 + hash(k, c + 6) * 0.2, P - 2 - c * 1.2, 1.1 + hash(k, c + 9) * 0.8, c * 0.3)
   })
 
-  // ── Karst pillar ledges: a twisted pine on about half the authored shelves, never two crowding one spot. ──
+  // ── Karst pillar ledges: a cliff pine on about half the authored shelves, never two crowding one spot. ──
   const planted: { x: number; z: number; y: number }[] = []
   PILLAR_LEDGES.forEach((l, i) => {
     const h = hash(i, 71)
@@ -168,7 +168,9 @@ export function buildPropLayout(): PropLayout {
     const a = hash(i, 72) * 6.28, rho = l.radius * 0.3 * hash(i, 73)
     const x = l.x + Math.cos(a) * rho, z = l.z + Math.sin(a) * rho
     planted.push({ x: l.x, z: l.z, y: l.y })
-    add('pine_small', x, l.y - 0.3, z, hash(i, 74) * 6.28, 1.3 + Math.min(l.radius, 4) * 0.25 + hash(i, 75) * 0.3, h * 0.4)
+    // The cliff pine leans along its +X: out from the pillar's axis, over the drop.
+    const pl = PILLAR_PLACEMENTS[l.pillar]
+    add('pine_small', x, l.y - 0.3, z, yawToward([pl.x, 0, pl.z], [x, 0, z]) + (hash(i, 74) - 0.5) * 0.8, 1.3 + Math.min(l.radius, 4) * 0.25 + hash(i, 75) * 0.3, h * 0.4)
   })
 
   // ── Terrain: grouped pines, bamboo and rocks on the gentler slopes of the valley and the cliffs. ──

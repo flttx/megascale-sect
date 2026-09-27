@@ -1,7 +1,9 @@
 /**
  * Tripo prop catalogue. Scales are `scaleToHeight` from scripts/tripo/manifest.lock.json (copied: the
  * lock file carries task logs we don't want in the bundle). GLBs are normalised: +Y up, bottom at y = 0,
- * centred in x/z, front facing +X, so world size = scale × bounding box.
+ * centred in x/z, front facing +X, so world size = scale × bounding box. The pines are Blender models in
+ * metres instead (PINE_ASSET), so their scale is a plain multiplier; rock_moss draws the Blender boulders at a
+ * unit footprint, and rock_scholar keeps its Tripo shape in the scanned rock (stoneSource).
  */
 export type PropId =
   | 'pine_tall' | 'pine_guest' | 'pine_small' | 'bamboo' | 'rock_scholar' | 'rock_moss'
@@ -34,12 +36,13 @@ const spec = (id: PropId, scale: number, bboxRadius: number, near: number, hide:
   ({ id, scale, lod1, radius: bboxRadius * scale, near, hide, shadow, glow })
 
 export const PROPS: Record<PropId, PropSpec> = {
-  pine_tall: spec('pine_tall', 18, 0.12, 85, Infinity, true),
-  pine_guest: spec('pine_guest', 18.568, 0.14, 90, Infinity, true),
-  pine_small: spec('pine_small', 6, 0.4, 75, 900, true),
+  // 22 m umbrella pine at 18.7 m, 13 m 迎客松 at 17.5 m, 7 m cliff pine at 6 m; radius is the clearance footprint.
+  pine_tall: spec('pine_tall', 0.85, 2.8, 85, Infinity, true),
+  pine_guest: spec('pine_guest', 1.35, 1.9, 90, Infinity, true),
+  pine_small: spec('pine_small', 0.85, 2.8, 75, 900, true),
   bamboo: spec('bamboo', 8, 0.3, 75, 700, true),
   rock_scholar: spec('rock_scholar', 3.5, 0.2, 70, 420, false),
-  rock_moss: spec('rock_moss', 5.319, 0.45, 70, 420, false),
+  rock_moss: spec('rock_moss', 4.4, 0.5, 70, 420, false, undefined, false),
   stone_lantern: spec('stone_lantern', 2.4, 0.2, 70, 380, false,
     { yMin: 0.61, yMax: 0.75, radius: 0.105, sprite: [0, 0.68, 0], spriteSize: 1.5, strength: 1 }),
   lantern_post: spec('lantern_post', 4.5, 0.26, 70, 420, false,
@@ -54,19 +57,11 @@ export const PROPS: Record<PropId, PropSpec> = {
 }
 
 export const PROP_IDS = Object.keys(PROPS) as PropId[]
-export const propUrl = (id: string, lod1: boolean) => `/assets/props/${id}${lod1 ? '.lod1' : ''}.glb`
+/** Blender pines (public/assets/vegetation): bark + alpha-tested needle cards, merged into one draw by pineSource. */
+const PINE_ASSET: Record<string, string | undefined> = { pine_tall: 'pine_2', pine_guest: 'pine_1', pine_small: 'pine_0' }
+export const isPine = (id: string) => PINE_ASSET[id] !== undefined
+export const propUrl = (id: string, lod1: boolean) => id === 'rock_moss' ? '/assets/environment/rocks/boulders.glb'
+  : `/assets/${PINE_ASSET[id] ? `vegetation/${PINE_ASSET[id]}` : `props/${id}`}${lod1 ? '.lod1' : ''}.glb`
 
 /** Crane: wingspan runs along local z (±0.5), body along x; 0.8 m tall at scale 2.694. */
 export const CRANE_SCALE = 2.694 * 3.4
-
-/**
- * Base-colour correction (material colour multiplier). Several Tripo textures came out blue-cast (mean
- * texel of pine_guest ≈ #324b53, pine_small ≈ #4d697e, rock_scholar ≈ #8790a0); pull them toward the
- * greens and warm greys of the environment.
- */
-export const PROP_TINT: Partial<Record<PropId, [number, number, number]>> = {
-  pine_tall: [1, 1, 0.9],
-  pine_guest: [1.12, 1, 0.72],
-  pine_small: [1.05, 0.96, 0.62],
-  rock_scholar: [1.1, 1.01, 0.88],
-}

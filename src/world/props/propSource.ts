@@ -1,6 +1,11 @@
-import type { BufferGeometry, Mesh, MeshStandardMaterial, Object3D } from 'three'
+import type { BufferGeometry, Material, Mesh, MeshStandardMaterial, Object3D } from 'three'
 
-export interface Source { geometry: BufferGeometry; material: MeshStandardMaterial }
+export interface Source {
+  geometry: BufferGeometry
+  material: MeshStandardMaterial
+  /** Shadow depth material, when the shader moves vertices or the default alpha test would be wrong. */
+  depth?: Material
+}
 
 /** Bakes the GLB's node transform into a geometry copy (normalised model units) and clones its material. */
 export function extractSource(scene: Object3D): Source {

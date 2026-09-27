@@ -2,7 +2,7 @@ import { MeshStandardMaterial } from 'three'
 import { patchSurfaceWeather } from '../../weather/surfaceWeather'
 import { SURFACE_SETS, surfaceTextures } from '../terrainTextures'
 
-export type Surface = 'terrain' | 'rock' | 'karst' | 'paving' | 'gravel' | 'masonry' | 'distant'
+export type Surface = 'terrain' | 'rock' | 'karst' | 'scholar' | 'paving' | 'gravel' | 'masonry' | 'distant'
 
 const layer = (set: (typeof SURFACE_SETS)[number]) => `${SURFACE_SETS.indexOf(set)}.0`
 
@@ -179,6 +179,11 @@ const SURFACES: Record<Surface, string> = {
     // Below the cloud tops the stone is soaked and dark.
     float soak = (1.0 - smoothstep(-170.0, -90.0, sp.y));
     surfAlbedo *= 1.0 - soak * 0.35; surfRough *= 1.0 - soak * 0.25;
+  `,
+  // Garden 景石 (Taihu limestone): water-worn pale grey on a metre scale, darkest in its hollows, no moss.
+  scholar: /* glsl */ `
+    ${ROCK(4, 17.9)}
+    surfAlbedo = mix(surfAlbedo, vec3(dot(surfAlbedo, vec3(0.2126, 0.7152, 0.0722))), 0.55) * vec3(1.85, 1.85, 1.8);
   `,
   distant: /* glsl */ `
     vec4 rA, rD, mA, mD; vec3 rN, mN;
