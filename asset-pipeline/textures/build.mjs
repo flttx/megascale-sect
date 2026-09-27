@@ -14,6 +14,8 @@ import { loadPlanes, downTo, normalToRGB8, packRGB8, stretch, rawOpts, heightToN
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
 const PROJECT = path.resolve(ROOT, '..', '..');
 const OUT = path.join(PROJECT, 'public', 'assets', 'textures');
+// Only the .1k maps ship (every quality preset samples them); the 2K masters and unshipped sets stay here.
+const HI = path.join(ROOT, 'hi');
 
 // Lossy WebP is always YUV 4:2:0: on normals the error is dominated by chroma subsampling, not by
 // quality (q80 vs q92 differ < 0.5 deg mean on grass/gravel), so q80 buys budget (total <= 40 MB). ARM is near-lossless because lossy
@@ -37,8 +39,8 @@ async function writeWebp(buf, w, channels, opts, file) {
 
 async function buildSet(set, cfg) {
   const src = path.join(ROOT, 'raw', set);
-  const dst = path.join(OUT, set);
-  fs.mkdirSync(dst, { recursive: true });
+  const dst = path.join(cfg.ship === false ? HI : OUT, set), hi = path.join(HI, set);
+  fs.mkdirSync(dst, { recursive: true }); fs.mkdirSync(hi, { recursive: true });
   const report = {};
   const W = 2048, W1 = 1024;
 
@@ -47,7 +49,7 @@ async function buildSet(set, cfg) {
   const diff = await loadPlanes(diffFile);
   if (diff.w !== W || diff.h !== W) throw new Error(`${set}: diff is ${diff.w}x${diff.h}`);
   const d8 = packRGB8(diff.planes[0], diff.planes[1], diff.planes[2], W * W);
-  report['diff.webp'] = await writeWebp(d8, W, 3, Q.diff, path.join(dst, 'diff.webp'));
+  report['diff.webp'] = await writeWebp(d8, W, 3, Q.diff, path.join(hi, 'diff.webp'));
   const d1 = diff.planes.map((p) => downTo(p.map(toLin), W, W, W1).map(toSrgb));
   report['diff.1k.webp'] = await writeWebp(packRGB8(d1[0], d1[1], d1[2], W1 * W1), W1, 3, Q.diff, path.join(dst, 'diff.1k.webp'));
 
@@ -60,14 +62,14 @@ async function buildSet(set, cfg) {
   } else {
     norPlanes = (await loadPlanes(find(src, 'nor_gl'))).planes;
   }
-  report['nor.webp'] = await writeWebp(normalToRGB8(norPlanes, W, W, W), W, 3, Q.nor, path.join(dst, 'nor.webp'));
+  report['nor.webp'] = await writeWebp(normalToRGB8(norPlanes, W, W, W), W, 3, Q.nor, path.join(hi, 'nor.webp'));
   report['nor.1k.webp'] = await writeWebp(normalToRGB8(norPlanes, W, W, W1), W1, 3, Q.nor, path.join(dst, 'nor.1k.webp'));
 
   // --- ARM ---
   const aoFile = find(src, 'ao');
   const ao = aoFile ? (await loadPlanes(aoFile)).planes[0] : null;
   const rough = (await loadPlanes(find(src, 'rough'))).planes[0];
-  report['arm.webp'] = await writeWebp(packRGB8(ao ?? 1, rough, 0, W * W), W, 3, Q.arm, path.join(dst, 'arm.webp'));
+  report['arm.webp'] = await writeWebp(packRGB8(ao ?? 1, rough, 0, W * W), W, 3, Q.arm, path.join(hi, 'arm.webp'));
   const ao1 = ao ? downTo(ao, W, W, W1) : 1;
   report['arm.1k.webp'] = await writeWebp(packRGB8(ao1, downTo(rough, W, W, W1), 0, W1 * W1), W1, 3, Q.arm, path.join(dst, 'arm.1k.webp'));
 
@@ -83,7 +85,7 @@ async function buildSet(set, cfg) {
       const h = downTo(plane, W, W, size);
       const g = Buffer.alloc(size * size);
       for (let i = 0; i < g.length; i++) g[i] = Math.round(Math.min(1, Math.max(0, h[i])) * 255);
-      report[name] = await writeWebp(g, size, 1, Q.height, path.join(dst, name));
+      report[name] = await writeWebp(g, size, 1, Q.height, path.join(name === 'height.webp' ? hi : dst, name));
     }
   }
   return { report, hasAO: !!ao, heightRange };

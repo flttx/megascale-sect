@@ -86,17 +86,5 @@
     "lowSuffix": ".1k",
     "aoIsWhite": true,
     "normalDerivedFromHeight": true
-  },
-  "roof_tiles": {
-    "id": "grey_roof_tiles",
-    "source": "polyhaven",
-    "scaleMeters": 3,
-    "sourceMeters": 3,
-    "maps": [
-      "diff",
-      "nor",
-      "arm"
-    ],
-    "lowSuffix": ".1k"
   }
 }

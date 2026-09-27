@@ -91,6 +91,10 @@
     - 天象中的薄雾：山岚、雨、雪、雷暴按雾量把衰减率插回旧值，雾仍能漫上柱顶。
     - README：25 根石柱有可降落岩架，其中 13 根在柱顶。
     - 复验：tsc、build、verify:visual（21/21）、verify:riding-pose、verify:smoke、verify:interact（37/37）通过。
+- 2026-09-27 R7a（资产瘦身）：
+  - **贴图**：运行时只读 `.1k` 贴图，2k 母版与没有材质使用的 roof_tiles 移到 `asset-pipeline/textures/hi/`；`build.mjs` 的 2k 输出改到这里，`meta.mjs`、`contact.mjs` 改按实际发布的 1k 文件生成清单与对照图。
+  - **模型**：删除不再加载的 Tripo 道具（pine_tall / pine_guest / pine_small / rock_moss，已由 Blender 松树与巨石替代；floating_isle_a/b、banner_pole 从未使用）和未使用的 kun.lod1，可按 `scripts/tripo/manifest.lock.json` 与 `asset-pipeline/kun/` 重新生成。
+  - **结果**：dist 103 → 67 MB（贴图 38 → 7.2 MB）。`vite preview` 实跑（进入世界、换人、御剑）无 4xx 请求；dist 中未被请求的只剩两份说明文件与 56 KB 的 meditation_platform.lod1。
 
 ## 生产级重建（2026-09）
 

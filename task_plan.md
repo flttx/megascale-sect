@@ -75,6 +75,13 @@
 - [x] 独立审查与修正：亮度统计误用 R 通道、fogDepth 阈值处雾量跳变、天象中薄雾不再漫上柱顶、README 降落柱数（findings.md）
 - [x] README / PROGRESS 更新，全部验证脚本复跑，提交
 
+### R7 后续优化（2026-09-27，用户同意“按建议来”）— in_progress
+- [x] R7a 资产瘦身：2k 贴图与 roof_tiles 移出 public（留在 asset-pipeline/textures/hi/），删除不再加载的 Tripo 道具（pine_* / rock_moss / floating_isle_* / banner_pole）与 kun.lod1；build.mjs 的 2k 输出改到 hi/；构建后无 404。dist 103 → 67 MB；vite preview 实跑无 4xx，dist 中未被请求的只剩说明文件与 56 KB 的 meditation_platform.lod1
+- [ ] R7b 建筑屋顶降饱和：山门、主殿、侧塔的蓝色琉璃瓦按色相降饱和，不改源 GLB；截图前后对比
+- [ ] R7c 腾出绘制预算：按物体统计最差视角（高档 / 雷暴 / 道路）的调用来源，远处 LOD1 不投影、小物体不进远级联等；verify:perf
+- [ ] R7d 主平台分层台地（原 R4 未完成项）：中轴御道、分层台阶、栏杆、铜鼎、旗杆、树池、水池，铺装磨损与色差；新内容实例化 / 合并；行走面、碰撞体、交互点与导航不回归
+- [ ] R7e 独立审查、README / PROGRESS / findings 更新、全部验证复跑
+
 ## 并行任务（后台 agent，只产出资产，不改 src/）
 | agent | 内容 | 输出 |
 | --- | --- | --- |

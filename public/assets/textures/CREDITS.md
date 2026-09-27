@@ -2,7 +2,7 @@
 
 All textures below are licensed **CC0 1.0 Universal (public domain)**. Attribution is not required but is given here with thanks.
 
-Maps were downloaded at 2K and re-encoded to WebP (diffuse sRGB q85; OpenGL +Y normals q80; ARM = R ambient occlusion, G roughness, B metalness 0, near-lossless; optional grayscale height, percentile-stretched to 0..1). `*.1k.webp` are 2:1 box-downsampled versions for the low quality preset. Build scripts live in `asset-pipeline/textures/`.
+Maps were downloaded at 2K and re-encoded to WebP (diffuse sRGB q85; OpenGL +Y normals q80; ARM = R ambient occlusion, G roughness, B metalness 0, near-lossless; optional grayscale height, percentile-stretched to 0..1). Only the 2:1 box-downsampled `*.1k.webp` maps ship; every quality preset samples them. The 2K masters stay in `asset-pipeline/textures/hi/` with the build scripts.
 
 Modifications: `marble` (ambientCG Marble019) ships no AO map, so its ARM red channel is white; its normal map was re-derived from the source displacement map because the supplied NormalGL is nearly flat.
 
@@ -15,7 +15,6 @@ Modifications: `marble` (ambientCG Marble019) ships no AO map, so its ARM red ch
 | gravel | Poly Haven | `rocky_trail` | Rocky Trail | Amal Kumar | 2 m | CC0 | https://polyhaven.com/a/rocky_trail |
 | paving | Poly Haven | `large_grey_tiles` | Large Grey Tiles | Rob Tuytel | 3 m | CC0 | https://polyhaven.com/a/large_grey_tiles |
 | marble | ambientCG | `Marble019` | Marble 019 | ambientCG (Lennart Demes) | n/a | CC0 | https://ambientcg.com/view?id=Marble019 |
-| roof_tiles | Poly Haven | `grey_roof_tiles` | Grey Roof Tiles | Rob Tuytel | 3 m | CC0 | https://polyhaven.com/a/grey_roof_tiles |
 
 - Poly Haven licence: https://polyhaven.com/license
 - ambientCG licence: https://docs.ambientcg.com/license/

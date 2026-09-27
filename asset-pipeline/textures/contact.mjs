@@ -31,7 +31,7 @@ async function lit(set) {
   return sharp(out, { raw: { width: S, height: S, channels: 3 } }).resize(T, T).png().toBuffer();
 }
 
-const sets = Object.keys(SETS);
+const sets = Object.keys(SETS).filter((set) => SETS[set].ship !== false);
 const manifest = JSON.parse(fs.readFileSync(path.join(TEX, 'manifest.json'), 'utf8'));
 const W = COLS.length * T, H = HEAD + sets.length * (T + LBL);
 const comps = [{ input: label('diff (sRGB) | nor (OpenGL +Y) | arm (R=AO G=rough B=metal) | lit preview (light from upper-left) | height', W, HEAD, 16, '#000'), left: 0, top: 0 }];
@@ -43,7 +43,7 @@ for (const [r, set] of sets.entries()) {
     let buf;
     if (map === 'lit') buf = await lit(set);
     else {
-      const f = path.join(TEX, set, `${map}.webp`);
+      const f = path.join(TEX, set, `${map}.1k.webp`);
       if (!fs.existsSync(f)) continue;
       buf = await sharp(f).resize(T, T).png().toBuffer();
     }

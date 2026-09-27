@@ -11,10 +11,11 @@ const round2 = (v) => Math.round(v * 100) / 100;
 const manifest = {};
 const rows = [];
 for (const [set, cfg] of Object.entries(SETS)) {
+  if (cfg.ship === false) continue;
   const meta = JSON.parse(fs.readFileSync(path.join(ROOT, 'meta', `${set}.json`), 'utf8'));
   const info = meta.info;
   const files = fs.readdirSync(path.join(TEX, set));
-  const maps = ['diff', 'nor', 'arm', 'height'].filter((m) => files.includes(`${m}.webp`));
+  const maps = ['diff', 'nor', 'arm', 'height'].filter((m) => files.includes(`${m}.1k.webp`));
   let title, authors, url, sourceMeters = null;
   if (cfg.source === 'polyhaven') {
     title = info.name;
@@ -45,7 +46,7 @@ const md = [
   '',
   'All textures below are licensed **CC0 1.0 Universal (public domain)**. Attribution is not required but is given here with thanks.',
   '',
-  'Maps were downloaded at 2K and re-encoded to WebP (diffuse sRGB q85; OpenGL +Y normals q80; ARM = R ambient occlusion, G roughness, B metalness 0, near-lossless; optional grayscale height, percentile-stretched to 0..1). `*.1k.webp` are 2:1 box-downsampled versions for the low quality preset. Build scripts live in `asset-pipeline/textures/`.',
+  'Maps were downloaded at 2K and re-encoded to WebP (diffuse sRGB q85; OpenGL +Y normals q80; ARM = R ambient occlusion, G roughness, B metalness 0, near-lossless; optional grayscale height, percentile-stretched to 0..1). Only the 2:1 box-downsampled `*.1k.webp` maps ship; every quality preset samples them. The 2K masters stay in `asset-pipeline/textures/hi/` with the build scripts.',
   '',
   'Modifications: `marble` (ambientCG Marble019) ships no AO map, so its ARM red channel is white; its normal map was re-derived from the source displacement map because the supplied NormalGL is nearly flat.',
   '',

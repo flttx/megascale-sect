@@ -11,5 +11,6 @@ export const SETS = {
   // Its shipped NormalGL is nearly flat (+-1.6 deg), so the normal is re-derived from its displacement
   // (wrap-around blur radius 1 x2, gradient strength 3 -> mean tilt ~3 deg, p99 ~14 deg).
   marble: { source: 'ambientcg', id: 'Marble019', height: false, scaleMeters: 1, normalFromHeight: { blur: 1, strength: 3 } },
-  roof_tiles: { source: 'polyhaven', id: 'grey_roof_tiles', height: false, scaleMeters: 3 },
+  // Not sampled by any runtime material, so it is built into hi/ only (ship: false).
+  roof_tiles: { source: 'polyhaven', id: 'grey_roof_tiles', height: false, scaleMeters: 3, ship: false },
 };
