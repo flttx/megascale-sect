@@ -81,6 +81,9 @@ export function applyWeather() {
   a.overcast = b.overcast
   a.fogDensity *= b.fogMul
   a.fogBase += b.fogLift
+  // Thick weather keeps a deeper mist layer (decay 0.009 → 0.0058 /m at mountain-mist strength), so it still
+  // swallows the pillar tops instead of only thickening near the cloud sea.
+  a.fogFalloff *= MathUtils.lerp(1, 0.0058 / 0.009, MathUtils.clamp((b.fogMul - 1) / 2.4, 0, 1))
   a.sunColor.multiplyScalar(1 - b.sunDim)
   a.moonIntensity *= 1 - b.sunDim
   a.stars *= 1 - MathUtils.smoothstep(b.cover, 0.6, 0.95)

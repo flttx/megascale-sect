@@ -3,7 +3,7 @@ import { atmosphere } from './atmosphere'
 import { skyLut } from './skyModel'
 
 /** Aerial-haze extinction (1/m) at y = 0; it thins with altitude (scale height 1.5 km). */
-const AERIAL = 1.6e-4
+const AERIAL = 1.0e-4
 
 /**
  * One set of fog uniforms shared (by reference) by the post-process atmosphere pass and every material

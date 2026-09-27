@@ -37,13 +37,16 @@ uniform vec3 fogTint; uniform vec3 fogSunColor; uniform vec3 fogSunDir;
 uniform float fogDensity; uniform float fogFalloff; uniform float fogBase; uniform float fogAerial;
 float fogMistShare = 0.5;
 float fogDepth(vec3 origin, vec3 dir, float dist, float falloff, float base) {
-  float k = dir.y * falloff;
-  float path = abs(k) < 1e-4 ? dist : (1.0 - exp(-dist * k)) / k;
+  // Linearise on the optical exponent dist·k, not on k alone, or the path jumps where |k| crosses the cut.
+  float k = dir.y * falloff, x = dist * k;
+  float path = abs(x) < 1e-3 ? dist * (1.0 - 0.5 * x) : (1.0 - exp(-x)) / k;
   return exp(-(origin.y - base) * falloff) * path;
 }
 float heightFog(vec3 origin, vec3 dir, float dist) {
   float mist = fogDensity * fogDepth(origin, dir, dist, fogFalloff, fogBase);
-  float aerial = fogAerial * fogDepth(origin, dir, dist, 1.0 / 1500.0, 0.0);
+  // Aerial haze builds in over the first ~kilometre (path d²/(d + 800)), so mid-range pillars keep their
+  // contrast while distant ridges still fade into the sky.
+  float aerial = fogAerial * fogDepth(origin, dir, dist * dist / (dist + 800.0), 1.0 / 1500.0, 0.0);
   fogMistShare = mist / max(mist + aerial, 1e-7);
   return 1.0 - exp(-max(mist + aerial, 0.0));
 }

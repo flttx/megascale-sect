@@ -3,6 +3,8 @@ import { sunTransmittance } from './skyModel'
 
 /** Height (m) where the height fog is at its base density; weather lifts it every frame. */
 const FOG_BASE = -110
+/** Clear-sky mist decay (1/m, ≈111 m scale height); heavy weather relaxes it so the mist climbs the peaks. */
+const FOG_FALLOFF = 0.009
 
 /**
  * Mutable sky state shared by the sky dome, cloud sea, lights and post FX.
@@ -16,7 +18,7 @@ export const atmosphere = {
   moonColor: new Color('#9fb3e6'), moonIntensity: 0,
   zenith: new Color(), horizon: new Color(), ground: new Color(),
   hemiSky: new Color(), hemiGround: new Color(), hemiIntensity: 0, envIntensity: 0,
-  fogColor: new Color(), fogDensity: 0, fogFalloff: 0.0058, fogBase: FOG_BASE,
+  fogColor: new Color(), fogDensity: 0, fogFalloff: FOG_FALLOFF, fogBase: FOG_BASE,
   cloudLit: new Color(), cloudShade: new Color(), cloudCover: 0.5,
   /** Solid cloud veil over the whole sky (weather); hides sun disk, moon and stars. */
   overcast: 0,
@@ -45,9 +47,11 @@ const KEYS: Key[] = [
   { at: -0.3, zenith: '#03060f', horizon: '#111a2c', ground: '#0b1120', sun: '#000000', sunI: 0, hemiSky: '#3d5080', hemiGround: '#0d121c', hemiI: 0.8, env: 0.6, fog: '#141c2c', fogD: 0.00066, cloudLit: '#3a4865', cloudShade: '#141b2b', stars: 1, exposure: 2.1 },
   { at: -0.08, zenith: '#111c38', horizon: '#57466a', ground: '#1f2233', sun: '#ff6a3a', sunI: 0, hemiSky: '#4d5a86', hemiGround: '#15151e', hemiI: 0.42, env: 0.45, fog: '#3b3d55', fogD: 0.00072, cloudLit: '#8a6f86', cloudShade: '#2b2d44', stars: 0.55, exposure: 1.6 },
   { at: 0.02, zenith: '#34568f', horizon: '#f09a62', ground: '#5a4c52', sun: '#ff8a4a', sunI: 2.4, hemiSky: '#9aa7c8', hemiGround: '#4a3a36', hemiI: 0.3, env: 0.38, fog: '#a9a0b0', fogD: 0.0006, cloudLit: '#ffc49a', cloudShade: '#7a7088', stars: 0.05, exposure: 1.1 },
-  { at: 0.18, zenith: '#3f74bb', horizon: '#e8cfb4', ground: '#6e6c6c', sun: '#ffd3a1', sunI: 4.0, hemiSky: '#c9d8f0', hemiGround: '#6c6358', hemiI: 0.32, env: 0.42, fog: '#c6c8ce', fogD: 0.00054, cloudLit: '#fff1df', cloudShade: '#9ea5b8', stars: 0, exposure: 1.08 },
-  { at: 0.45, zenith: '#3b77c9', horizon: '#c9dbee', ground: '#6f7984', sun: '#fff1dc', sunI: 4.4, hemiSky: '#d3e2f6', hemiGround: '#5f646c', hemiI: 0.3, env: 0.42, fog: '#bccfe2', fogD: 0.00048, cloudLit: '#ffffff', cloudShade: '#aab8cb', stars: 0, exposure: 1.05 },
-  { at: 1, zenith: '#3571c4', horizon: '#c6d9ed', ground: '#727c87', sun: '#fff6ea', sunI: 4.6, hemiSky: '#d6e4f8', hemiGround: '#62676f', hemiI: 0.3, env: 0.42, fog: '#b8cce1', fogD: 0.00047, cloudLit: '#ffffff', cloudShade: '#adbbce', stars: 0, exposure: 1.02 },
+  // Golden hour (sun ≈ 6°): warm mist and cloud light against cool sky-lit shadows.
+  { at: 0.1, zenith: '#3a62a4', horizon: '#f2b27c', ground: '#6a5a50', sun: '#ffb070', sunI: 3.0, hemiSky: '#9cb0d8', hemiGround: '#6e5442', hemiI: 0.31, env: 0.4, fog: '#bfa6a0', fogD: 0.00044, cloudLit: '#ffc88c', cloudShade: '#86788e', stars: 0, exposure: 1.02 },
+  { at: 0.18, zenith: '#3f74bb', horizon: '#e8cfb4', ground: '#6e6c6c', sun: '#ffd3a1', sunI: 4.0, hemiSky: '#c9d8f0', hemiGround: '#6c6358', hemiI: 0.32, env: 0.42, fog: '#c6c8ce', fogD: 0.0004, cloudLit: '#fff1df', cloudShade: '#9ea5b8', stars: 0, exposure: 1.08 },
+  { at: 0.45, zenith: '#3b77c9', horizon: '#c9dbee', ground: '#6f7984', sun: '#fff1dc', sunI: 4.4, hemiSky: '#d3e2f6', hemiGround: '#5f646c', hemiI: 0.3, env: 0.42, fog: '#bccfe2', fogD: 0.00033, cloudLit: '#ffffff', cloudShade: '#aab8cb', stars: 0, exposure: 1.05 },
+  { at: 1, zenith: '#3571c4', horizon: '#c6d9ed', ground: '#727c87', sun: '#fff6ea', sunI: 4.6, hemiSky: '#d6e4f8', hemiGround: '#62676f', hemiI: 0.3, env: 0.42, fog: '#b8cce1', fogD: 0.00032, cloudLit: '#ffffff', cloudShade: '#adbbce', stars: 0, exposure: 1.02 },
 ]
 const PARSED = KEYS.map((k) => ({ ...k, c: Object.fromEntries((['zenith', 'horizon', 'ground', 'sun', 'hemiSky', 'hemiGround', 'fog', 'cloudLit', 'cloudShade'] as const).map((name) => [name, new Color(k[name])])) }))
 const MAX_ELEVATION = MathUtils.degToRad(64)
@@ -82,7 +86,7 @@ export function updateAtmosphere(hours: number) {
   mix('cloudLit', a.cloudLit); mix('cloudShade', a.cloudShade)
   const lerp = (key: 'sunI' | 'hemiI' | 'env' | 'fogD' | 'stars' | 'exposure') => MathUtils.lerp(k0[key], k1[key], t)
   a.sunIntensity = lerp('sunI'); a.hemiIntensity = lerp('hemiI'); a.envIntensity = lerp('env')
-  a.fogDensity = lerp('fogD'); a.fogBase = FOG_BASE; a.stars = lerp('stars'); a.exposure = lerp('exposure')
+  a.fogDensity = lerp('fogD'); a.fogFalloff = FOG_FALLOFF; a.fogBase = FOG_BASE; a.stars = lerp('stars'); a.exposure = lerp('exposure')
   a.moonIntensity = MathUtils.smoothstep(-y, -0.02, 0.2) * 0.9
   a.night = 1 - MathUtils.smoothstep(y, -0.1, 0.1)
   a.haze = 1; a.skyDesat = 0; a.skyDarken = 0; a.flash = 0
