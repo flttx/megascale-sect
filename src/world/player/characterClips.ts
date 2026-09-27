@@ -137,8 +137,7 @@ export class ClipLayer {
       // The foot on the ground pushes off and trails; the swinging one leads (left mid-stance at stride π).
       this.leapSide = Math.cos(this.stride) < 0 ? -1 : 1
     } else if (inAir) this.airTime += delta
-    // Touchdown after more than a hop: the land clip, stronger the longer the fall (about half for a jump on the level,
-    // 0.6 s in the air; a full crouch from a second or more).
+    // Touchdown after more than a hop: about 0.62 strength for a level jump (0.61 s), full strength at 0.9 s.
     if (onFoot && this.wasInAir) { this.landTime = 0; this.landStrength = smooth((this.airTime - 0.2) / 0.7) }
     this.wasInAir = inAir
     this.landTime += delta

@@ -13,7 +13,9 @@ export const uiBridge = {
 
 /** Re-acquires pointer lock on the game canvas (needs a user gesture unless the lock was released by script). */
 export function requestLock() {
-  const canvas = uiBridge.canvas
+  // R3F may replace the canvas after a remount; never request a lock on a detached element.
+  const canvas = uiBridge.canvas?.isConnected ? uiBridge.canvas : document.querySelector('canvas')
+  uiBridge.canvas = canvas
   if (!canvas || document.pointerLockElement === canvas) return
   try {
     const result: unknown = canvas.requestPointerLock()

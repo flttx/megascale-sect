@@ -17,6 +17,14 @@ const AIR_STEP = 0.45
 const LANDING_DROP = 8
 /** Torso (knee to crown) and radius tested against props, steles and rock for walking. */
 const BODY = { bottom: 0.45, top: 1.7, radius: 0.35 }
+export interface GroundStep { touchdown: number; grounded: boolean; sliding: boolean }
+/** Inspect before consuming a buffered jump; a sliding foot cannot push off. */
+export function groundState(position: Vector3): GroundStep {
+  const h = groundHeight(position.x, position.z, position.y)
+  const grounded = h !== null && position.y <= h + 0.04
+  const gradient = grounded ? terrainGradient(position.x, position.z, position.y) : null
+  return { touchdown: 0, grounded, sliding: gradient !== null && Math.hypot(gradient.x, gradient.z) > SLIDE_GRADIENT }
+}
 const fall = { x: 0, z: 0 }, probeGradient = { x: 0, z: 0 }
 const forward = new Vector3(), right = new Vector3(), desired = new Vector3()
 /** Set for a step that starts inside a prop collider (e.g. an uneven pillar top), so the player can walk out of it. */
@@ -66,7 +74,7 @@ function canFly(nx: number, nz: number, y: number) {
 
 /**
  * One ground step: jog (sprint with `sprinting`), jump, slide down ground too steep to stand on, fall.
- * Returns the downward speed at touchdown when the feet land this step, else 0.
+ * Returns footing and the downward speed at touchdown (zero without a landing).
  */
 export function stepGround(
   position: Vector3, velocity: Vector3, input: Vector3, yaw: number,
@@ -125,15 +133,15 @@ export function stepGround(
   if (!airborne && velocity.y <= 0 && position.y > surface && position.y - surface <= stepLength * DROP_GRADIENT + 0.05) {
     velocity.y = 0
     position.y = surface
-    return 0
+    return { touchdown: 0, grounded: true, sliding }
   }
   if (velocity.y > 0 || position.y > surface + 0.04) {
     velocity.y -= LAYOUT.player.gravity * delta
     position.y += velocity.y * delta
-    if (position.y > surface) return 0
+    if (position.y > surface) return { touchdown: 0, grounded: false, sliding }
   }
   const landing = Math.max(0, -velocity.y)
   velocity.y = 0
   position.y = surface
-  return airborne ? landing : 0
+  return { touchdown: airborne ? landing : 0, grounded: true, sliding }
 }

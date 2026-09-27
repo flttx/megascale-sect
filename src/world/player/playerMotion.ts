@@ -1,7 +1,7 @@
 import { Vector3 } from 'three'
 import { groundHeight, LAYOUT, terrainSlope } from '../worldLayout'
 import { stepFlight } from './FlightController'
-import { stepGround } from './GroundController'
+import { groundState, JUMP_SPEED, stepGround } from './GroundController'
 
 export type PlayerPhase = 'GROUND' | 'SUMMONING' | 'BOARDING' | 'FLIGHT' | 'LANDING' | 'DISMOUNTING'
 export const PHASE_LABELS: Record<PlayerPhase, string> = {
@@ -111,23 +111,29 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
     case 'GROUND': {
       runtime.jumpBuffer = Math.max(0, runtime.jumpBuffer - delta)
       // A press on the ground (or buffered into the landing) crouches first; the leap fires when the crouch bottoms out.
-      if (!runtime.takeoffTime && runtime.jumpBuffer > 0 && !runtime.inAir) {
+      const footing = groundState(position)
+      if (!runtime.takeoffTime && runtime.jumpBuffer > 0 && !runtime.inAir && footing.grounded && !footing.sliding) {
         runtime.jumpBuffer = 0
         runtime.takeoff = 0
         runtime.takeoffTime = TAKEOFF.standing + (TAKEOFF.running - TAKEOFF.standing) * smooth(Math.hypot(velocity.x, velocity.z) / LAYOUT.player.jogSpeed)
       }
       let leap = false
+      const windingUp = runtime.takeoffTime > 0
       if (runtime.takeoffTime) {
         runtime.takeoff += delta
         leap = runtime.takeoff >= runtime.takeoffTime
-        if (leap) runtime.takeoff = runtime.takeoffTime = 0
+        if (leap) { runtime.takeoff = runtime.takeoffTime = 0; runtime.jumpBuffer = 0 }
       }
-      const touchdown = stepGround(position, velocity, input, runtime.yaw, boosting, leap, delta)
-      // Stepping off an edge mid-crouch drops the jump.
-      if (velocity.y < 0) runtime.takeoff = runtime.takeoffTime = 0
-      runtime.inAir = velocity.y !== 0
+      const result = stepGround(position, velocity, input, runtime.yaw, boosting, leap, delta)
+      // A committed crouch may leave the ledge before its timer ends: keep that press, once.
+      if (windingUp && !result.grounded && velocity.y <= 0 && !result.sliding) {
+        velocity.y = JUMP_SPEED
+        runtime.takeoff = runtime.takeoffTime = runtime.jumpBuffer = 0
+      }
+      if (result.sliding) runtime.takeoff = runtime.takeoffTime = runtime.jumpBuffer = 0
+      runtime.inAir = !result.grounded || velocity.y > 0
       runtime.air += ((runtime.inAir ? 1 : 0) - runtime.air) * (1 - Math.exp(-12 * delta))
-      if (touchdown > 4) runtime.landing = Math.min(1, runtime.landing + touchdown / 18)
+      if (result.touchdown > 4) runtime.landing = Math.min(1, runtime.landing + result.touchdown / 18)
       if (Math.hypot(velocity.x, velocity.z) > 0.2) {
         const desired = Math.atan2(velocity.x, -velocity.z)
         const difference = Math.atan2(Math.sin(desired - runtime.facing), Math.cos(desired - runtime.facing))

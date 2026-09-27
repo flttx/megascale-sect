@@ -290,7 +290,7 @@ async function buildClips(c, T) {
   const restFeetMid = T.restW.get(PREFIX + 'LeftFoot').p.clone().add(T.restW.get(PREFIX + 'RightFoot').p).multiplyScalar(0.5)
 
   // jump: the second hop of the `jump` preset (a standing vertical jump, src 11..26) warped onto fixed marks that the
-  // game samples by phase (characterClips.ts JUMP_MARKS): crouch at 3, lift-off at 6, apex at 11, legs reaching for the
+  // game samples by phase (characterClips.ts JUMP): crouch at 3, lift-off at 6, apex at 11, legs reaching for the
   // ground at 16 (30 fps). jump_down, the old source, steps off a ledge: bent 94° and pitched 28° forward at take-off,
   // then a seated tuck all the way down.
   const hop = await src(c, T, 'jump')

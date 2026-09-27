@@ -4,6 +4,7 @@ import { director, endShot } from '../world/interact/cinematics'
 import { useWorldStore } from '../world/store'
 import { enterPhoto, exitPhoto } from './bridge'
 import { dismissOverlay, showOverlay, useUiStore } from './uiStore'
+import { isUiInput } from './gameKeys'
 
 /**
  * Global game-UI keys: E interact, Tab scroll, P photo mode, H hide HUD, Esc back out of shots/overlays.
@@ -12,30 +13,32 @@ import { dismissOverlay, showOverlay, useUiStore } from './uiStore'
 export function useUiKeys() {
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
-      const key = event.key.toLowerCase()
-      if (key === 'tab') event.preventDefault()
-      if (event.repeat) return
+      if (event.repeat || event.metaKey || event.ctrlKey) return
+      const key = event.code
       const world = useWorldStore.getState(), ui = useUiStore.getState()
+      if (key === 'KeyE' && ui.overlay?.kind === 'lore' && !(event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))) { dismissOverlay(); return }
+      if (isUiInput(event)) return
       const inputOk = world.locked || (import.meta.env.DEV && ui.devInput)
       const playing = world.started && world.cameraMode === 'player' && inputOk
+      if (key === 'Tab' && playing) event.preventDefault()
       if (world.cameraMode === 'photo') {
-        if (key === 'p' || key === 'escape') { event.preventDefault(); exitPhoto() }
-        else if (key === 'h') ui.setHudHidden(!ui.hudHidden)
+        if (key === 'KeyP' || key === 'Escape') { event.preventDefault(); exitPhoto() }
+        else if (key === 'KeyH') ui.setHudHidden(!ui.hudHidden)
         return
       }
       switch (key) {
-        case 'e': interactPressed(); break
-        case 'tab':
+        case 'KeyE': if (playing) interactPressed(); break
+        case 'Tab':
           if (ui.overlay?.kind === 'scroll') dismissOverlay()
           else if (!ui.overlay && playing) showOverlay({ kind: 'scroll' })
           break
-        case 'p':
+        case 'KeyP':
           if (playing && !ui.overlay && !director.shot) enterPhoto()
           break
-        case 'h':
+        case 'KeyH':
           if (world.started) ui.setHudHidden(!ui.hudHidden)
           break
-        case 'escape':
+        case 'Escape':
           if (director.shot) endShot()
           else if (ui.overlay) dismissOverlay()
           break

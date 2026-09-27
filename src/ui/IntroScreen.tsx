@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useProgress } from '@react-three/drei'
 import { SITES } from '../world/interact/registry'
 import { useWorldStore } from '../world/store'
@@ -30,6 +30,8 @@ export function IntroScreen({ saved, onEnter }: { saved: SavedPosition | null; o
   const characterReady = useWorldStore((state) => state.characterReady[state.character])
   const [resume, setResume] = useState(saved !== null)
   const loaded = ready && characterReady
+  const enterButton = useRef<HTMLButtonElement>(null)
+  useEffect(() => { if (loaded) enterButton.current?.focus() }, [loaded])
   const percent = loaded ? 100 : Math.min(99, Math.round(progress))
   return <div className="intro-screen" data-ready={loaded}>
     <div className="intro-art" style={{ backgroundImage: `url("${ART}")` }} aria-hidden="true" />
@@ -47,7 +49,7 @@ export function IntroScreen({ saved, onEnter }: { saved: SavedPosition | null; o
       {saved && <button className="intro-resume" aria-pressed={resume} onClick={() => setResume(!resume)}>
         <i aria-hidden="true" />从上次停留处继续 · {placeName(saved)}
       </button>}
-      <button className="enter-button" onClick={() => onEnter(resume ? saved : null)} disabled={!loaded}>
+      <button ref={enterButton} autoFocus className="enter-button" onClick={() => onEnter(resume ? saved : null)} disabled={!loaded}>
         {loaded ? '进入仙宗' : `载入仙宗 ${percent}%`} <span>→</span>
       </button>
       <ul className="intro-guide" aria-label="操作说明">
