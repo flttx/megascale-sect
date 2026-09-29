@@ -117,7 +117,7 @@ export function Kun() {
     const heading = Math.atan2(state.tangent.x, state.tangent.z), turn = heading - state.heading
     const yawRate = state.placed && dt > 0 ? Math.atan2(Math.sin(turn), Math.cos(turn)) / dt : 0
     state.heading = heading
-    const bankMax = getPlayerRuntime()?.aboard ? 0.15 : BANK_MAX
+    const bankMax = getPlayerRuntime()?.aboard?.surfaceId === 'kun' ? 0.15 : BANK_MAX
     const bank = Math.max(-bankMax, Math.min(bankMax, -yawRate * BANK_GAIN))
     state.bank += (bank - state.bank) * (1 - Math.exp(-dt * 1.2))
 

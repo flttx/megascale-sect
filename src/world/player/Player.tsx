@@ -95,7 +95,7 @@ export function Player() {
       characterReady: useWorldStore.getState().characterReady, audio: playerAudio.snapshot(),
       yaw: runtime.current.yaw, pitch: runtime.current.pitch,
       keys: [...keys.current], inAir: runtime.current.inAir, takeoffTime: runtime.current.takeoffTime,
-      aboard: runtime.current.aboard ? { triangle: runtime.current.aboard.triangle, u: runtime.current.aboard.u, v: runtime.current.aboard.v, point: runtime.current.aboard.point.toArray() } : null,
+      aboard: runtime.current.aboard ? { surfaceId: runtime.current.aboard.surfaceId, triangle: runtime.current.aboard.triangle, u: runtime.current.aboard.u, v: runtime.current.aboard.v, point: runtime.current.aboard.point.toArray() } : null,
       carrierVelocity: runtime.current.carrierVelocity.toArray(), carrierDelta: runtime.current.carrierDelta.toArray(),
       feet: avatar.current?.getObjectByName(`Character_${useWorldStore.getState().character}`)?.userData.footPlant?.snapshot(),
       ridingPose: avatar.current?.getObjectByName(`Character_${useWorldStore.getState().character}`)?.userData.ridingPose?.(),

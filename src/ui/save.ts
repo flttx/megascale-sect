@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react'
 import legacyOrbs from './legacyOrbs.json'
 import { groundHit, insideStructure, LAYOUT, terrainSlope } from '../world/worldLayout'
 import { bodyInsideAnyCollider } from '../world/surfaces'
+import { isCarrier } from '../world/colossi/carriers'
 import type { VolumeChannel } from '../world/audio/mixer'
 import { getPlayerRuntime } from '../world/player/playerHandle'
 import type { CharacterId } from '../world/player/characterAssets'
@@ -176,7 +177,7 @@ function samplePosition() {
 
 function staticFooting(p: { x: number; y: number; z: number }, tolerance: number) {
   const hit = groundHit(p.x, p.z, p.y)
-  return hit && hit.surfaceId !== 'kun' && terrainSlope(p.x, p.z, p.y) <= 52 && Math.abs(p.y - hit.y) <= tolerance &&
+  return hit && !isCarrier(hit.surfaceId) && terrainSlope(p.x, p.z, p.y) <= 52 && Math.abs(p.y - hit.y) <= tolerance &&
     !bodyInsideAnyCollider(p.x, p.y + 0.45, p.y + 1.7, p.z, 0.35, 0, true) && !insideStructure(p.x, p.y + 1, p.z)
 }
 

@@ -39,6 +39,7 @@ const ROUTES = [
   { name: '登临长阶', number: '03 / 04', progress: 58, next: '目标 · 登顶长阶，入云阙广场' },
   { name: '主平台 · 云阙', number: '04 / 04', progress: 100, next: '自由探索 · 灵光、碑文、观景台与传送阵' },
   { name: '鲲背 · 云上巡游', number: '随鲲而行', progress: 100, next: '自由探索 · 拾取灵光，F 召剑离开' },
+  { name: '鳌背 · 云海浮山', number: '随鳌而行', progress: 100, next: '自由探索 · 登顶鳌背仙亭，F 召剑离开' },
 ]
 /** The route card announces each stage, then fades so the view stays clear. */
 const ROUTE_CARD_SECONDS = 7
@@ -55,7 +56,7 @@ const COMPACT_CONTROLS: [string, string][] = [['E', '交互'], ['TAB', '卷轴']
 function Interface() {
   const t = useTranslation()
   const started = useWorldStore((state) => state.started)
-  const routeIndex = useWorldStore((state) => getPlayerRuntime()?.aboard ? 4 : state.telemetry.position[2] > 64 ? 0 : state.telemetry.position[2] > 20 ? 1 : state.telemetry.position[2] > -65 ? 2 : 3)
+  const routeIndex = useWorldStore((state) => getPlayerRuntime()?.aboard ? (getPlayerRuntime()?.aboard?.surfaceId === 'turtle' ? 5 : 4) : state.telemetry.position[2] > 64 ? 0 : state.telemetry.position[2] > 20 ? 1 : state.telemetry.position[2] > -65 ? 2 : 3)
   const ready = useWorldStore((state) => worldAssetsReady(state.assets))
   const character = useWorldStore((state) => state.character)
   const characterReady = useWorldStore((state) => state.characterReady[state.character])

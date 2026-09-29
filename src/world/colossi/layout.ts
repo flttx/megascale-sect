@@ -105,3 +105,19 @@ export const KUN_PATH: Vec3[] = [
 ]
 /** Model scale and cruising speed (m/s) along the loop. */
 export const KUN = { scale: 1.2, speed: 40 }
+
+/**
+ * 巨鳌 (R10e): the turtle's closed loop (centripetal Catmull-Rom, [x, z]) round the sea stack in the south-west of
+ * 归墟云海. Its 205 m footprint keeps ≥ 170 m above the ground below the cloud sea, ≥ 520 m from every pillar,
+ * 1.4 km from the kun's low passes and 110 m inside the world bounds; the sharpest turn is 2.2° per 10 m.
+ */
+export const TURTLE_PATH: [number, number][] = [
+  [-1920, 1550], [-1971, 1325], [-2110, 1160], [-2300, 1100], [-2490, 1160], [-2629, 1325], [-2680, 1550],
+  [-2629, 1775], [-2490, 1940], [-2300, 2000], [-2110, 1940], [-1971, 1775],
+]
+/**
+ * Scale, speed (m/s), the model origin's height (its underside, deep in the cloud sea: shell rim ≈ −57, summit
+ * terrace ≈ +37, pavilion ridge ≈ +80), the swell it rides (m, s), the asset's footprint centre ahead of its origin
+ * (asset m) and the distance the reduced model takes over.
+ */
+export const TURTLE = { scale: 1.3, speed: 7, baseY: -115, bob: 1.2, bobPeriod: 14, centerZ: 24.15, lodDistance: 1400 }

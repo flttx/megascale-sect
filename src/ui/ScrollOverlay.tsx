@@ -4,6 +4,7 @@ import { roadAt } from '../world/environment/t02r/terrain'
 import { ORB_COUNT, ORB_GROUP_LABELS, ORBS, orbPosition } from '../world/interact/orbs'
 import { Vector3 } from 'three'
 import { kunState } from '../world/colossi/kunDeck'
+import { turtleState } from '../world/colossi/turtleDeck'
 import { COMPENDIUM, COMPENDIUM_GROUPS } from '../world/compendium/compendium'
 import { KUN_PATH } from '../world/colossi/layout'
 import type { OrbGroup } from '../world/interact/orbs'
@@ -146,6 +147,7 @@ function MapPanel() {
   const unit = view.w / 1000
   const player = useRef<SVGGElement | null>(null)
   const kun = useRef<SVGGElement | null>(null)
+  const turtle = useRef<SVGGElement | null>(null)
   const orbNodes = useRef(new Map<string, SVGCircleElement>())
   useEffect(() => {
     let frame = 0
@@ -156,6 +158,10 @@ function MapPanel() {
       if (kun.current) {
         kun.current.style.visibility = kunState.ready ? 'visible' : 'hidden'
         kun.current.setAttribute('transform', `translate(${kunState.center.x} ${kunState.center.z}) rotate(${-kunState.heading * 180 / Math.PI}) scale(${unit})`)
+      }
+      if (turtle.current) {
+        turtle.current.style.visibility = turtleState.ready ? 'visible' : 'hidden'
+        turtle.current.setAttribute('transform', `translate(${turtleState.center.x} ${turtleState.center.z}) rotate(${-turtleState.heading * 180 / Math.PI}) scale(${unit})`)
       }
       for (const orb of ORBS) {
         const node = orbNodes.current.get(orb.id)
@@ -226,6 +232,7 @@ function MapPanel() {
         </g>
         <g className="map-orbs">{ORBS.filter((o) => orbs.includes(o.id)).map((o) => <circle key={o.id} data-orb-id={o.id} ref={(node) => { if (node) orbNodes.current.set(o.id, node); else orbNodes.current.delete(o.id) }} r={unit * 2.2} />)}</g>
         <g ref={kun} className="map-kun" fill="#91d6c7" stroke="#d7ede1" strokeWidth="1.2"><title>{t('鲲 · 平飞时可停靠')}</title><ellipse rx="7" ry="17" /><path d="M-5 -10 L-13 -19 L0 -15 L13 -19 L5 -10 M-6 2 L-17 -3 L-6 7 M6 2 L17 -3 L6 7" /><text x="17" y="5" fontSize="12" stroke="none">{t('鲲')}</text></g>
+        <g ref={turtle} className="map-turtle" fill="#a9c79a" stroke="#e3edd6" strokeWidth="1.2"><title>{t('巨鳌 · 随时可停靠')}</title><ellipse rx="11" ry="13" /><circle cy="17" r="4" /><path d="M-9 6 L-19 10 L-10 11 M9 6 L19 10 L10 11 M-8 -8 L-15 -13 L-7 -12 M8 -8 L15 -13 L7 -12" /><text x="20" y="5" fontSize="12" stroke="none">{t('巨鳌')}</text></g>
         <g className="map-markers">{SITES.map((site) => <Marker key={site.id} site={site} done={siteDone(site, state)} unit={unit} />)}</g>
         <g ref={player} className="map-player"><circle r="11" className="map-player-ring" /><path d="M0 -13 L7.5 8 L0 3.5 L-7.5 8Z" /></g>
       </svg>

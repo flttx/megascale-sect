@@ -1,6 +1,7 @@
 import { Vector3 } from 'three'
 import { groundHeight, insideStructure, LAYOUT, TERRAIN_WALK_FLOOR } from '../worldLayout'
 import { insideAnyCollider } from '../surfaces'
+import { carrierDepth } from '../colossi/carriers'
 
 /**
  * Collider margin for the current step. A flight that starts inside a collider's 1 m margin (the sword caught the
@@ -8,7 +9,16 @@ import { insideAnyCollider } from '../surfaces'
  * tests none, so it can always fly back out.
  */
 let margin = 1
-const blocked = (x: number, y: number, z: number, structures = true) => (structures && insideStructure(x, y, z)) || (margin >= 0 && insideAnyCollider(x, y, z, margin, true))
+/**
+ * A flier may not go into the turtle (a slope lifts it in `moveAcross`, as terrain does), beyond a rounding skim;
+ * one the turtle has swum into may go anywhere no deeper, so up and out.
+ */
+const CARRIER_SKIM = 0.3
+/** The turtle's slopes and swell rise under a low flier; up to this depth it is lifted back over them. */
+const CARRIER_LIFT = 2
+let carrierLimit = CARRIER_SKIM
+const blocked = (x: number, y: number, z: number, structures = true) => (structures && insideStructure(x, y, z)) || (margin >= 0 && insideAnyCollider(x, y, z, margin, true)) ||
+  carrierDepth(x, y, z) > carrierLimit
 /** Longest collision substep (m): every collider grown by its 1 m margin is at least 2 m across, so none is skipped. */
 const SUBSTEP = 1
 const forward = new Vector3(), right = new Vector3(), desired = new Vector3(), step = new Vector3()
@@ -60,6 +70,9 @@ export function stepFlight(
   velocity.lerp(desired, blend)
   if (desired.lengthSq() === 0 && velocity.lengthSq() < 0.0025) velocity.set(0, 0, 0)
   margin = !insideAnyCollider(position.x, position.y, position.z, 1, true) ? 1 : !insideAnyCollider(position.x, position.y, position.z, 0, true) ? 0 : -1
+  const sunk = carrierDepth(position.x, position.y, position.z)
+  if (sunk > 0 && sunk < CARRIER_LIFT && !blocked(position.x, position.y + sunk + HOVER, position.z)) position.y += sunk + HOVER
+  carrierLimit = Math.max(CARRIER_SKIM, carrierDepth(position.x, position.y, position.z))
   const substeps = Math.max(1, Math.ceil(step.length() / SUBSTEP))
   step.divideScalar(substeps)
   for (let i = 0; i < substeps; i++) {

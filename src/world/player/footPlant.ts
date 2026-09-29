@@ -1,7 +1,7 @@
 import { Bone, Object3D, Quaternion, Vector3 } from 'three'
 import { groundHeight } from '../worldLayout'
 import type { PlayerRuntime } from './playerMotion'
-import { deckAnchor, evaluateDeckAnchor, kunDeckHit } from '../colossi/kunDeck'
+import { carrierAnchor, carrierHit, evaluateCarrierAnchor } from '../colossi/carriers'
 import type { DeckAnchor } from '../colossi/kunDeck'
 
 type Chain = { hip: Bone; knee: Bone; foot: Bone; anchor: Vector3; locked: boolean; sole: number; offset: number; deck: DeckAnchor | null }
@@ -48,13 +48,13 @@ export class FootPlant {
     for (const chain of this.chains) {
       const stance = standingOnDeck || (walking && Math.cos(stride + chain.offset) < -duty)
       if (!stance) { chain.locked = false; chain.deck = null; continue }
-      if (!!chain.deck !== !!state.aboard) chain.locked = false
+      if (chain.deck?.surfaceId !== state.aboard?.surfaceId) chain.locked = false
       if (!chain.locked) {
         chain.foot.getWorldPosition(chain.anchor); chain.locked = true
-        const hit = state.aboard ? kunDeckHit(chain.anchor.x, chain.anchor.z, chain.anchor.y + 0.5) : null
-        chain.deck = hit ? deckAnchor(hit) : null
+        const hit = state.aboard ? carrierHit(chain.anchor.x, chain.anchor.z, chain.anchor.y + 0.5) : null
+        chain.deck = hit ? carrierAnchor(hit) : null
       }
-      const carried = chain.deck ? evaluateDeckAnchor(chain.deck, chain.anchor) : null
+      const carried = chain.deck ? evaluateCarrierAnchor(chain.deck, chain.anchor) : null
       const surface = carried ? carried.y : groundHeight(chain.anchor.x, chain.anchor.z, chain.anchor.y + 0.5)
       if (surface === null) { chain.locked = false; continue }
       chain.anchor.y = surface + chain.sole * scale.y

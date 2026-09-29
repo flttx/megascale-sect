@@ -7,6 +7,7 @@ import { registerColliders } from '../surfaces'
 import { withSceneWeather } from '../weather/surfaceWeather'
 import { Armillary } from './Armillary'
 import { Kun } from './Kun'
+import { Turtle } from './Turtle'
 import { COLOSSI, colossusColliders, colossusMatrix } from './layout'
 import type { ColossusPlacement } from './layout'
 import { SWORD_FIELD, SWORD_FIELD_RANGE, swordFieldColliders } from './swordField'
@@ -63,7 +64,8 @@ const DISABLED = import.meta.env.DEV && new URLSearchParams(window.location.sear
 /**
  * 巨物 (R3): the two guardians rising from the cloud sea either side of the sect, the sword driven into the
  * eastern summit, the armillary sphere turning over the hall and the kun circling the ranges. R10 adds each outer
- * region's colossus: the seated sage, the dragon column, the sky gate and the sword tomb with its field of blades.
+ * region's colossus: the seated sage, the dragon column, the sky gate and the sword tomb with its field of blades,
+ * and 巨鳌 swimming the south-western cloud sea.
  * Their flight colliders are registered up front from the measured cross-sections (colossiMeta), before the models
  * stream in.
  */
@@ -76,6 +78,7 @@ export function Colossi() {
       <Suspense fallback={null}><SwordField /></Suspense>
       <Armillary />
       <Suspense fallback={null}><Kun /></Suspense>
+      <Suspense fallback={null}><Turtle /></Suspense>
     </>
   )
 }

@@ -3,7 +3,8 @@ import { groundHeight, groundHit, insideStructure, LAYOUT, terrainSlope } from '
 import { bodyInsideAnyCollider } from '../surfaces'
 import { stepFlight } from './FlightController'
 import { groundState, JUMP_SPEED, stepGround } from './GroundController'
-import { deckAnchor, evaluateDeckAnchor, kunBodyBlocked, kunClearance, kunDeckHit, kunDockable, kunState } from '../colossi/kunDeck'
+import { kunState } from '../colossi/kunDeck'
+import { carrierAnchor, carrierBodyBlocked, carrierClearance, carrierDockable, carrierHeading, carrierHit, evaluateCarrierAnchor, isCarrier } from '../colossi/carriers'
 import type { DeckAnchor } from '../colossi/kunDeck'
 import { shiftCameraRig } from './CameraRig'
 import { useWorldStore } from '../store'
@@ -83,23 +84,25 @@ export function carryPlayer(runtime: PlayerRuntime, delta: number) {
   runtime.carrierDelta.set(0, 0, 0)
   const anchor = runtime.aboard
   if (!anchor) { runtime.carrierVelocity.set(0, 0, 0); return 0 }
-  const now = evaluateDeckAnchor(anchor, carrierPoint)
+  const now = evaluateCarrierAnchor(anchor, carrierPoint)
   if (!now) { catchWithSword(runtime); return 0 }
   previousPoint.copy(anchor.point); playerBefore.copy(runtime.position)
-  const turn = Math.atan2(Math.sin(kunState.heading - anchor.yaw), Math.cos(kunState.heading - anchor.yaw))
+  const heading = carrierHeading(anchor.surfaceId), kun = anchor.surfaceId === 'kun'
+  const turn = Math.atan2(Math.sin(heading - anchor.yaw), Math.cos(heading - anchor.yaw))
   for (const p of [runtime.position, runtime.origin, runtime.destination]) p.sub(previousPoint).applyAxisAngle(UP, turn).add(now)
   runtime.carrierDelta.subVectors(runtime.position, playerBefore)
   if (delta > 0) runtime.carrierVelocity.copy(runtime.carrierDelta).divideScalar(delta)
   runtime.velocity.applyAxisAngle(UP, turn)
   runtime.yaw -= turn; runtime.facing -= turn; runtime.sequenceYaw -= turn
   shiftCameraRig(previousPoint, now, turn)
-  anchor.point.copy(now); anchor.yaw = kunState.heading
-  if (kunState.time >= 150 && !runtime.kunWarned) { runtime.kunWarned = true; localizedNotice('鲲将没入云海') }
+  anchor.point.copy(now); anchor.yaw = heading
+  if (kun && kunState.time >= 150 && !runtime.kunWarned) { runtime.kunWarned = true; localizedNotice('鲲将没入云海') }
   if (runtime.phase === 'LANDING') {
     runtime.destination.y = now.y + FLIGHT_SEQUENCE.hover
-    if (!kunDockable()) { changePhase(runtime, 'FLIGHT'); localizedNotice('鲲正没入云海，无法停靠') }
+    if (!carrierDockable(anchor.surfaceId)) { changePhase(runtime, 'FLIGHT'); localizedNotice('鲲正没入云海，无法停靠') }
   }
-  if (runtime.aboard && (runtime.position.y + Math.min(0, runtime.carrierVelocity.y) * delta <= -24 || kunState.headY < -44)) {
+  // The kun dives under the cloud sea; the turtle only swims in it, so its rim (y ≈ −57) is always safe to stand on.
+  if (kun && runtime.aboard && (runtime.position.y + Math.min(0, runtime.carrierVelocity.y) * delta <= -24 || kunState.headY < -44)) {
     catchWithSword(runtime); localizedNotice('飞剑载你离开鲲背')
   }
   return turn
@@ -107,7 +110,7 @@ export function carryPlayer(runtime: PlayerRuntime, delta: number) {
 
 export function updatePlayerSupport(runtime: PlayerRuntime) {
   if (runtime.phase !== 'GROUND') return
-  const p = runtime.position, hit = kunDeckHit(p.x, p.z, p.y)
+  const p = runtime.position, hit = carrierHit(p.x, p.z, p.y)
   if (runtime.inAir) {
     if (runtime.aboard && runtime.velocity.y > 0) runtime.aboardJump = true
     if (runtime.aboard && (!runtime.aboardJump || !hit)) {
@@ -115,10 +118,10 @@ export function updatePlayerSupport(runtime: PlayerRuntime) {
     }
     return
   }
-  if (hit && Math.abs(hit.y - p.y) < 0.08 && groundHit(p.x, p.z, p.y)?.surfaceId === 'kun') {
-    if (!runtime.aboard && !kunDockable()) { catchWithSword(runtime); return }
+  if (hit && Math.abs(hit.y - p.y) < 0.08 && groundHit(p.x, p.z, p.y)?.surfaceId === hit.surfaceId) {
+    if (!runtime.aboard && !carrierDockable(hit.surfaceId)) { catchWithSword(runtime); return }
     if (!runtime.aboard) runtime.kunWarned = false
-    runtime.aboard = deckAnchor(hit); runtime.aboardJump = false
+    runtime.aboard = carrierAnchor(hit); runtime.aboardJump = false
   } else runtime.aboard = null
 }
 
@@ -132,7 +135,7 @@ export function descentClear(x: number, fromY: number, toY: number, z: number) {
   const length = Math.max(0, fromY - toY) + 1.25
   for (const [dx, dz] of [[0, 0], [-0.3, 0], [0.3, 0], [0, -0.3], [0, 0.3]]) {
     descentRay.set(x + dx, Math.max(fromY, toY) + 1.7, z + dz)
-    if (kunClearance(descentRay, DOWN, length) < length - 1e-5) return false
+    if (carrierClearance(descentRay, DOWN, length) < length - 1e-5) return false
   }
   const steps = Math.max(1, Math.ceil(Math.abs(fromY - toY) / 0.5))
   for (let i = 0; i <= steps; i++) if (!bodyClear(x, fromY + (toY - fromY) * i / steps, z)) return false
@@ -155,7 +158,7 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
       const z = position.z - Math.cos(direction) * FLIGHT_SEQUENCE.step
       return { x, z, direction, height: groundHeight(x, z, position.y + 0.8) }
     }).find((candidate) => candidate.height !== null && Math.abs(position.y - candidate.height) <= 0.8 && bodyClear(candidate.x, candidate.height, candidate.z) &&
-      !kunBodyBlocked(position.x, position.y, position.z, candidate.x, candidate.z))
+      !carrierBodyBlocked(position.x, position.y, position.z, candidate.x, candidate.z))
     if (!landing || landing.height === null) return translate('请在平稳、开阔的位置召剑', language)
     runtime.origin.copy(position)
     runtime.destination.set(landing.x, landing.height + FLIGHT_SEQUENCE.hover, landing.z)
@@ -170,13 +173,13 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
     const surface = hit?.y ?? null
     if (surface === null) return translate('请飞到地面、平台或浮岛上方，再按 F 落地', language)
     if (terrainSlope(runtime.position.x, runtime.position.z, runtime.position.y) > 40) return translate('下方地势陡峭，请飞到平缓处再落地', language)
-    if (hit?.surfaceId === 'kun' && !kunDockable()) return translate('鲲正在爬升或入云，请待平飞时停靠', language)
-    if (hit && hit.normalY < Math.cos(40 * Math.PI / 180)) return translate('鲲背此处陡峭，请移到平缓处', language)
+    if (hit?.surfaceId === 'kun' && !carrierDockable('kun')) return translate('鲲正在爬升或入云，请待平飞时停靠', language)
+    if (hit && hit.normalY < Math.cos(40 * Math.PI / 180)) return translate(hit.surfaceId === 'turtle' ? '鳌背此处陡峭，请移到平缓处' : '鲲背此处陡峭，请移到平缓处', language)
     if (!descentClear(runtime.position.x, runtime.position.y, surface, runtime.position.z)) return translate('下方有遮挡，请移到开阔处落地', language)
     runtime.destination.copy(runtime.position).setY(surface + FLIGHT_SEQUENCE.hover)
     runtime.velocity.set(0, 0, 0)
     changePhase(runtime, 'LANDING')
-    if (hit?.surfaceId === 'kun') { runtime.aboard = deckAnchor(hit); runtime.kunWarned = false }
+    if (isCarrier(hit?.surfaceId)) { runtime.aboard = carrierAnchor(hit!); runtime.kunWarned = false }
     return null
   }
   if (runtime.phase === 'LANDING') {

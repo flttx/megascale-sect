@@ -2,6 +2,7 @@ import { MathUtils, Vector3 } from 'three'
 import type { PerspectiveCamera } from 'three'
 import { COLOSSUS_META } from '../colossi/colossiMeta'
 import { kunState } from '../colossi/kunDeck'
+import { turtleState } from '../colossi/turtleDeck'
 import { ARMILLARY, COLOSSI } from '../colossi/layout'
 import { worldTerrainHeight } from '../regions/regions'
 import { atmosphere } from '../sky/atmosphere'
@@ -42,6 +43,8 @@ export const cranePositions: Vector3[] = []
 const CRANE_RADIUS = 5
 /** The kun's bounding sphere (312 m nose to flukes); only counted while above the cloud sea. */
 const kun: Sphere = { center: kunState.center, radius: 130 }
+/** 巨鳌 from the cloud sea to its pavilion ridge (≈ 195 m above its origin), 205 m across the shell. */
+const turtle: Sphere = { center: new Vector3(), radius: 110 }
 
 const LIGHTNING_WINDOW = 1.5
 let sinceFlash = Infinity
@@ -68,6 +71,11 @@ export const COMPENDIUM: CompendiumEntry[] = [
   { id: 'sky_gate', group: 'colossus', name: '归墟天门', kind: 'body', minShare: 0.25, spheres: still(...colossusRow('sky_gate', 140)) },
   { id: 'sword_tomb', group: 'colossus', name: '万剑冢', kind: 'body', minShare: 0.25, spheres: still(colossusSphere('tomb_sword_0')) },
   { id: 'kun', group: 'creature', name: '鲲', kind: 'body', minShare: 0.2, spheres: () => kunState.ready && kun.center.y > CLOUD_SEA_Y + 20 ? [kun] : [] },
+  { id: 'turtle', group: 'creature', name: '巨鳌', kind: 'body', minShare: 0.2, spheres: () => {
+    if (!turtleState.ready) return []
+    turtle.center.set(turtleState.center.x, turtleState.center.y + 113, turtleState.center.z)
+    return [turtle]
+  } },
   { id: 'cranes', group: 'creature', name: '仙鹤', kind: 'body', minShare: 0.06, spheres: () => cranePositions.map((center) => ({ center, radius: CRANE_RADIUS })) },
   {
     // A strike within the last moment with some stretch of its bolt inside the frame.

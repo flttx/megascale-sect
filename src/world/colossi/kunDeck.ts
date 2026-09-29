@@ -3,7 +3,8 @@ import type { Object3D, SkinnedMesh } from 'three'
 import type { SurfaceAddress, SurfaceHit } from '../surfaces'
 import { KUN_DECK } from './kunDeckMeta'
 
-export type DeckAnchor = SurfaceAddress & { point: Vector3; yaw: number }
+/** A point on a carrier's deck (the kun's or, since R10e, 巨鳌's), where it was last frame and the carrier's heading then. */
+export type DeckAnchor = SurfaceAddress & { surfaceId: 'kun' | 'turtle'; point: Vector3; yaw: number }
 export const kunState = { ready: false, time: 0, heading: 0, headY: -Infinity, frame: 0, center: new Vector3() }
 export const kunDockable = () => kunState.ready && kunState.time >= 30 && kunState.time < 150
 type SkinPalette = { mesh: SkinnedMesh; matrices: Matrix4[]; world: Matrix4; frame: number }
@@ -142,7 +143,7 @@ export function evaluateDeckAnchor(address: SurfaceAddress, out: Vector3): Vecto
 export function deckAnchor(hit: SurfaceHit): DeckAnchor | null {
   if (!hit.anchor) return null
   const point = evaluateDeckAnchor(hit.anchor, new Vector3())
-  return point ? { ...hit.anchor, point, yaw: kunState.heading } : null
+  return point ? { ...hit.anchor, surfaceId: 'kun', point, yaw: kunState.heading } : null
 }
 export function kunOrbPosition(index: number, out: Vector3) {
   const address = KUN_DECK.orbs[index]

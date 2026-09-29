@@ -1,7 +1,7 @@
 import { MathUtils, Vector3 } from 'three'
 import { groundHeight, groundHit, insideMainFootprint, insideStructure, LAYOUT, terrainGradient } from '../worldLayout'
 import { bodyInsideAnyCollider } from '../surfaces'
-import { kunBodyBlocked } from '../colossi/kunDeck'
+import { carrierBodyBlocked, isCarrier } from '../colossi/carriers'
 
 /** Horizontal probe for slope checks, and the rise it may climb (45°) or drop (55°) over that distance. */
 const PROBE = 1.2
@@ -119,8 +119,8 @@ export function stepGround(
   const { world } = LAYOUT
   const nextX = MathUtils.clamp(position.x + velocity.x * delta, Math.min(world.minX, position.x), Math.max(world.maxX, position.x))
   const nextZ = MathUtils.clamp(position.z + velocity.z * delta, Math.min(world.minZ, position.z), Math.max(world.maxZ, position.z))
-  const allowed = (nx: number, nz: number) => !kunBodyBlocked(position.x, position.y, position.z, nx, nz) && (airborne ? canFly(nx, nz, position.y)
-    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep, footing?.surfaceId === 'kun'))
+  const allowed = (nx: number, nz: number) => !carrierBodyBlocked(position.x, position.y, position.z, nx, nz) && (airborne ? canFly(nx, nz, position.y)
+    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep, isCarrier(footing?.surfaceId)))
   // Blocked moves slide along the obstacle (cliff edge, steep bank) instead of stopping dead.
   if (allowed(nextX, nextZ)) {
     position.x = nextX
