@@ -4,6 +4,7 @@ import { roadAt } from '../world/environment/t02r/terrain'
 import { ORB_COUNT, ORB_GROUP_LABELS, ORBS, orbPosition } from '../world/interact/orbs'
 import { Vector3 } from 'three'
 import { kunState } from '../world/colossi/kunDeck'
+import { COMPENDIUM, COMPENDIUM_GROUPS } from '../world/compendium/compendium'
 import { KUN_PATH } from '../world/colossi/layout'
 import type { OrbGroup } from '../world/interact/orbs'
 import { KIND_LABELS, SITES, sitesOf } from '../world/interact/registry'
@@ -17,16 +18,17 @@ import { LAYOUT } from '../world/worldLayout'
 import { formatTrialTime, TRIAL_COURSES } from '../world/trials/courses'
 import { uiBridge } from './bridge'
 import { Dialog } from './Dialog'
-import { CORE_REGION, STELE_LORE, VIEWPOINT_REGIONS } from './lore'
+import { COMPENDIUM_LORE, CORE_REGION, STELE_LORE, VIEWPOINT_REGIONS } from './lore'
 import { dismissOverlay, useUiStore } from './uiStore'
 import type { ScrollTab } from './uiStore'
 import { useTranslation } from './i18n'
 
 const TABS: { id: ScrollTab; label: string; en: string }[] = [
   { id: 'map', label: '舆图', en: 'MAP' }, { id: 'codex', label: '碑录', en: 'CODEX' }, { id: 'collection', label: '收集', en: 'PROGRESS' },
+  { id: 'compendium', label: '图录', en: 'COMPENDIUM' },
 ]
 
-/** Tab 卷轴: the sect map, the stele codex and collection progress. Tab closes it again. */
+/** Tab 卷轴: the sect map, the stele codex, collection progress and the photo compendium. Tab closes it again. */
 export function ScrollOverlay() {
   const t = useTranslation()
   const tab = useUiStore((state) => state.scrollTab)
@@ -41,7 +43,7 @@ export function ScrollOverlay() {
   }
   return <Dialog title={t('卷轴')} hideTitle className="scroll-dialog" onClose={dismissOverlay} onTab={dismissOverlay}>
     <header className="scroll-head">
-      <div className="scroll-brand"><span>{t('卷')}</span><div><strong>{t('云阙卷轴')}</strong><small>SECT SCROLL · MAP · CODEX · PROGRESS</small></div></div>
+      <div className="scroll-brand"><span>{t('卷')}</span><div><strong>{t('云阙卷轴')}</strong><small>SECT SCROLL · MAP · CODEX · PROGRESS · COMPENDIUM</small></div></div>
       <div className="scroll-tabs" role="tablist" aria-label={t('卷轴页签')} onKeyDown={onTabKeys}>
         {TABS.map((tabDefinition, i) => <button key={tabDefinition.id} ref={(el) => { tabs.current[i] = el }} role="tab" id={`scroll-tab-${tabDefinition.id}`}
           aria-selected={tab === tabDefinition.id} aria-controls={tab === tabDefinition.id ? `scroll-panel-${tabDefinition.id}` : undefined} tabIndex={tab === tabDefinition.id ? 0 : -1}
@@ -53,6 +55,7 @@ export function ScrollOverlay() {
       {tab === 'map' && <MapPanel />}
       {tab === 'codex' && <CodexPanel />}
       {tab === 'collection' && <CollectionPanel />}
+      {tab === 'compendium' && <CompendiumPanel />}
     </div>
     <footer className="scroll-foot"><span><kbd>Tab</kbd> {t('收起')}</span><span><kbd>←</kbd><kbd>→</kbd> {t('切换页签')}</span><span><kbd>Shift</kbd>+<kbd>Tab</kbd> {t('移动焦点')}</span><span><kbd>Esc</kbd> {t('返回')}</span></footer>
   </Dialog>
@@ -286,11 +289,43 @@ function CodexPanel() {
   </div>
 }
 
+function CompendiumPanel() {
+  const t = useTranslation()
+  const recorded = useUiStore((state) => state.compendium)
+  const [selected, setSelected] = useState(() => recorded[recorded.length - 1] ?? COMPENDIUM[0].id)
+  const entry = COMPENDIUM.find((e) => e.id === selected) ?? COMPENDIUM[0]
+  const lore = COMPENDIUM_LORE[entry.id]
+  const onListKeys = (event: KeyboardEvent<HTMLUListElement>) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+    event.preventDefault()
+    const index = (COMPENDIUM.findIndex((e) => e.id === selected) + (event.key === 'ArrowDown' ? 1 : COMPENDIUM.length - 1)) % COMPENDIUM.length
+    setSelected(COMPENDIUM[index].id)
+    event.currentTarget.querySelectorAll('button')[index]?.focus()
+  }
+  return <div className="codex-panel">
+    <ul className="codex-list" aria-label={t('图录目录')} onKeyDown={onListKeys}>
+      {COMPENDIUM.map((item, i) => {
+        const done = recorded.includes(item.id)
+        return <li key={item.id}><button aria-pressed={selected === item.id} onClick={() => setSelected(item.id)} data-read={done}
+          aria-label={done ? `${t(item.name)}${t('，已收录')}` : t('第 {index} 项，尚未收录', { index: i + 1 })}>
+          <span>{String(i + 1).padStart(2, '0')}</span><b>{done ? t(item.name) : t('未录之象')}</b><small>{t(COMPENDIUM_GROUPS[item.group])}</small>
+        </button></li>
+      })}
+    </ul>
+    <article className="codex-page" aria-live="polite">
+      {recorded.includes(entry.id) ? <>
+        <header><small>{t(COMPENDIUM_GROUPS[entry.group])} · {t('已收录 {count} / {total}', { count: recorded.length, total: COMPENDIUM.length })}</small><strong>{t(entry.name)}</strong></header>
+        <p className="codex-text">{t(lore?.text ?? '')}</p>
+      </> : <div className="codex-unknown"><strong>{t('尚未入画')}</strong><p>{t('在拍照模式（P）中将它摄入画面即可收录。')}<br />{t('线索：')}{t(lore?.hint ?? '未知')}</p></div>}
+    </article>
+  </div>
+}
+
 function CollectionPanel() {
   const t = useTranslation()
   const orbs = useUiStore((state) => state.orbs), steles = useUiStore((state) => state.steles)
   const viewpoints = useUiStore((state) => state.viewpoints), arrays = useUiStore((state) => state.arrays)
-  const trials = useUiStore((state) => state.trials)
+  const trials = useUiStore((state) => state.trials), compendium = useUiStore((state) => state.compendium)
   const finished = TRIAL_COURSES.filter((course) => trials[course.id] !== undefined).length
   const groups = Object.keys(ORB_GROUP_LABELS) as OrbGroup[]
   const bar = (label: string, value: number, total: number) => <span className="progress-bar" role="progressbar" aria-label={`${t(label)} ${value}/${total}`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={value}><i style={{ width: `${(value / total) * 100}%` }} /></span>
@@ -320,6 +355,11 @@ function CollectionPanel() {
           return <li key={course.id} data-done={best !== undefined}>{t(course.name)} <em>{best !== undefined ? formatTrialTime(best) : t('未完成')}</em></li>
         })}</ul>
         <p className="map-hint">{t('御剑穿过金色的起始环即开始计时，再依次穿过亮起的环；落地、传送或远离航线则试炼中断。罗盘上的 ◯ 指向各试炼起点。')}</p>
+      </div>
+      <div className="collection-row">
+        <header><small>COMPENDIUM</small><strong>{t('万象图录')} <b>{compendium.length}</b> / {COMPENDIUM.length}</strong>{bar('万象图录', compendium.length, COMPENDIUM.length)}</header>
+        <ul>{COMPENDIUM.map((item) => <li key={item.id} data-done={compendium.includes(item.id)}>{compendium.includes(item.id) ? t(item.name) : '???'}</li>)}</ul>
+        <p className="map-hint">{t('在拍照模式中将巨物、灵物与天象摄入画面即可收录；画面上方会提示取景中之物。')}</p>
       </div>
     </section>
   </div>

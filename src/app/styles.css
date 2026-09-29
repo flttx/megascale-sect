@@ -350,6 +350,14 @@ button { font: inherit; }
 .photo-panel header em { font-style: normal; font-size: 10px; color: #9fe6cf; }
 .photo-keys { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0; padding: 0; list-style: none; font-size: 10px; color: #c7d2d6; }
 .photo-keys li { display: flex; align-items: center; gap: 4px; }
+.photo-sight { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); max-width: 80vw; margin: 0; padding: 6px 14px; background: #17232db8; border: 1px solid #d9e4e833; color: #c7d2d6; font-size: 11px; letter-spacing: .08em; text-align: center; }
+.photo-sight[data-close="true"] { border-color: #d6c29977; color: #eedcb4; }
+.photo-sight b { margin-right: 4px; font-size: 9px; font-weight: 600; letter-spacing: .2em; color: #d6bd8e; }
+.photo-sight:empty { padding: 0; border: 0; background: none; }
+.photo-toast { position: absolute; left: 50%; top: 74px; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; max-width: 80vw; }
+.photo-toast p { margin: 0; padding: 10px 18px; background: #17232de8; border: 1px solid #d6c29977; color: #e8d7b5; font-size: 12px; letter-spacing: .06em; text-align: center; animation: ui-fade .3s ease-out; }
+.photo-toast p[data-fresh="true"] { border-color: #e9cf8fcc; }
+.photo-toast b { display: block; margin-bottom: 4px; font-size: 10px; letter-spacing: .24em; color: #f0d58e; }
 .photo-saved { flex-basis: 100%; margin: 0; text-align: center; font: 10px Consolas, monospace; color: #8fa2ab; }
 
 /* Intro additions */
@@ -378,7 +386,7 @@ button { font: inherit; }
   .scroll-foot { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .dialog, .dialog-backdrop, .interact-prompt, .cinema-caption { animation: none; }
+  .dialog, .dialog-backdrop, .interact-prompt, .cinema-caption, .photo-toast p { animation: none; }
   .teleport-flash, .photo-shutter { animation-duration: .01s; }
 }
 

@@ -123,6 +123,18 @@ export function playAttune() {
   partial(context, gain, 784, 0.2, 2, now + 0.24)
 }
 
+/** A seal pressed into the compendium: a soft wooden knock under a rising fifth. */
+export function playDiscovery() {
+  const out = output(0.8)
+  if (!out) return
+  const { context, gain } = out, now = context.currentTime + 0.01
+  gain.gain.value = 0.24
+  noiseBurst(context, gain, now, 0.08, 700, 1.4, 0.7)
+  partial(context, gain, 587.3, 0.34, 1.6, now + 0.04)
+  partial(context, gain, 880, 0.28, 2, now + 0.16)
+  partial(context, gain, 1760, 0.08, 1.4, now + 0.18)
+}
+
 /** Bright ring-pass tone for a flight trial; later rings climb higher up the scale. */
 export function playRing(step: number, total: number) {
   const out = output(0.6)

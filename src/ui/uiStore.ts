@@ -24,7 +24,7 @@ export type Overlay =
   | { kind: 'teleport'; from: string }
   | { kind: 'scroll' }
 
-export type ScrollTab = 'map' | 'codex' | 'collection'
+export type ScrollTab = 'map' | 'codex' | 'collection' | 'compendium'
 export type PhotoFilter = 'none' | 'warm' | 'ink' | 'cool'
 export const PHOTO_FILTERS: PhotoFilter[] = ['none', 'warm', 'ink', 'cool']
 export const PHOTO_FILTER_LABELS: Record<PhotoFilter, string> = { none: '原色', warm: '暖阳', ink: '水墨', cool: '清寒' }
@@ -37,6 +37,9 @@ export const PHOTO_FILTER_CSS: Record<PhotoFilter, string> = {
 }
 
 export interface Caption { title: string; text: string; kicker: string }
+/** One shot's compendium result: entries recorded for the first time, all recorded, and framed but hidden. */
+/** The last shot's compendium result; `at` is its performance.now() time. */
+export interface PhotoSurvey { key: number; at: number; fresh: string[]; found: string[]; blocked: string[] }
 
 interface UiState {
   language: Language
@@ -55,6 +58,9 @@ interface UiState {
   orbs: string[]; steles: string[]; viewpoints: string[]; arrays: string[]
   /** Best flight-trial times (s) by course id, persisted by `save.ts`. */
   trials: Partial<Record<TrialId, number>>
+  /** Photo-compendium entry ids, persisted by `save.ts`. */
+  compendium: string[]
+  photoSurvey: PhotoSurvey | null
   volumes: Record<VolumeChannel, number>
   /** DEV: let E work without pointer lock (headless verification). */
   devInput: boolean
@@ -74,6 +80,8 @@ interface UiState {
   visitViewpoint: (id: string) => boolean; activateArray: (id: string) => boolean
   /** Records a finished run; true when it is the course's new best. */
   recordTrial: (id: TrialId, seconds: number) => boolean
+  /** Records a shot's survey; returns the entries it added. */
+  recordCompendium: (found: string[], blocked: string[]) => string[]
   setVolumes: (value: Record<VolumeChannel, number>) => void
   setDevInput: (value: boolean) => void
 }
@@ -93,7 +101,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   },
   nearby: null, overlay: null, scrollTab: 'map', hudHidden: false,
   photoFilter: 'none', photoVignette: false, caption: null, veil: false, flashKey: 0, shutterKey: 0,
-  orbs: [], steles: [], viewpoints: [], arrays: [], trials: {},
+  orbs: [], steles: [], viewpoints: [], arrays: [], trials: {}, compendium: [], photoSurvey: null,
   volumes: { master: 0.8, music: 0.55, ambience: 0.8, sfx: 0.9 },
   devInput: false,
   photoUnlocked: false, lockError: null,
@@ -115,6 +123,12 @@ export const useUiStore = create<UiState>((set, get) => ({
     if (previous !== undefined && previous <= seconds) return false
     set({ trials: { ...get().trials, [id]: seconds } })
     return true
+  },
+  recordCompendium: (found, blocked) => {
+    const { compendium, photoSurvey } = get()
+    const fresh = found.filter((id) => !compendium.includes(id))
+    set({ photoSurvey: { key: (photoSurvey?.key ?? 0) + 1, at: performance.now(), fresh, found, blocked }, ...(fresh.length ? { compendium: [...compendium, ...fresh] } : {}) })
+    return fresh
   },
   setVolumes: (volumes) => set({ volumes }),
   setDevInput: (devInput) => set({ devInput }),

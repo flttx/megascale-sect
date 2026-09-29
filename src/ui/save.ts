@@ -11,6 +11,7 @@ import type { QualityLevel } from '../world/quality'
 import { INTERACT_SITES } from '../world/sites'
 import { URL_OVERRIDES, useWorldStore } from '../world/store'
 import { ORBS } from '../world/interact/orbs'
+import { COMPENDIUM_IDS } from '../world/compendium/compendium'
 import { TRIAL_IDS } from '../world/trials/courses'
 import type { TrialId } from '../world/trials/courses'
 import { useUiStore } from './uiStore'
@@ -44,6 +45,8 @@ export interface SaveData {
   orbs: string[]; steles: string[]; viewpoints: string[]; arrays: string[]
   /** Best flight-trial times (s); absent from saves written before the trials. */
   trials?: Partial<Record<TrialId, number>>
+  /** Photo-compendium entries; absent from saves written before the compendium. */
+  compendium?: string[]
   settings: SavedSettings | null
   position: SavedPosition | null
   savedAt: number
@@ -60,6 +63,7 @@ const KNOWN = {
   steles: new Set(INTERACT_SITES.filter((s) => s.kind === 'stele').map((s) => s.id)),
   viewpoints: new Set(INTERACT_SITES.filter((s) => s.kind === 'viewpoint').map((s) => s.id)),
   arrays: new Set(INTERACT_SITES.filter((s) => s.kind === 'teleport').map((s) => s.id)),
+  compendium: new Set(COMPENDIUM_IDS),
 }
 
 function parseSettings(value: unknown): SavedSettings | null {
@@ -103,7 +107,7 @@ export function migrate(value: unknown): SaveData | null {
     version: SAVE_VERSION,
     orbs: idList(data.orbs, KNOWN.orbs), steles: idList(data.steles, KNOWN.steles),
     viewpoints: idList(data.viewpoints, KNOWN.viewpoints), arrays: idList(data.arrays, KNOWN.arrays),
-    trials: parseTrials(data.trials),
+    trials: parseTrials(data.trials), compendium: idList(data.compendium, KNOWN.compendium),
     settings: parseSettings(data.settings), position: parsePosition(data.position),
     savedAt: isNumber(data.savedAt) ? data.savedAt : 0,
   }
@@ -137,7 +141,7 @@ function snapshot(): SaveData {
   const world = useWorldStore.getState(), ui = useUiStore.getState()
   return {
     version: SAVE_VERSION,
-    orbs: ui.orbs, steles: ui.steles, viewpoints: ui.viewpoints, arrays: ui.arrays, trials: ui.trials,
+    orbs: ui.orbs, steles: ui.steles, viewpoints: ui.viewpoints, arrays: ui.arrays, trials: ui.trials, compendium: ui.compendium,
     settings: {
       character: world.character,
       quality: world.quality, autoQuality: world.autoQuality, mouseSensitivity: world.mouseSensitivity, fov: world.fov,
@@ -187,7 +191,7 @@ export function flushSave() { samplePosition(); return write() }
  */
 export function applySave(save: SaveData) {
   lastPosition = save.position
-  useUiStore.setState({ orbs: save.orbs, steles: save.steles, viewpoints: save.viewpoints, arrays: save.arrays, trials: save.trials ?? {} })
+  useUiStore.setState({ orbs: save.orbs, steles: save.steles, viewpoints: save.viewpoints, arrays: save.arrays, trials: save.trials ?? {}, compendium: save.compendium ?? [] })
   const settings = save.settings
   if (!settings) return
   const world = useWorldStore.getState()
@@ -207,7 +211,7 @@ export function applySave(save: SaveData) {
 export function startAutosave() {
   let timer = 0
   const schedule = () => { window.clearTimeout(timer); timer = window.setTimeout(write, 600) }
-  const unsubUi = useUiStore.subscribe((s, p) => { if (s.orbs !== p.orbs || s.steles !== p.steles || s.viewpoints !== p.viewpoints || s.arrays !== p.arrays || s.trials !== p.trials || s.volumes !== p.volumes) schedule() })
+  const unsubUi = useUiStore.subscribe((s, p) => { if (s.orbs !== p.orbs || s.steles !== p.steles || s.viewpoints !== p.viewpoints || s.arrays !== p.arrays || s.trials !== p.trials || s.compendium !== p.compendium || s.volumes !== p.volumes) schedule() })
   const unsubWorld = useWorldStore.subscribe((s, p) => {
     if (s.quality !== p.quality || s.autoQuality !== p.autoQuality || s.mouseSensitivity !== p.mouseSensitivity || s.fov !== p.fov ||
       s.timeScale !== p.timeScale || s.autoWeather !== p.autoWeather || s.soundEnabled !== p.soundEnabled || s.character !== p.character) schedule()

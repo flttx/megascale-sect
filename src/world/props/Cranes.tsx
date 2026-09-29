@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
 import { CatmullRomCurve3, DynamicDrawUsage, InstancedBufferAttribute, InstancedMesh, MathUtils, Matrix4, Quaternion, Vector3 } from 'three'
 import type { MeshStandardMaterial } from 'three'
+import { cranePositions } from '../compendium/compendium'
 import { hash } from '../environment/t02r/terrain'
 import { worldEvents } from '../events'
 import { useWorldStore } from '../store'
@@ -106,6 +107,8 @@ export function Cranes() {
 
   useEffect(() => () => meshes.forEach(({ mesh }) => { mesh.geometry.dispose(); mesh.material.dispose(); mesh.dispose() }), [meshes])
   useEffect(() => worldEvents.on('bell', () => { state.scatterAt = state.time }), [state])
+  // Photo compendium: the birds' live positions (updated in place each frame).
+  useEffect(() => { cranePositions.splice(0, cranePositions.length, ...flock.map((b) => b.pos)); return () => { cranePositions.length = 0 } }, [flock])
 
   useEffect(() => {
     if (!import.meta.env.DEV) return

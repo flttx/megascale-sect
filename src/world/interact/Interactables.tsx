@@ -20,6 +20,8 @@ import { useWorldStore } from '../store'
 import { registerColliders, registerWalkables } from '../surfaces'
 import type { Collider, WalkableDisc } from '../surfaces'
 import { withSceneWeather } from '../weather/surfaceWeather'
+import { compendiumView, noteLightning, resetCompendiumView, surveyPhoto, tickCompendium } from '../compendium/compendium'
+import { worldEvents } from '../events'
 import { groundHeight } from '../worldLayout'
 import { announceArray, chooseWeather, interactPressed, standAt, travel, triggerSite } from './actions'
 import { director, endShot, handBack, updateDirector } from './cinematics'
@@ -31,7 +33,7 @@ import {
 import { COLLECT_RADIUS, ORB_GROUP_LABELS, ORBS, orbPosition } from './orbs'
 import { nearestSite, SITES, sitesOf, TELEPORT_PAD_RADIUS } from './registry'
 import type { SiteSpec } from './registry'
-import { playChime } from './sounds'
+import { playChime, playDiscovery } from './sounds'
 
 /*
  * P6 interactables: Tripo site objects (instanced per model), viewpoint markers, teleport glyphs, the bell
@@ -381,7 +383,13 @@ function InteractionLoop() {
 const euler = new Euler(0, 0, 0, 'YXZ')
 const move = new Vector3()
 const offset = new Vector3()
-/** Free camera for photo mode (WASD, Q/E down/up, Shift fast, wheel zoom), plus the PNG capture hook. */
+/** Records what a shot frames in the photo compendium, with a chime for anything new. */
+function recordShot(camera: PerspectiveCamera) {
+  const { found, blocked } = surveyPhoto(camera)
+  if (useUiStore.getState().recordCompendium(found, blocked).length) playDiscovery()
+}
+
+/** Free camera for photo mode (WASD, Q/E down/up, Shift fast, wheel zoom), plus the PNG capture and compendium hooks. */
 function PhotoCamera() {
   const camera = useThree((state) => state.camera)
   const gl = useThree((state) => state.gl)
@@ -391,7 +399,9 @@ function PhotoCamera() {
     if (!photo.capture) return
     photo.capture = false
     exportPhoto(gl.domElement)
-  }), [gl])
+    if (camera instanceof PerspectiveCamera) recordShot(camera)
+  }), [gl, camera])
+  useEffect(() => worldEvents.on('lightning', noteLightning), [])
   useFrame((_, rawDelta) => {
     if (!(camera instanceof PerspectiveCamera)) return
     const mode = useWorldStore.getState().cameraMode, s = rig.current
@@ -401,6 +411,7 @@ function PhotoCamera() {
       s.active = true
       euler.setFromQuaternion(camera.quaternion, 'YXZ')
       s.yaw = euler.y; s.pitch = euler.x; s.fov = camera.fov
+      resetCompendiumView()
     }
     const look = 0.0022 * useWorldStore.getState().mouseSensitivity * (s.fov / 72)
     s.yaw -= photo.dx * look; s.pitch = Math.max(-1.45, Math.min(1.45, s.pitch - photo.dy * look))
@@ -426,6 +437,7 @@ function PhotoCamera() {
     camera.quaternion.setFromEuler(euler.set(s.pitch, s.yaw, 0, 'YXZ'))
     camera.fov += (s.fov - camera.fov) * (1 - Math.exp(-10 * delta))
     camera.updateProjectionMatrix()
+    tickCompendium(camera, delta)
   })
   return null
 }
@@ -451,6 +463,7 @@ function SiteSurfaces() {
 
 function DevHooks() {
   const scene = useThree((state) => state.scene)
+  const camera = useThree((state) => state.camera)
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const hooks = window as unknown as Record<string, unknown>
@@ -473,9 +486,12 @@ function DevHooks() {
         viewpoints: useUiStore.getState().viewpoints.length, arrays: useUiStore.getState().arrays,
         photo: photo.last, photos: photo.count,
       }),
+      /** What a shot from the current camera would record in the compendium, and the viewfinder's framed entries. */
+      survey: () => camera instanceof PerspectiveCamera ? surveyPhoto(camera) : null,
+      framed: () => compendiumView.framed,
     }
     return () => { delete hooks.__interact }
-  }, [scene])
+  }, [scene, camera])
   return null
 }
 
