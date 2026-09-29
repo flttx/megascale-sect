@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
 import { openWorld } from './lib/world-session.mjs'
-const { browser, page, errors } = await openWorld('?quality=high&kunAt=40&hours=15&weather=clear')
+const { browser, page, errors } = await openWorld('?quality=high&kunAt=40&hours=15&weather=clear', undefined, { language: 'zh' })
 const report = []
 await fs.mkdir('artifacts/kun', { recursive: true })
 const snapshot = () => page.evaluate(() => window.__playerSnapshot())

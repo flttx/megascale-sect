@@ -48,7 +48,7 @@ function check(state) {
 try {
   await page.goto(process.env.BASE_URL || 'http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' })
   await page.waitForFunction(() => { const r = window.__playerSnapshot?.().characterReady; return r?.male && r?.female }, null, { timeout: 120000 })
-  await page.getByRole('button', { name: /进入仙宗/ }).click({ timeout: 120000 })
+  await page.getByRole('button', { name: /进入仙宗|Enter the sect/ }).click({ timeout: 120000 })
   for (const character of ['male', 'female']) {
     await page.waitForFunction(() => document.pointerLockElement !== null)
     await page.waitForFunction(() => window.__playerSnapshot?.().ready)

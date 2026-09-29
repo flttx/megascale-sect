@@ -13,7 +13,7 @@ page.on('console', (message) => { if (message.type() === 'error') errors.push(me
 await fs.mkdir('artifacts', { recursive: true })
 await page.goto(process.env.BASE_URL || 'http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' })
 await page.waitForFunction(() => document.body.innerText.includes('WORLD READY'), null, { timeout: 120000 })
-await page.getByRole('button', { name: /进入仙宗/ }).click()
+await page.getByRole('button', { name: /进入仙宗|Enter the sect/ }).click()
 await page.keyboard.press('F3')
 const samples = []
 async function sample(name) {

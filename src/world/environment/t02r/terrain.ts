@@ -27,7 +27,7 @@ export function roadDistance(x: number, z: number) {
   return Math.abs(x - (z >= 20 ? roadAt(z).x : 0))
 }
 export function towerRadius(multiplier: number) { return 38 * multiplier + 4 }
-function rectDistance(x: number, z: number, cx: number, cz: number, w: number, d: number) {
+export function rectDistance(x: number, z: number, cx: number, cz: number, w: number, d: number) {
   return Math.hypot(Math.max(0, Math.abs(x - cx) - w), Math.max(0, Math.abs(z - cz) - d))
 }
 export function buildingDistance(x: number, z: number) {
@@ -37,15 +37,15 @@ export function buildingDistance(x: number, z: number) {
   d = Math.min(d, rectDistance(x, z, 0, 55, 27, 10))
   return d
 }
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+export const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 /** Polynomial smooth minimum / maximum: blends two height fields over a band of width k. */
-function smin(a: number, b: number, k: number) {
+export function smin(a: number, b: number, k: number) {
   if (Math.abs(a - b) >= k) return Math.min(a, b)
   const t = clamp(0.5 + 0.5 * (b - a) / k); return b + (a - b) * t - k * t * (1 - t)
 }
-const smax = (a: number, b: number, k: number) => -smin(-a, -b, k)
+export const smax = (a: number, b: number, k: number) => -smin(-a, -b, k)
 /** Ridged value noise in 0..1: sharp crests where the noise crosses zero. */
-function ridged(x: number, z: number, seed: number, octaves = 3) {
+export function ridged(x: number, z: number, seed: number, octaves = 3) {
   let sum = 0, amplitude = 0.5, frequency = 1, weight = 1
   for (let i = 0; i < octaves; i++) {
     const n = (1 - Math.abs(noise(x * frequency, z * frequency, seed + i * 7))) ** 2 * weight
@@ -104,14 +104,18 @@ const PEAKS: [number, number, number, number][] = [
 ]
 function peak(x: number, z: number, index: number) {
   const [cx, cz, radius, summit] = PEAKS[index]
+  return karstPeak(x, z, cx, cz, radius, summit, index)
+}
+/** A sheer karst peak with a lobed plan and a stepped fall to the outer ground; `seed` varies its shape. */
+export function karstPeak(x: number, z: number, cx: number, cz: number, radius: number, summit: number, seed: number) {
   const dx = x - cx, dz = z - cz, distance = Math.hypot(dx, dz)
   if (distance > radius * 1.7) return -Infinity
   // Lobed plan from noise sampled around a circle, so it closes seamlessly.
   const c = distance > 1e-3 ? dx / distance : 1, sn = distance > 1e-3 ? dz / distance : 0
-  const lobes = noise(c * 1.7 + index * 9, sn * 1.7, 31) * 0.24 + noise(c * 4.3 + index * 9, sn * 4.3, 37) * 0.09
-    + (ridged(c * 9 + index * 9, sn * 9, 43, 2) - 0.45) * 0.13 + noise(dx / 11, dz / 11, 47) * 0.025
+  const lobes = noise(c * 1.7 + seed * 9, sn * 1.7, 31) * 0.24 + noise(c * 4.3 + seed * 9, sn * 4.3, 37) * 0.09
+    + (ridged(c * 9 + seed * 9, sn * 9, 43, 2) - 0.45) * 0.13 + noise(dx / 11, dz / 11, 47) * 0.025
   const t = distance / (radius * (1 + lobes))
-  const cap = (1 - Math.min(t, 1) ** 2) * radius * 0.1 + ridged(dx / 45, dz / 45, 41 + index) * 14
+  const cap = (1 - Math.min(t, 1) ** 2) * radius * 0.1 + ridged(dx / 45, dz / 45, 41 + seed) * 14
   // Stepped profile: ledges every ~20% of the drop where pines and moss can hold on.
   const fall = smooth(0.6, 1.12, t), q = fall * 5, stepped = (Math.floor(q) + smooth(0.25, 0.75, q - Math.floor(q))) / 5
   return summit + cap - (summit - TERRAIN_BASE + 20) * lerp(fall, stepped, 0.55)
@@ -183,7 +187,7 @@ export function slopeAt(x: number, z: number) {
   return Math.atan(Math.hypot(dx, dz)) * 180 / Math.PI
 }
 /** Grid lines from min to max; each [from, to, step] tier refines the spacing inside it (finest listed last). */
-function coordinates(min: number, max: number, tiers: [number, number, number][], coarse: number) {
+export function coordinates(min: number, max: number, tiers: [number, number, number][], coarse: number) {
   const values = [min]
   for (let p = min; p < max;) {
     let step = coarse
@@ -222,7 +226,7 @@ export interface TerrainGrid { xs: number[]; zs: number[] }
  * Per-vertex hints for the terrain shader: R = worn verges beside the road and the platform rim,
  * G = concavity (hollows and cliff feet, where scree and soil collect), from the grid's own curvature.
  */
-function surfaceMask(xs: number[], zs: number[], positions: ArrayLike<number>) {
+export function surfaceMask(xs: number[], zs: number[], positions: ArrayLike<number>, verges = true) {
   const out = new Float32Array(xs.length * zs.length * 2), n = xs.length
   const y = (i: number, j: number) => positions[(j * n + i) * 3 + 1]
   const curvature = (h0: number, h1: number, h2: number, d0: number, d1: number) => ((h2 - h1) / d1 - (h1 - h0) / d0) / ((d0 + d1) / 2)
@@ -232,46 +236,27 @@ function surfaceMask(xs: number[], zs: number[], positions: ArrayLike<number>) {
     if (i > 0 && j > 0 && i < n - 1 && j < zs.length - 1) {
       concave = curvature(y(i - 1, j), h, y(i + 1, j), x - xs[i - 1], xs[i + 1] - x) + curvature(y(i, j - 1), h, y(i, j + 1), z - zs[j - 1], zs[j + 1] - z)
     }
-    const verge = Math.max(1 - smooth(9, 24, roadDistance(x, z)), (1 - smooth(0, 10, rectDistance(x, z, 0, -290, 191, 226))) * smooth(-1, 1, rectDistance(x, z, 0, -290, 191, 226)) * 0.55)
+    const verge = !verges ? 0 : Math.max(1 - smooth(9, 24, roadDistance(x, z)), (1 - smooth(0, 10, rectDistance(x, z, 0, -290, 191, 226))) * smooth(-1, 1, rectDistance(x, z, 0, -290, 191, 226)) * 0.55)
     out[(j * n + i) * 2] = verge
     out[(j * n + i) * 2 + 1] = smooth(0.015, 0.09, concave)
   }
   return out
 }
 
-export const DISTANT_RIDGE_LAYERS = 4
-/** Z extent of a distant ridge layer's mesh. */
-export const distantRidgeBand = (layer: number) => [-1700 - layer * 380, -1100 - layer * 380] as const
-/** Serrated karst ranges behind the sect, rising from the cloud floor to 150–750 m. */
-export function distantRidgeHeight(layer: number, x: number, z: number) {
-  const center = -1400 - layer * 380 + Math.sin(x / 230 + layer) * 45 + noise(x / 400, layer, 27) * 40
-  // Ends sink into the cloud sea so the 3.4 km strips never show a cut edge.
-  const crest = (0.35 + 0.65 * ridged(x / (300 - layer * 30), layer * 2.3, 25 + layer)) * (560 + 150 * layer) * (0.75 + 0.25 * noise(x / 900, layer, 29)) * (1 - smooth(1250, 1680, Math.abs(x)))
-  // Sharp-crested cross-section: steep faces fall to the cloud floor, gullied by lateral noise.
-  const across = Math.abs(z - center) / (120 + layer * 30) + (1 - Math.abs(noise(x / 60, z / 90, 33))) * 0.12
-  return TERRAIN_BASE + crest * Math.exp(-across * 2.1) + 22 * noise(x / 53, z / 81, 35) * Math.exp(-across)
-}
-export function makeDistantRidge(layer: number) {
-  const xs = Array.from({ length: 341 }, (_, i) => -1700 + i * 10)
-  const [minZ] = distantRidgeBand(layer)
-  const zs = Array.from({ length: 31 }, (_, i) => minZ + i * 20)
-  return heightMesh(xs, zs, (x, z) => distantRidgeHeight(layer, x, z))
-}
-
-export const FAR_RING_RADII = [3000, 3900, 4800] as const
+export const FAR_RING_RADII = [5800, 7100, 8500] as const
 /**
- * A ring of peaks around the whole horizon, 3–5 km out. Heights come from noise sampled on a circle, so the
+ * A ring of peaks around the whole horizon, 6–9 km out, beyond the four outer regions. Heights come from noise sampled on a circle, so the
  * ring closes seamlessly; broad gaps leave open sky over the cloud sea in some directions.
  */
 export function farRingHeight(layer: number, angle: number, radial: number) {
   const c = Math.cos(angle), sn = Math.sin(angle), f = 5 + layer * 2
   const open = smooth(-0.25, 0.3, noise(c * 1.3 + layer * 5, sn * 1.3, 91 + layer))
-  const crest = (0.3 + 0.7 * ridged(c * f + layer * 11, sn * f, 93 + layer)) * (1000 + layer * 300) * (0.25 + 0.75 * open)
-  const across = Math.abs(radial) / (260 + layer * 60) + (1 - Math.abs(noise(c * 40 + layer, radial / 120, 97))) * 0.15
+  const crest = (0.3 + 0.7 * ridged(c * f + layer * 11, sn * f, 93 + layer)) * (1500 + layer * 450) * (0.25 + 0.75 * open)
+  const across = Math.abs(radial) / (420 + layer * 90) + (1 - Math.abs(noise(c * 40 + layer, radial / 120, 97))) * 0.15
   return TERRAIN_BASE - 30 + crest * Math.exp(-across * 2)
 }
 export function makeFarRing(layer: number) {
-  const radius = FAR_RING_RADII[layer], segments = 900, rows = 22, width = 760
+  const radius = FAR_RING_RADII[layer], segments = 1100, rows = 22, width = 1200
   const positions = new Float32Array((segments + 1) * rows * 3), indices: number[] = []
   let o = 0
   for (let j = 0; j < rows; j++) {

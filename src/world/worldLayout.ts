@@ -1,4 +1,5 @@
 import { TERRAIN, terrainHeight } from './environment/t02r/terrain'
+import { regionHeight, worldTerrainHeight } from './regions/regions'
 import { walkableHit } from './surfaces'
 import type { SurfaceHit } from './surfaces'
 import { HALL_TOP } from './assets/hallMeta'
@@ -20,7 +21,8 @@ export const LAYOUT = {
     { position: [268, 42, -465] as const, rotation: [0, -0.55, 0] as const, scaleMultiplier: 0.72 },
   ],
   player: { height: 1.75, jogSpeed: 5.5, sprintSpeed: 10, jumpHeight: 1.3, flightSpeed: 45, flightBoostSpeed: 140, gravity: 28 },
-  worldLimit: 1100,
+  /** Flight bounds: the core summit plus the four outer regions (R10). */
+  world: { minX: -3000, maxX: 3000, minZ: -3300, maxZ: 2700, ceiling: 1600 },
 } as const
 
 /**
@@ -54,9 +56,10 @@ function layoutGroundHeight(x: number, z: number): number | null {
 export const TERRAIN_WALK_FLOOR = -60
 
 function naturalGround(x: number, z: number): number | null {
-  if (x < TERRAIN.minX || x > TERRAIN.maxX || z < TERRAIN.minZ || z > TERRAIN.maxZ || insideTowerFootprint(x, z)) return null
-  const h = terrainHeight(x, z)
-  return h >= TERRAIN_WALK_FLOOR ? h : null
+  const core = x >= TERRAIN.minX && x <= TERRAIN.maxX && z >= TERRAIN.minZ && z <= TERRAIN.maxZ
+  if (core && insideTowerFootprint(x, z)) return null
+  const h = core ? terrainHeight(x, z) : regionHeight(x, z)
+  return h !== null && h >= TERRAIN_WALK_FLOOR ? h : null
 }
 
 /**
@@ -67,8 +70,8 @@ export function terrainGradient(x: number, z: number, fromY = Infinity, out = { 
   const h = naturalGround(x, z)
   if (h === null || layoutGroundHeight(x, z) !== h || groundHeight(x, z, fromY) !== h) return null
   const e = 0.5
-  out.x = (terrainHeight(x - e, z) - terrainHeight(x + e, z)) / (2 * e)
-  out.z = (terrainHeight(x, z - e) - terrainHeight(x, z + e)) / (2 * e)
+  out.x = (worldTerrainHeight(x - e, z) - worldTerrainHeight(x + e, z)) / (2 * e)
+  out.z = (worldTerrainHeight(x, z - e) - worldTerrainHeight(x, z + e)) / (2 * e)
   return out
 }
 

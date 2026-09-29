@@ -14,7 +14,7 @@ try {
   const start = Date.now()
   await page.goto(process.env.BASE_URL || 'http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' })
   await page.waitForFunction(() => { const r = window.__playerSnapshot?.().characterReady; return r?.male && r?.female }, null, { timeout: 120000 })
-  await page.getByRole('button', { name: /进入仙宗/ }).click()
+  await page.getByRole('button', { name: /进入仙宗|Enter the sect/ }).click()
   report.readyMs = Date.now() - start
   report.assets = await page.evaluate(() => performance.getEntriesByType('resource').filter((r) => r.name.includes('/characters/')).map((r) => ({ name: r.name.split('/').slice(-2).join('/'), bytes: r.encodedBodySize, durationMs: r.duration })))
   // Per character: optimized rig and sword, plus the small baked-clip file.

@@ -16,7 +16,7 @@ try {
   const modules = () => page.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name).filter((name) => /\.(m?js)(\?|$)/.test(name)))
   report.initialModules = await modules()
   assert.ok(!report.initialModules.some((name) => /PhotoMode-|ScrollOverlay-/.test(name)), 'optional panels must not load with the entry bundle')
-  await page.getByRole('button', { name: /进入仙宗/ }).click(); await page.waitForFunction(() => document.pointerLockElement)
+  await page.getByRole('button', { name: /进入仙宗|Enter the sect/ }).click(); await page.waitForFunction(() => document.pointerLockElement)
   let before = Date.now()
   await page.keyboard.press('Tab'); await page.locator('.scroll-tabs').waitFor()
   report.firstScrollMs = Date.now() - before

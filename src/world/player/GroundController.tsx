@@ -1,4 +1,4 @@
-import { Vector3 } from 'three'
+import { MathUtils, Vector3 } from 'three'
 import { groundHeight, groundHit, insideMainFootprint, insideStructure, LAYOUT, terrainGradient } from '../worldLayout'
 import { bodyInsideAnyCollider } from '../surfaces'
 import { kunBodyBlocked } from '../colossi/kunDeck'
@@ -115,8 +115,10 @@ export function stepGround(
   if (grounded && jump && !sliding) velocity.y = JUMP_SPEED
   ignoreProps = bodyInsideAnyCollider(position.x, position.y + BODY.bottom, position.y + BODY.top, position.z, BODY.radius)
   const startX = position.x, startZ = position.z
-  const nextX = position.x + velocity.x * delta
-  const nextZ = position.z + velocity.z * delta
+  // Walking stops at the flight bounds too; a body already outside them (a teleport or a carrier) is held where it is.
+  const { world } = LAYOUT
+  const nextX = MathUtils.clamp(position.x + velocity.x * delta, Math.min(world.minX, position.x), Math.max(world.maxX, position.x))
+  const nextZ = MathUtils.clamp(position.z + velocity.z * delta, Math.min(world.minZ, position.z), Math.max(world.maxZ, position.z))
   const allowed = (nx: number, nz: number) => !kunBodyBlocked(position.x, position.y, position.z, nx, nz) && (airborne ? canFly(nx, nz, position.y)
     : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep, footing?.surfaceId === 'kun'))
   // Blocked moves slide along the obstacle (cliff edge, steep bank) instead of stopping dead.

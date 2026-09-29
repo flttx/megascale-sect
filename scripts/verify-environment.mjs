@@ -23,7 +23,7 @@ try {
     await page.goto(`${base}${mode === 'before' ? '?env=graybox' : ''}`, { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(() => document.body.innerText.includes('WORLD READY'), null, { timeout: 120000 })
     await page.waitForFunction(() => window.__playerSnapshot?.().characterReady.female && window.__environmentReview)
-    await page.getByRole('button', { name: /进入仙宗/ }).click()
+    await page.getByRole('button', { name: /进入仙宗|Enter the sect/ }).click()
     // Keep the actual runtime materials, lighting, exposure and fog identical.
     await page.addStyleTag({ content: '.hud, .crosshair, .resume-button, .debug-hud, .intro, .interface, .topbar, .bottom-bar, .journey-card, .mode-card, .character-switcher, .controls-hint { visibility: hidden !important; }' })
     await page.waitForTimeout(1000)

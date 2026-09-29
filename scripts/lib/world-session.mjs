@@ -14,13 +14,19 @@ export const VIEWS = {
   pillars: [[-400, 160, -100], [-800, 80, -350]],
   overview: [[0, 420, 520], [0, 0, -300]],
   back: [[0, 200, -700], [0, 0, -300]],
+  north: [[0, 260, -1300], [0, 250, -2400]],
+  east: [[1500, 300, 300], [2200, 220, -500]],
+  west: [[-1500, 200, 300], [-2200, 60, -450]],
+  south: [[0, 120, 1100], [0, 40, 2450]],
+  world: [[1600, 900, 2200], [0, 0, -800]],
 }
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:5173/'
 /** Known-harmless console noise (D3D shader compiler warnings, three deprecation notices). */
 const NOISE = [/warning X\d+/, /THREE\.Clock: This module has been deprecated/]
 
-export async function openWorld(query = '', viewport = { width: 1600, height: 900 }) {
+/** `language` pins the UI language ('zh' for scripts that assert Chinese copy); English is the first-visit default. */
+export async function openWorld(query = '', viewport = { width: 1600, height: 900 }, { language } = {}) {
   const browser = await launchBrowser({ headless: true, args: ['--use-angle=d3d11', '--disable-gpu-vsync', '--disable-frame-rate-limit'] })
   const page = await browser.newPage({ viewport, deviceScaleFactor: 1 })
   const rate = Number(process.env.CPU_THROTTLE || 1)
@@ -31,7 +37,7 @@ export async function openWorld(query = '', viewport = { width: 1600, height: 90
   page.on('pageerror', (error) => record(error.message))
   page.on('console', (message) => { if (message.type() === 'error') record(message.text()) })
   await page.goto(new URL(query, BASE_URL).href, { waitUntil: 'domcontentloaded' })
-  await page.evaluate(() => localStorage.clear())
+  await page.evaluate((value) => { localStorage.clear(); if (value) localStorage.setItem('yunque.language', value) }, language)
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForFunction(() => document.body.innerText.includes('WORLD READY') && window.__playerSnapshot?.().characterReady?.male, null, { timeout: 180000 })
   await page.locator('.enter-button').click()

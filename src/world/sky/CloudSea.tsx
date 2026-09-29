@@ -46,7 +46,7 @@ void main() {
   col += fogSunColor * pow(max(dot(dir, fogSunDir), 0.0), 8.0) * 0.45;
   // Toward the horizon the deck closes into a continuous sea and melts into the fog.
   alpha = mix(alpha, 1.0, smoothstep(700.0, 2000.0, dist) * (0.55 + uLayer * 0.4));
-  alpha *= smoothstep(18.0, 90.0, dist) * (1.0 - smoothstep(2350.0, 2480.0, dist));
+  alpha *= smoothstep(18.0, 90.0, dist) * (1.0 - smoothstep(5600.0, 5900.0, dist));
   col = mix(col, fogColorFor(dir), heightFog(cameraPosition, dir, dist) * 0.85);
   gl_FragColor = vec4(col, alpha * (0.72 + uLayer * 0.28));
 }`
@@ -100,12 +100,12 @@ function puffs(count: number, banks: boolean): Puff[] {
     const ground = Math.max(...[[0, 0], [-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]].map(([u, v]) => terrainHeight(x + u * w, z + v * w)))
     if (ground < y - h * 0.3) out.push({ position: [x, y, z], size: [w, h] })
   }
-  // Towering backdrop cumulus behind the main hall, as in the concept art.
+  // Towering backdrop cumulus beyond the outer regions, in front of the horizon ring; densest behind the main hall.
   const total = banks ? count : count - low
   for (let i = 0; out.length < total; i++) {
-    const angle = -Math.PI / 2 + (hash(i, 19, 96) - 0.5) * Math.PI * 1.5, radius = 1250 + hash(i, 23, 97) * 700
-    const w = 420 + hash(i, 29, 98) * 480
-    out.push({ position: [Math.cos(angle) * radius, 120 + hash(i, 31, 99) * 420, -300 + Math.sin(angle) * radius], size: [w, w * (0.5 + hash(i, 37, 100) * 0.25)] })
+    const angle = -Math.PI / 2 + (hash(i, 19, 96) - 0.5) * Math.PI * 1.9, radius = 3900 + hash(i, 23, 97) * 1200
+    const w = 900 + hash(i, 29, 98) * 1000
+    out.push({ position: [Math.cos(angle) * radius, 260 + hash(i, 31, 99) * 900, -300 + Math.sin(angle) * radius], size: [w, w * (0.5 + hash(i, 37, 100) * 0.25)] })
   }
   return out
 }
@@ -128,7 +128,7 @@ export function CloudSea() {
       uniforms: { ...sharedUniforms(), uLayer: new Uniform(all.length === 1 ? 1 : i / (all.length - 1)) },
       transparent: true, depthWrite: false, side: DoubleSide, fog: false,
     })
-    const mesh = new Mesh(new PlaneGeometry(5000, 5000, 1, 1), material)
+    const mesh = new Mesh(new PlaneGeometry(12000, 12000, 1, 1), material)
     mesh.name = `CloudSeaLayer_${i}`; mesh.rotation.x = -Math.PI / 2; mesh.position.y = y
     mesh.frustumCulled = false; mesh.renderOrder = 10 + i
     mesh.onBeforeRender = (_r, _s, camera) => { mesh.position.x = camera.position.x; mesh.position.z = camera.position.z; mesh.updateMatrixWorld() }

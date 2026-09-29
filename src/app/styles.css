@@ -176,6 +176,7 @@ button { font: inherit; }
 .map-tower { fill: #6e5238; stroke: #b99662; stroke-width: 1.5; }
 .map-gate { stroke: #d0aa6c; }
 .map-fog { opacity: .94; pointer-events: none; }
+.map-relief-veil { opacity: .28; pointer-events: none; }
 .map-label { fill: #e6d4af; letter-spacing: .14em; paint-order: stroke; stroke: #111a22; stroke-width: 3px; stroke-linejoin: round; }
 .map-label-major { fill: #f6e4bb; font-weight: 700; }
 .map-orbs circle { fill: #f7de9c; opacity: .85; }

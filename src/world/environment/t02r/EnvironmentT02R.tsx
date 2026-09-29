@@ -9,7 +9,8 @@ import { GrandStairs } from '../GrandStairs'
 import { Grass } from '../Grass'
 import { DAIS, PIT, PLAZA_COLLIDERS, PLAZA_WALKABLES, POOL, POOLS, TREE_PITS } from '../plaza'
 import { environmentMaterial, waterMaterial } from './materials'
-import { FAR_RING_RADII, makeDistantRidge, makeFarRing, makeRoad, makeTerrain, roadSamples } from './terrain'
+import { FAR_RING_RADII, makeFarRing, makeRoad, makeTerrain, roadSamples } from './terrain'
+import { RegionTerrain } from '../../regions/RegionTerrain'
 import { loadSurfaceTextures } from '../terrainTextures'
 import { makeScatter, towerFootings } from './scatter'
 
@@ -115,7 +116,6 @@ function Roads() {
 export function EnvironmentT02R() {
   const geometry = useMemo(makeTerrain, [])
   const material = useMemo(() => environmentMaterial('terrain'), [])
-  const distant = useMemo(() => Array.from({ length: 4 }, (_, i) => makeDistantRidge(i)), [])
   const ring = useMemo(() => FAR_RING_RADII.map((_, i) => makeFarRing(i)), [])
   const distantMaterial = useMemo(() => environmentMaterial('distant'), [])
   // The scanned surface maps decode in a worker; until then the materials show flat per-layer tints.
@@ -125,8 +125,8 @@ export function EnvironmentT02R() {
     <Terraces /><Roads />
     <group name="Cliffs" userData={{ strategy: 'Continuous shoulder / cliff face / talus heightfield with authored ridge branches' }} />
     <group name="HeroRocks"><Suspense fallback={null}><Rocks /></Suspense></group>
-    <group name="FarMountains">{distant.map((g, i) => <mesh key={i} name={`Mountain_Layer_${i}`} geometry={g} material={distantMaterial} userData={{ castShadow: false }} />)}
-      {ring.map((g, i) => <mesh key={i} name={`Horizon_Ring_${i}`} geometry={g} material={distantMaterial} frustumCulled={false} userData={{ castShadow: false }} />)}</group>
+    <RegionTerrain material={material} />
+    <group name="FarMountains">{ring.map((g, i) => <mesh key={i} name={`Horizon_Ring_${i}`} geometry={g} material={distantMaterial} frustumCulled={false} userData={{ castShadow: false }} />)}</group>
     <group name="Materials" /><group name="Debug" />
   </group>
 }

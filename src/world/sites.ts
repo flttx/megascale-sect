@@ -1,4 +1,5 @@
-import { DISTANT_RIDGE_LAYERS, distantRidgeBand, distantRidgeHeight, hash, terrainHeight } from './environment/t02r/terrain'
+import { hash, terrainHeight } from './environment/t02r/terrain'
+import { regionHeight } from './regions/regions'
 import { BRIDGES, bridgeDeck } from './bridges'
 import type { Vec3 } from './surfaces'
 
@@ -50,16 +51,12 @@ export interface PillarSite {
 /** Deep enough to root in the outer ground (TERRAIN_BASE), so no pillar floats inside a cloud rift. */
 export const PILLAR_BASE_Y = -440
 
-/** Highest ground (main terrain or distant ridges) inside a circle. */
+/** Highest ground (main terrain or an outer region) inside a circle. */
 function groundMax(cx: number, cz: number, r: number) {
   let best = -Infinity
   for (let a = 0; a < 16; a++) for (const f of [0, 0.5, 1]) {
     const x = cx + Math.cos(a / 16 * Math.PI * 2) * r * f, z = cz + Math.sin(a / 16 * Math.PI * 2) * r * f
-    best = Math.max(best, terrainHeight(x, z))
-    for (let layer = 0; layer < DISTANT_RIDGE_LAYERS; layer++) {
-      const [minZ, maxZ] = distantRidgeBand(layer)
-      if (z >= minZ && z <= maxZ && Math.abs(x) <= 1700) best = Math.max(best, distantRidgeHeight(layer, x, z))
-    }
+    best = Math.max(best, terrainHeight(x, z), regionHeight(x, z) ?? -Infinity)
   }
   return best
 }

@@ -78,7 +78,7 @@ void main() {
   col += uSunColor * sunUp * disk * mix(38.0, 3.0, uEnvPass);
 
   // Veil the horizon band with the same fog the post pass lays over distant terrain, so they meet seamlessly.
-  float veil = heightFog(cameraPosition, dir, 7000.0) * (1.0 - smoothstep(0.02, 0.3, h));
+  float veil = heightFog(cameraPosition, dir, 12000.0) * (1.0 - smoothstep(0.02, 0.3, h));
   col = mix(col, fogColorFor(dir), veil);
   gl_FragColor = vec4(col, 1.0);
 }`

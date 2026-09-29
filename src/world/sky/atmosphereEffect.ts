@@ -29,7 +29,7 @@ const float SEA_Y = ${CLOUD_SEA_Y.toFixed(1)};
 const float SEA_CEIL = SEA_Y + 100.0;
 const float SEA_FLOOR = SEA_Y - 380.0;
 const float SIGMA = 0.07;
-const float MAX_DIST = 9000.0;
+const float MAX_DIST = 14000.0;
 
 /** Cloud heaved up where a colossus breaks the sea (cloudSwell), and the ring spreading from it. */
 float swell(vec2 xz) {

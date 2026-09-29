@@ -38,7 +38,8 @@ uniform float fogDensity; uniform float fogFalloff; uniform float fogBase; unifo
 float fogMistShare = 0.5;
 float fogDepth(vec3 origin, vec3 dir, float dist, float falloff, float base) {
   // Linearise on the optical exponent dist·k, not on k alone, or the path jumps where |k| crosses the cut.
-  float k = dir.y * falloff, x = dist * k;
+  // Clamped so exp(-x) stays finite in float32 on long downward rays (the fog is saturated long before).
+  float k = dir.y * falloff, x = max(dist * k, -80.0);
   float path = abs(x) < 1e-3 ? dist * (1.0 - 0.5 * x) : (1.0 - exp(-x)) / k;
   return exp(-(origin.y - base) * falloff) * path;
 }

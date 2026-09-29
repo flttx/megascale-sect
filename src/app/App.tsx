@@ -192,7 +192,7 @@ export default function App() {
         gl={{ antialias: false, stencil: false, powerPreference: 'high-performance' }}
         shadows="percentage"
         dpr={[1, 1.5]}
-        camera={{ position: [0, 3, 154], fov: 72, near: 0.08, far: 8000 }}
+        camera={{ position: [0, 3, 154], fov: 72, near: 0.08, far: 20000 }}
         onCreated={({ gl }) => graphics.attach(gl.domElement)}
         onPointerDown={() => {
           const world = useWorldStore.getState()

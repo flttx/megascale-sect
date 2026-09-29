@@ -77,7 +77,7 @@ function parseSettings(value: unknown): SavedSettings | null {
 function parsePosition(value: unknown): SavedPosition | null {
   if (!isRecord(value)) return null
   const { x, y, z, yaw } = value
-  return isNumber(x) && isNumber(y) && isNumber(z) && isNumber(yaw) && Math.abs(x) < 1200 && Math.abs(z) < 1300 && y > -80 && y < 600 ? { x, y, z, yaw } : null
+  return isNumber(x) && isNumber(y) && isNumber(z) && isNumber(yaw) && Math.abs(x) < 3100 && z > -3400 && z < 2800 && y > -80 && y < 1700 ? { x, y, z, yaw } : null
 }
 
 /** Pure, repeatable migration followed by validation. Unknown versions must never be overwritten. */

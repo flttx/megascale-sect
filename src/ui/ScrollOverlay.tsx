@@ -7,6 +7,8 @@ import { kunState } from '../world/colossi/kunDeck'
 import { KUN_PATH } from '../world/colossi/layout'
 import type { OrbGroup } from '../world/interact/orbs'
 import { KIND_LABELS, SITES, sitesOf } from '../world/interact/registry'
+import { REGIONS, worldTerrainHeight } from '../world/regions/regions'
+import { CLOUD_SEA_Y } from '../world/sky/CloudSea'
 import type { SiteSpec } from '../world/interact/registry'
 import { getPlayerRuntime } from '../world/player/playerHandle'
 import { BRIDGES, ISLANDS, PILLARS } from '../world/sites'
@@ -65,6 +67,37 @@ function worldView(): View {
   const pad = 60
   return { x: minX - pad, z: minZ - pad, w: maxX - minX + pad * 2, h: maxZ - minZ + pad * 2 }
 }
+const REALM_VIEW: View = { x: LAYOUT.world.minX, z: LAYOUT.world.minZ, w: LAYOUT.world.maxX - LAYOUT.world.minX, h: LAYOUT.world.maxZ - LAYOUT.world.minZ }
+type Zoom = 'sect' | 'world' | 'realm'
+const within = (v: View, x: number, z: number) => x >= v.x && x <= v.x + v.w && z >= v.z && z <= v.z + v.h
+
+const RELIEF_STEP = 25
+let relief: string | null | undefined
+/** Shaded relief of everything above the cloud sea, sampled once from the terrain heightfields; the vector layers sit on top. */
+function reliefImage() {
+  if (relief !== undefined) return relief
+  const w = Math.round(REALM_VIEW.w / RELIEF_STEP), h = Math.round(REALM_VIEW.h / RELIEF_STEP)
+  const canvas = document.createElement('canvas')
+  canvas.width = w; canvas.height = h
+  const context = canvas.getContext('2d')
+  if (!context) return (relief = null)
+  const heights = new Float32Array(w * h)
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) heights[j * w + i] = worldTerrainHeight(REALM_VIEW.x + (i + 0.5) * RELIEF_STEP, REALM_VIEW.z + (j + 0.5) * RELIEF_STEP)
+  const image = context.createImageData(w, h)
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const k = j * w + i, height = heights[k], above = height - CLOUD_SEA_Y
+    if (above <= 0) continue
+    // Lit from the north-west, like an ink relief: ground rising toward the south-east faces the light.
+    const slope = heights[j * w + Math.min(i + 1, w - 1)] - heights[j * w + Math.max(i - 1, 0)] + heights[Math.min(j + 1, h - 1) * w + i] - heights[Math.max(j - 1, 0) * w + i]
+    const shade = Math.min(1.45, Math.max(0.55, 1 + slope / 160)), t = Math.min(above / 900, 1)
+    image.data[k * 4] = (46 + 74 * t) * shade
+    image.data[k * 4 + 1] = (62 + 66 * t) * shade
+    image.data[k * 4 + 2] = (56 + 52 * t) * shade
+    image.data[k * 4 + 3] = Math.min(above / 30, 1) * 255
+  }
+  context.putImageData(image, 0, 0)
+  return (relief = canvas.toDataURL())
+}
 
 const MARKER_COLORS: Record<InteractKind, string> = {
   stele: '#e3cf9f', viewpoint: '#9fe6cf', bell: '#e8b877', altar: '#e8b877', meditation: '#c9d6f0', teleport: '#f1d58f',
@@ -93,11 +126,19 @@ function MapPanel() {
   const t = useTranslation()
   const steles = useUiStore((state) => state.steles), viewpoints = useUiStore((state) => state.viewpoints), arrays = useUiStore((state) => state.arrays), orbs = useUiStore((state) => state.orbs)
   const full = useMemo(worldView, [])
-  const [zoom, setZoom] = useState<'sect' | 'world'>(() => {
+  const [zoom, setZoom] = useState<Zoom>(() => {
     const p = getPlayerRuntime()?.position
-    return !p || (Math.abs(p.x) < 360 && p.z > -620 && p.z < 220) ? 'sect' : 'world'
+    return !p || (Math.abs(p.x) < 360 && p.z > -620 && p.z < 220) ? 'sect' : within(full, p.x, p.z) ? 'world' : 'realm'
   })
-  const view = zoom === 'sect' ? SECT_VIEW : full
+  const view = zoom === 'sect' ? SECT_VIEW : zoom === 'world' ? full : REALM_VIEW
+  // Shading the relief samples every terrain heightfield (tens of milliseconds), so it follows the panel's first paint.
+  const [reliefUrl, setReliefUrl] = useState<string | null>(() => relief ?? null)
+  useEffect(() => {
+    if (zoom !== 'realm' || reliefUrl) return
+    const timer = window.setTimeout(() => setReliefUrl(reliefImage()), 0)
+    return () => window.clearTimeout(timer)
+  }, [zoom, reliefUrl])
+  const realmRelief = zoom === 'realm' ? reliefUrl : null
   const unit = view.w / 1000
   const player = useRef<SVGGElement | null>(null)
   const kun = useRef<SVGGElement | null>(null)
@@ -132,10 +173,13 @@ function MapPanel() {
   const revealed = [...CORE_REGION, ...viewpoints.flatMap((id) => VIEWPOINT_REGIONS[id]?.circles ?? [])]
   const state = { steles, viewpoints, arrays }
   const main = LAYOUT.main.position, hall = LAYOUT.mainCollider, platform = LAYOUT.platform
+  const cover: View = { x: REALM_VIEW.x - 400, z: REALM_VIEW.z - 400, w: REALM_VIEW.w + 800, h: REALM_VIEW.h + 800 }
   const label = (text: string, x: number, z: number, size = 11, className = 'map-label') => <text x={x} y={z} fontSize={unit * size} className={className} textAnchor="middle">{t(text)}</text>
   return <div className="map-panel">
     <div className="map-frame">
-      <svg viewBox={`${view.x} ${view.z} ${view.w} ${view.h}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={t('云阙仙宗舆图：显示岛屿、石林、各处碑亭与传送阵，以及你的位置')}>
+      <svg viewBox={`${view.x} ${view.z} ${view.w} ${view.h}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={zoom === 'realm'
+        ? t('云阙全境舆图：显示宗门、四方外境（{regions}）与你的位置', { regions: REGIONS.map((r) => t(r.name)).join(t('、')) })
+        : t('云阙仙宗舆图：显示岛屿、石林、各处碑亭与传送阵，以及你的位置')}>
         <defs>
           <radialGradient id="map-sea" cx="50%" cy="45%" r="75%"><stop offset="0%" stopColor="#223644" /><stop offset="100%" stopColor="#131e27" /></radialGradient>
           <pattern id="map-mist" width="120" height="120" patternUnits="userSpaceOnUse">
@@ -143,12 +187,14 @@ function MapPanel() {
             <path d="M0 40 Q30 20 60 40 T120 40 M0 100 Q30 80 60 100 T120 100" fill="none" stroke="#2c3e4a" strokeWidth="3" />
           </pattern>
           <filter id="map-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation={unit * 26} /></filter>
-          <mask id="map-reveal" maskUnits="userSpaceOnUse" x={full.x - 400} y={full.z - 400} width={full.w + 800} height={full.h + 800}>
-            <rect x={full.x - 400} y={full.z - 400} width={full.w + 800} height={full.h + 800} fill="white" />
+          <filter id="map-relief-soft"><feGaussianBlur stdDeviation={RELIEF_STEP * 0.7} /></filter>
+          <mask id="map-reveal" maskUnits="userSpaceOnUse" x={cover.x} y={cover.z} width={cover.w} height={cover.h}>
+            <rect x={cover.x} y={cover.z} width={cover.w} height={cover.h} fill="white" />
             <g filter="url(#map-soft)">{revealed.map(([x, z, r], i) => <circle key={i} cx={x} cy={z} r={r} fill="black" />)}</g>
           </mask>
         </defs>
-        <rect x={full.x - 400} y={full.z - 400} width={full.w + 800} height={full.h + 800} fill="url(#map-sea)" />
+        <rect x={cover.x} y={cover.z} width={cover.w} height={cover.h} fill="url(#map-sea)" />
+        {realmRelief && <image href={realmRelief} x={REALM_VIEW.x} y={REALM_VIEW.z} width={REALM_VIEW.w} height={REALM_VIEW.h} preserveAspectRatio="none" filter="url(#map-relief-soft)" className="map-relief" />}
         <g className="map-land">
           <ellipse cx={0} cy={95} rx={150} ry={112} className="map-mountain" />
           {PILLARS.map((p) => <circle key={p.id} cx={p.x} cy={p.z} r={p.radius} className="map-pillar" />)}
@@ -163,12 +209,16 @@ function MapPanel() {
           {LAYOUT.towers.map((t, i) => <rect key={i} x={t.position[0] - 13} y={t.position[2] - 13} width={26} height={26} className="map-tower" transform={`rotate(${-t.rotation[1] * 180 / Math.PI} ${t.position[0]} ${t.position[2]})`} />)}
           <line x1={-26} y1={LAYOUT.gate.position[2]} x2={26} y2={LAYOUT.gate.position[2]} strokeWidth={unit * 6} className="map-gate" />
         </g>
-        <rect x={full.x - 400} y={full.z - 400} width={full.w + 800} height={full.h + 800} fill="url(#map-mist)" mask="url(#map-reveal)" className="map-fog" />
+        <rect x={cover.x} y={cover.z} width={cover.w} height={cover.h} fill="url(#map-mist)" mask="url(#map-reveal)" className="map-fog" />
+        {/* A faint trace of the relief shows through the mist, so the realm's outline reads before its overlooks are reached. */}
+        {realmRelief && <image href={realmRelief} x={REALM_VIEW.x} y={REALM_VIEW.z} width={REALM_VIEW.w} height={REALM_VIEW.h} preserveAspectRatio="none" filter="url(#map-relief-soft)" mask="url(#map-reveal)" className="map-relief-veil" />}
         <g className="map-labels">
           {label('云阙主殿', main[0], main[2] + unit * 4, 15, 'map-label map-label-major')}
-          {label('山门', 34, LAYOUT.gate.position[2] + unit * 4, 10)}
-          {label('长阶', 34, -22, 10)}
-          {ISLANDS.map((i) => <g key={i.id}>{label(i.name, i.top[0], i.top[2] + i.radius + unit * 16, 11)}</g>)}
+          {zoom === 'realm' ? REGIONS.map((r) => <g key={r.id}>{label(r.name, r.center[0], r.center[1], 15, 'map-label map-label-major')}</g>) : <>
+            {label('山门', 34, LAYOUT.gate.position[2] + unit * 4, 10)}
+            {label('长阶', 34, -22, 10)}
+            {ISLANDS.map((i) => <g key={i.id}>{label(i.name, i.top[0], i.top[2] + i.radius + unit * 16, 11)}</g>)}
+          </>}
         </g>
         <g className="map-orbs">{ORBS.filter((o) => orbs.includes(o.id)).map((o) => <circle key={o.id} data-orb-id={o.id} ref={(node) => { if (node) orbNodes.current.set(o.id, node); else orbNodes.current.delete(o.id) }} r={unit * 2.2} />)}</g>
         <g ref={kun} className="map-kun" fill="#91d6c7" stroke="#d7ede1" strokeWidth="1.2"><title>{t('鲲 · 平飞时可停靠')}</title><ellipse rx="7" ry="17" /><path d="M-5 -10 L-13 -19 L0 -15 L13 -19 L5 -10 M-6 2 L-17 -3 L-6 7 M6 2 L17 -3 L6 7" /><text x="17" y="5" fontSize="12" stroke="none">{t('鲲')}</text></g>
@@ -177,7 +227,8 @@ function MapPanel() {
       </svg>
       <div className="map-zoom" role="group" aria-label={t('舆图范围')}>
         <button aria-pressed={zoom === 'sect'} onClick={() => setZoom('sect')}>{t('宗门')}</button>
-        <button aria-pressed={zoom === 'world'} onClick={() => setZoom('world')}>{t('全图')}</button>
+        <button aria-pressed={zoom === 'world'} onClick={() => setZoom('world')}>{t('周边')}</button>
+        <button aria-pressed={zoom === 'realm'} onClick={() => setZoom('realm')}>{t('全图')}</button>
       </div>
       <div className="map-compass" aria-hidden="true">{t('北')}</div>
     </div>

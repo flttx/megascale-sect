@@ -22,8 +22,8 @@ async function capture(name) {
 }
 try {
   await page.goto(process.env.BASE_URL || 'http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' })
-  await page.getByRole('button', { name: /进入仙宗/ }).waitFor({ timeout: 180000 })
-  await page.getByRole('button', { name: /进入仙宗/ }).click()
+  await page.getByRole('button', { name: /进入仙宗|Enter the sect/ }).waitFor({ timeout: 180000 })
+  await page.getByRole('button', { name: /进入仙宗|Enter the sect/ }).click()
   await page.waitForTimeout(1200)
   const idle = await capture('male-idle')
   assert.ok(idle.bones && Object.keys(idle.joints).length >= 20, 'Skinned male rig must be mounted')

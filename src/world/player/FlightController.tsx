@@ -31,7 +31,10 @@ export function stepFlight(
   position: Vector3, velocity: Vector3, input: Vector3,
   yaw: number, pitch: number, boosting: boolean, delta: number, braking = false,
 ) {
-  const limitX = Math.max(LAYOUT.worldLimit, Math.abs(position.x)), limitZ = Math.max(LAYOUT.worldLimit, Math.abs(position.z))
+  // A body already outside the bounds (a teleport or a carrier) is held where it is rather than snapped back.
+  const { world } = LAYOUT
+  const minX = Math.min(world.minX, position.x), maxX = Math.max(world.maxX, position.x)
+  const minZ = Math.min(world.minZ, position.z), maxZ = Math.max(world.maxZ, position.z)
   forward.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch))
   right.set(Math.cos(yaw), 0, Math.sin(yaw))
   desired.copy(forward).multiplyScalar(-input.z).addScaledVector(right, input.x)
@@ -61,7 +64,7 @@ export function stepFlight(
     }
     else { velocity.y = 0; step.y = 0 }
   }
-  position.x = Math.max(-limitX, Math.min(limitX, position.x))
-  position.y = Math.max(TERRAIN_WALK_FLOOR, Math.min(1100, position.y))
-  position.z = Math.max(-limitZ, Math.min(limitZ, position.z))
+  position.x = Math.max(minX, Math.min(maxX, position.x))
+  position.y = Math.max(TERRAIN_WALK_FLOOR, Math.min(world.ceiling, position.y))
+  position.z = Math.max(minZ, Math.min(maxZ, position.z))
 }
