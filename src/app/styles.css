@@ -40,6 +40,7 @@ button { font: inherit; }
 .intro-art { position: absolute; inset: -28px; background-size: cover; background-position: center 42%; filter: blur(2px) brightness(.66) saturate(.92); transform: scale(1.03); transition: opacity 1.8s ease, filter 1.8s ease; }
 .intro-screen[data-ready="true"] .intro-art { opacity: .42; filter: blur(7px) brightness(.55) saturate(.85); }
 .intro-panel { position: absolute; z-index: 1; left: clamp(32px, 7vw, 120px); top: 50%; width: min(450px, 76vw); transform: translateY(-50%); }
+.intro-language { position: absolute; z-index: 1; top: 24px; right: 24px; }
 .intro-kicker { display: flex; gap: 12px; align-items: center; color: #e1ca9e; font-size: 11px; letter-spacing: .3em; }
 .intro-kicker span { width: 29px; height: 1px; background: #dec698; }
 .intro-panel h1 { margin: 24px 0 20px; font-size: clamp(46px, 5.6vw, 88px); line-height: 1.13; letter-spacing: .11em; font-weight: 500; color: #f2f4f2; }
@@ -366,6 +367,31 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .dialog, .dialog-backdrop, .interact-prompt, .cinema-caption { animation: none; }
   .teleport-flash, .photo-shutter { animation-duration: .01s; }
+}
+
+@media (max-width: 700px) {
+  .intro-panel {
+    top: auto;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    left: 20px;
+    width: min(460px, calc(100vw - 40px));
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
+    padding: 8px 0;
+    transform: none;
+    overscroll-behavior: contain;
+  }
+  .intro-language { top: 16px; right: 16px; }
+  .intro-kicker { gap: 8px; font-size: 9px; letter-spacing: .16em; }
+  .intro-kicker span { flex: 0 0 20px; }
+  .intro-panel h1 { margin: 12px 0; font-size: 40px; line-height: 1.04; letter-spacing: .035em; }
+  .intro-panel p { max-width: 400px; margin: 0; font-size: 12px; line-height: 1.65; letter-spacing: .02em; }
+  .intro-panel .character-picker { margin-top: 12px; }
+  .intro-load { width: 100%; margin-top: 14px; }
+  .intro-panel .enter-button { margin-top: 14px; }
+  .intro-guide { gap: 6px 10px; margin-top: 14px; font-size: 10px; }
+  .intro-resume { max-width: 100%; flex-wrap: wrap; text-align: left; line-height: 1.5; }
+  .intro-panel .intro-meta { display: none; }
 }
 .route-card { transition: opacity .9s ease, transform .9s ease; }
 .route-card[data-shown="false"] { opacity: 0; transform: translateY(10px); pointer-events: none; }

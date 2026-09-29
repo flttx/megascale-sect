@@ -1,6 +1,7 @@
 import { useWorldStore } from '../world/store'
 import { photo } from './bridge'
 import { PHOTO_FILTER_CSS, useUiStore } from './uiStore'
+import { translate } from './i18n'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 let shotSequence = 0
@@ -37,7 +38,7 @@ export function exportPhoto(source: HTMLCanvasElement) {
     context.font = `600 ${size}px 'Noto Sans SC', 'Microsoft YaHei', sans-serif`
     context.fillStyle = 'rgba(236, 219, 185, 0.78)'
     context.textAlign = 'right'
-    context.fillText('云阙仙宗', width - size * 1.4, height - size * 1.3)
+    context.fillText(translate('云阙仙宗', useUiStore.getState().language), width - size * 1.4, height - size * 1.3)
     const now = new Date()
     const name = `yunque-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${String(now.getMilliseconds()).padStart(3, '0')}-${++shotSequence}.png`
     useUiStore.getState().shutter()

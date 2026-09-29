@@ -9,6 +9,7 @@ import {
 import { photo, uiBridge, exitPhoto } from '../../ui/bridge'
 import { exportPhoto } from '../../ui/photoExport'
 import { dismissOverlay, useUiStore } from '../../ui/uiStore'
+import { translate } from '../../ui/i18n'
 import { environmentMaterial } from '../environment/t02r/materials'
 import { terrainHeight } from '../environment/t02r/terrain'
 import { getPlayerRuntime, teleportPlayer } from '../player/playerHandle'
@@ -303,7 +304,10 @@ function collect(id: string, at: readonly [number, number, number], tint: [numbe
   const collected = new Set(useUiStore.getState().orbs)
   const count = collected.size
   if (count === ORBS.length) useWorldStore.getState().setNotice('诸天灵光尽收 · 云阙诸天为你澄明')
-  else if (orb && ORBS.filter((o) => o.group === orb.group).every((o) => collected.has(o.id))) useWorldStore.getState().setNotice(`${ORB_GROUP_LABELS[orb.group]} · 灵光尽收`)
+  else if (orb && ORBS.filter((o) => o.group === orb.group).every((o) => collected.has(o.id))) {
+    const language = useUiStore.getState().language
+    useWorldStore.getState().setNotice(translate('{group} · 灵光尽收', language, { group: translate(ORB_GROUP_LABELS[orb.group], language) }))
+  }
 }
 
 function Sparks() {

@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useWorldStore } from '../world/store'
 import { photo, uiBridge } from './bridge'
 import { PHOTO_FILTER_CSS, PHOTO_FILTER_LABELS, PHOTO_FILTERS, useUiStore } from './uiStore'
+import { useTranslation } from './i18n'
 
 /**
  * Optional photo panel: filter chips, vignette, key hints and the shot counter.
  * Camera input lives in usePhotoInput so it is ready before this panel finishes loading.
  */
 export function PhotoMode() {
+  const t = useTranslation()
   const active = useWorldStore((state) => state.cameraMode === 'photo')
   const filter = useUiStore((state) => state.photoFilter)
   const vignette = useUiStore((state) => state.photoVignette)
@@ -38,15 +40,15 @@ export function PhotoMode() {
   return <div className="photo-ui">
     {vignette && <div className="photo-vignette" aria-hidden="true" />}
     <div className="photo-frame" aria-hidden="true"><i /><i /><i /><i /></div>
-    {!hidden && <section className="photo-panel" aria-label="拍照模式">
-      <header><small>PHOTO MODE</small><strong>拍照模式</strong>{saved && <em aria-live="polite">已存 {saved.count} 张</em>}</header>
-      <div className="segmented" role="group" aria-label="滤镜（F 切换）">
-        {PHOTO_FILTERS.map((f) => <button key={f} aria-pressed={filter === f} onClick={() => useUiStore.getState().setPhotoFilter(f)}>{PHOTO_FILTER_LABELS[f]}</button>)}
+    {!hidden && <section className="photo-panel" aria-label={t('拍照模式')}>
+      <header><small>PHOTO MODE</small><strong>{t('拍照模式')}</strong>{saved && <em aria-live="polite">{t('已存 {count} 张', { count: saved.count })}</em>}</header>
+      <div className="segmented" role="group" aria-label={t('滤镜（F 切换）')}>
+        {PHOTO_FILTERS.map((f) => <button key={f} aria-pressed={filter === f} onClick={() => useUiStore.getState().setPhotoFilter(f)}>{t(PHOTO_FILTER_LABELS[f])}</button>)}
       </div>
-      <button className="toggle" aria-pressed={vignette} onClick={() => useUiStore.getState().setPhotoVignette(!vignette)}>暗角 <kbd>V</kbd></button>
+      <button className="toggle" aria-pressed={vignette} onClick={() => useUiStore.getState().setPhotoVignette(!vignette)}>{t('暗角')} <kbd>V</kbd></button>
       <ul className="photo-keys">
-        <li><kbd>WASD</kbd>移动</li><li><kbd>Q</kbd><kbd>E</kbd>降 · 升</li><li><kbd>Shift</kbd>疾速</li><li><kbd>滚轮</kbd>焦距</li>
-        <li><kbd>F</kbd>滤镜</li><li><kbd>Enter</kbd>/ 左键 拍摄</li><li><kbd>H</kbd>隐藏面板</li><li><kbd>P</kbd>/<kbd>Esc</kbd>退出</li>
+        <li><kbd>WASD</kbd>{t('移动')}</li><li><kbd>Q</kbd><kbd>E</kbd>{t('降 · 升')}</li><li><kbd>Shift</kbd>{t('疾速')}</li><li><kbd>滚轮</kbd>{t('焦距')}</li>
+        <li><kbd>F</kbd>{t('滤镜')}</li><li><kbd>Enter</kbd>/ {t('左键 拍摄')}</li><li><kbd>H</kbd>{t('隐藏面板')}</li><li><kbd>P</kbd>/<kbd>Esc</kbd>{t('退出')}</li>
       </ul>
       {saved && <p className="photo-saved">{saved.name}</p>}
     </section>}

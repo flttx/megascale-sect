@@ -6,6 +6,7 @@ import { useUiStore } from '../ui/uiStore'
 import { useWorldStore } from '../world/store'
 import { director } from '../world/interact/cinematics'
 import { getPlayerRuntime, teleportPlayer } from '../world/player/playerHandle'
+import { useTranslation } from '../ui/i18n'
 
 type Status = 'ready' | 'lost' | 'rebuilding' | 'failed'
 
@@ -76,12 +77,13 @@ export function RecoveryProbe({ active, onReady }: { active: boolean; onReady: (
 }
 
 export function RecoveryOverlay({ status, retry }: { status: Status; retry: () => void }) {
+  const t = useTranslation()
   if (status === 'ready') return null
   const failed = status === 'failed'
   return <div className="graphics-recovery" role="alertdialog" aria-modal="true" aria-labelledby="graphics-title">
-    <div><h2 id="graphics-title">{failed ? '画面暂未恢复' : '正在恢复画面'}</h2>
-      <p>{failed ? '进度与设置仍保留在本次会话中。请点击重试。' : '正在重建画面，稍后将在最近的安全落脚点继续。'}</p>
-      {failed && <button autoFocus onClick={retry}>重试恢复画面</button>}
+    <div><h2 id="graphics-title">{t(failed ? '画面暂未恢复' : '正在恢复画面')}</h2>
+      <p>{t(failed ? '进度与设置仍保留在本次会话中。请点击重试。' : '正在重建画面，稍后将在最近的安全落脚点继续。')}</p>
+      {failed && <button autoFocus onClick={retry}>{t('重试恢复画面')}</button>}
     </div>
   </div>
 }

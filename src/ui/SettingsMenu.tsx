@@ -12,6 +12,8 @@ import { Dialog } from './Dialog'
 import { useUiStore } from './uiStore'
 import { useStorageStatus } from './save'
 import { CharacterPicker } from './CharacterPicker'
+import { LanguagePicker } from './LanguagePicker'
+import { useTranslation } from './i18n'
 
 const TIME_SCALES: [number, string][] = [[0, '静止'], [0.5, '½×'], [1, '1×'], [2, '2×'], [4, '4×']]
 const CHANNELS: [VolumeChannel, string][] = [['master', '总音量'], ['music', '乐曲'], ['ambience', '环境'], ['sfx', '音效']]
@@ -44,15 +46,17 @@ export function SettingsMenu() {
 }
 
 function Row({ label, en, children }: { label: string; en: string; children: ReactNode }) {
-  return <div className="settings-row"><span className="settings-label">{label}<small>{en}</small></span><div className="settings-control">{children}</div></div>
+  const t = useTranslation()
+  return <div className="settings-row"><span className="settings-label">{t(label)}<small>{en}</small></span><div className="settings-control">{children}</div></div>
 }
 
 function Slider({ label, min, max, step, value, format, onChange }: {
   label: string; min: number; max: number; step: number; value: number; format: (value: number) => string; onChange: (value: number) => void
 }) {
+  const t = useTranslation()
   const id = useId()
   return <span className="settings-slider">
-    <input id={id} type="range" min={min} max={max} step={step} value={value} aria-label={label} aria-valuetext={format(value)}
+    <input id={id} type="range" min={min} max={max} step={step} value={value} aria-label={t(label)} aria-valuetext={format(value)}
       onChange={(event) => onChange(Number(event.currentTarget.value))} />
     <output htmlFor={id}>{format(value)}</output>
   </span>
@@ -69,6 +73,7 @@ function Clock() {
 }
 
 function SettingsPanel() {
+  const t = useTranslation()
   const storage = useStorageStatus()
   const lockError = useUiStore((state) => state.lockError)
   // Only the settings fields: the store also carries telemetry that changes several times a second.
@@ -86,22 +91,23 @@ function SettingsPanel() {
   const percent = (v: number) => `${Math.round(v * 100)}%`
   // Pointer lock needs a user gesture and Esc is not one, so Esc only returns focus to 继续 (Enter or a click resumes).
   const focusResume = () => document.querySelector<HTMLElement>('.settings-resume')?.focus({ preventScroll: true })
-  return <Dialog title="暂停 · 设置" hideTitle className="panel-dialog settings-dialog" onClose={requestLock} onEscape={focusResume}>
+  return <Dialog title={t('暂停 · 设置')} hideTitle className="panel-dialog settings-dialog" onClose={requestLock} onEscape={focusResume}>
     <header className="settings-head">
-      <div><small>PAUSED · SETTINGS</small><strong>暂停 · 设置</strong></div>
-      <button className="settings-resume" data-autofocus onClick={requestLock} aria-label="继续游戏并锁定视角">继续 <span aria-hidden="true">→</span></button>
+      <div><small>PAUSED · SETTINGS</small><strong>{t('暂停 · 设置')}</strong></div>
+      <button className="settings-resume" data-autofocus onClick={requestLock} aria-label={t('继续游戏并锁定视角')}>{t('继续')} <span aria-hidden="true">→</span></button>
     </header>
-    {lockError && <p className="settings-lock-error" role="alert">{lockError}</p>}
+    {lockError && <p className="settings-lock-error" role="alert">{t(lockError)}</p>}
     <div className="settings-grid">
-      <section className="settings-section" aria-label="画面">
-        <h3>画面 <small>DISPLAY</small></h3>
+      <section className="settings-section" aria-label={t('画面')}>
+        <h3>{t('画面')} <small>DISPLAY</small></h3>
+        <Row label="语言" en="LANGUAGE"><LanguagePicker /></Row>
         <Row label="画质" en="QUALITY">
-          <div className="segmented" role="group" aria-label="画质档位">
+          <div className="segmented" role="group" aria-label={t('画质档位')}>
             {QUALITY_LEVELS.map((level) => <button key={level} aria-pressed={world.quality === level}
-              onClick={() => world.setQuality(level, world.autoQuality)}>{QUALITY_PRESETS[level].label}</button>)}
+              onClick={() => world.setQuality(level, world.autoQuality)}>{t(QUALITY_PRESETS[level].label)}</button>)}
           </div>
           <button className="toggle" aria-pressed={world.autoQuality} onClick={() => world.setQuality(world.quality, !world.autoQuality)}
-            aria-label="自动降档：帧率不足时自动调低画质">自动</button>
+            aria-label={t('自动降档：帧率不足时自动调低画质')}>{t('自动')}</button>
         </Row>
         <Row label="视野" en="FOV">
           <Slider label="视野角度" min={55} max={90} step={1} value={world.fov} format={(v) => `${v}°`} onChange={world.setFov} />
@@ -110,36 +116,36 @@ function SettingsPanel() {
           <Slider label="鼠标灵敏度" min={0.2} max={3} step={0.05} value={world.mouseSensitivity} format={(v) => `${v.toFixed(2)}×`} onChange={world.setMouseSensitivity} />
         </Row>
       </section>
-      <section className="settings-section" aria-label="声音">
-        <h3>声音 <small>AUDIO</small></h3>
+      <section className="settings-section" aria-label={t('声音')}>
+        <h3>{t('声音')} <small>AUDIO</small></h3>
         <Row label="静音" en="MUTE">
-          <button className="toggle" aria-pressed={!world.soundEnabled} onClick={world.toggleSound} aria-label="静音">{world.soundEnabled ? '有声' : '已静音'} <kbd>M</kbd></button>
+          <button className="toggle" aria-pressed={!world.soundEnabled} onClick={world.toggleSound} aria-label={t('静音')}>{t(world.soundEnabled ? '有声' : '已静音')} <kbd>M</kbd></button>
         </Row>
         {CHANNELS.map(([channel, label]) => <Row key={channel} label={label} en={channel.toUpperCase()}>
           <Slider label={`${label}音量`} min={0} max={1} step={0.05} value={volumes[channel]} format={percent} onChange={(v) => setVolume(channel, v)} />
         </Row>)}
       </section>
-      <section className="settings-section" aria-label="天时">
-        <h3>天时 <small>TIME · WEATHER</small></h3>
-        <Row label="时辰" en="CLOCK"><Clock /><span className="settings-note">{WEATHER_LABELS[world.weather]}</span></Row>
+      <section className="settings-section" aria-label={t('天时')}>
+        <h3>{t('天时')} <small>TIME · WEATHER</small></h3>
+        <Row label="时辰" en="CLOCK"><Clock /><span className="settings-note">{t(WEATHER_LABELS[world.weather])}</span></Row>
         <Row label="流速" en="TIME SCALE">
           <div className="segmented" role="group" aria-label="时间流速">
-            {TIME_SCALES.map(([scale, label]) => <button key={scale} aria-pressed={world.timeScale === scale} onClick={() => world.setTimeScale(scale)}>{label}</button>)}
+            {TIME_SCALES.map(([scale, label]) => <button key={scale} aria-pressed={world.timeScale === scale} onClick={() => world.setTimeScale(scale)}>{t(label)}</button>)}
           </div>
         </Row>
         <Row label="暂停时间" en="PAUSE">
-          <button className="toggle" aria-pressed={world.timePaused} onClick={() => world.setTimePaused(!world.timePaused)} aria-label="暂停昼夜流转">{world.timePaused ? '已暂停' : '流转中'}</button>
+          <button className="toggle" aria-pressed={world.timePaused} onClick={() => world.setTimePaused(!world.timePaused)} aria-label={t('暂停昼夜流转')}>{t(world.timePaused ? '已暂停' : '流转中')}</button>
         </Row>
         <Row label="天象" en="WEATHER">
-          <button className="toggle" aria-pressed={world.autoWeather} onClick={() => world.setAutoWeather(!world.autoWeather)} aria-label="自动变换天象">{world.autoWeather ? '自然流转' : '固定'}</button>
+          <button className="toggle" aria-pressed={world.autoWeather} onClick={() => world.setAutoWeather(!world.autoWeather)} aria-label={t('自动变换天象')}>{t(world.autoWeather ? '自然流转' : '固定')}</button>
         </Row>
       </section>
-      <section className="settings-section settings-keys" aria-label="操作说明">
-        <h3>操作 <small>CONTROLS</small></h3>
+      <section className="settings-section settings-keys" aria-label={t('操作说明')}>
+        <h3>{t('操作')} <small>CONTROLS</small></h3>
         <Row label="角色" en="CHARACTER"><CharacterPicker /></Row>
-        <dl>{CONTROLS.map(([key, action]) => <div key={key}><dt><kbd>{key}</kbd></dt><dd>{action}</dd></div>)}</dl>
+        <dl>{CONTROLS.map(([key, action]) => <div key={key}><dt><kbd>{key}</kbd></dt><dd>{t(action)}</dd></div>)}</dl>
       </section>
     </div>
-    <footer className="settings-foot"><span role="status">{storage === 'ok' ? '设置自动保存于本机 · 菜单期间世界继续运行' : storage === 'protected' ? '存档版本无法读取，已保留原档并暂停保存' : '本机存储不可用，本次进度未能保存'}</span><span><kbd>Esc</kbd> 再 <kbd>Enter</kbd>，或点击空白处继续</span></footer>
+    <footer className="settings-foot"><span role="status">{t(storage === 'ok' ? '设置自动保存于本机 · 菜单期间世界继续运行' : storage === 'protected' ? '存档版本无法读取，已保留原档并暂停保存' : '本机存储不可用，本次进度未能保存')}</span><span><kbd>Esc</kbd> {t('再')} <kbd>Enter</kbd>{t('，')} {t('或点击空白处继续')}</span></footer>
   </Dialog>
 }

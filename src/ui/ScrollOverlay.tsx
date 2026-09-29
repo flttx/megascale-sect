@@ -17,6 +17,7 @@ import { Dialog } from './Dialog'
 import { CORE_REGION, STELE_LORE, VIEWPOINT_REGIONS } from './lore'
 import { dismissOverlay, useUiStore } from './uiStore'
 import type { ScrollTab } from './uiStore'
+import { useTranslation } from './i18n'
 
 const TABS: { id: ScrollTab; label: string; en: string }[] = [
   { id: 'map', label: '舆图', en: 'MAP' }, { id: 'codex', label: '碑录', en: 'CODEX' }, { id: 'collection', label: '收集', en: 'PROGRESS' },
@@ -24,6 +25,7 @@ const TABS: { id: ScrollTab; label: string; en: string }[] = [
 
 /** Tab 卷轴: the sect map, the stele codex and collection progress. Tab closes it again. */
 export function ScrollOverlay() {
+  const t = useTranslation()
   const tab = useUiStore((state) => state.scrollTab)
   const setTab = useUiStore((state) => state.setScrollTab)
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
@@ -34,22 +36,22 @@ export function ScrollOverlay() {
     setTab(TABS[index].id)
     tabs.current[index]?.focus()
   }
-  return <Dialog title="卷轴" hideTitle className="scroll-dialog" onClose={dismissOverlay} onTab={dismissOverlay}>
+  return <Dialog title={t('卷轴')} hideTitle className="scroll-dialog" onClose={dismissOverlay} onTab={dismissOverlay}>
     <header className="scroll-head">
-      <div className="scroll-brand"><span>卷</span><div><strong>云阙卷轴</strong><small>SECT SCROLL · 舆图 碑录 收集</small></div></div>
-      <div className="scroll-tabs" role="tablist" aria-label="卷轴页签" onKeyDown={onTabKeys}>
-        {TABS.map((t, i) => <button key={t.id} ref={(el) => { tabs.current[i] = el }} role="tab" id={`scroll-tab-${t.id}`}
-          aria-selected={tab === t.id} aria-controls={tab === t.id ? `scroll-panel-${t.id}` : undefined} tabIndex={tab === t.id ? 0 : -1}
-          data-autofocus={tab === t.id ? true : undefined} onClick={() => setTab(t.id)}>{t.label}<small>{t.en}</small></button>)}
+      <div className="scroll-brand"><span>{t('卷')}</span><div><strong>{t('云阙卷轴')}</strong><small>SECT SCROLL · MAP · CODEX · PROGRESS</small></div></div>
+      <div className="scroll-tabs" role="tablist" aria-label={t('卷轴页签')} onKeyDown={onTabKeys}>
+        {TABS.map((tabDefinition, i) => <button key={tabDefinition.id} ref={(el) => { tabs.current[i] = el }} role="tab" id={`scroll-tab-${tabDefinition.id}`}
+          aria-selected={tab === tabDefinition.id} aria-controls={tab === tabDefinition.id ? `scroll-panel-${tabDefinition.id}` : undefined} tabIndex={tab === tabDefinition.id ? 0 : -1}
+          data-autofocus={tab === tabDefinition.id ? true : undefined} onClick={() => setTab(tabDefinition.id)}>{t(tabDefinition.label)}<small>{tabDefinition.en}</small></button>)}
       </div>
-      <button className="scroll-close" onClick={dismissOverlay} aria-label="收起卷轴">收起 <kbd>Tab</kbd></button>
+          <button className="scroll-close" onClick={dismissOverlay} aria-label={t('收起卷轴')}>{t('收起')} <kbd>Tab</kbd></button>
     </header>
     <div className="scroll-body" role="tabpanel" id={`scroll-panel-${tab}`} aria-labelledby={`scroll-tab-${tab}`}>
       {tab === 'map' && <MapPanel />}
       {tab === 'codex' && <CodexPanel />}
       {tab === 'collection' && <CollectionPanel />}
     </div>
-    <footer className="scroll-foot"><span><kbd>Tab</kbd> 收起</span><span><kbd>←</kbd><kbd>→</kbd> 切换页签</span><span><kbd>Shift</kbd>+<kbd>Tab</kbd> 移动焦点</span><span><kbd>Esc</kbd> 返回</span></footer>
+    <footer className="scroll-foot"><span><kbd>Tab</kbd> {t('收起')}</span><span><kbd>←</kbd><kbd>→</kbd> {t('切换页签')}</span><span><kbd>Shift</kbd>+<kbd>Tab</kbd> {t('移动焦点')}</span><span><kbd>Esc</kbd> {t('返回')}</span></footer>
   </Dialog>
 }
 
@@ -76,6 +78,7 @@ function siteDone(site: SiteSpec, progress: { steles: string[]; viewpoints: stri
 }
 
 function Marker({ site, done, unit }: { site: SiteSpec; done: boolean; unit: number }) {
+  const t = useTranslation()
   const [x, , z] = site.position, s = unit * 7, color = MARKER_COLORS[site.kind]
   const fill = done ? color : '#15222c'
   const shape = site.kind === 'stele' ? <rect x={-s * 0.55} y={-s * 0.8} width={s * 1.1} height={s * 1.6} fill={fill} stroke={color} strokeWidth={unit * 1.4} />
@@ -83,10 +86,11 @@ function Marker({ site, done, unit }: { site: SiteSpec; done: boolean; unit: num
       : site.kind === 'teleport' ? <g><circle r={s} fill="none" stroke={color} strokeWidth={unit * 1.4} /><circle r={s * 0.45} fill={done ? color : 'none'} stroke={color} strokeWidth={unit} /></g>
         : site.kind === 'meditation' ? <circle r={s * 0.7} fill="none" stroke={color} strokeWidth={unit * 1.6} />
           : <circle r={s * 0.85} fill={color} stroke="#15222c" strokeWidth={unit} />
-  return <g transform={`translate(${x} ${z})`} className="map-marker"><title>{`${KIND_LABELS[site.kind]} · ${site.name}${done ? '' : '（未至）'}`}</title>{shape}</g>
+  return <g transform={`translate(${x} ${z})`} className="map-marker"><title>{`${t(KIND_LABELS[site.kind])} · ${t(site.name)}${done ? '' : t('（未至）')}`}</title>{shape}</g>
 }
 
 function MapPanel() {
+  const t = useTranslation()
   const steles = useUiStore((state) => state.steles), viewpoints = useUiStore((state) => state.viewpoints), arrays = useUiStore((state) => state.arrays), orbs = useUiStore((state) => state.orbs)
   const full = useMemo(worldView, [])
   const [zoom, setZoom] = useState<'sect' | 'world'>(() => {
@@ -128,10 +132,10 @@ function MapPanel() {
   const revealed = [...CORE_REGION, ...viewpoints.flatMap((id) => VIEWPOINT_REGIONS[id]?.circles ?? [])]
   const state = { steles, viewpoints, arrays }
   const main = LAYOUT.main.position, hall = LAYOUT.mainCollider, platform = LAYOUT.platform
-  const label = (text: string, x: number, z: number, size = 11, className = 'map-label') => <text x={x} y={z} fontSize={unit * size} className={className} textAnchor="middle">{text}</text>
+  const label = (text: string, x: number, z: number, size = 11, className = 'map-label') => <text x={x} y={z} fontSize={unit * size} className={className} textAnchor="middle">{t(text)}</text>
   return <div className="map-panel">
     <div className="map-frame">
-      <svg viewBox={`${view.x} ${view.z} ${view.w} ${view.h}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="云阙仙宗舆图：显示岛屿、石林、各处碑亭与传送阵，以及你的位置">
+      <svg viewBox={`${view.x} ${view.z} ${view.w} ${view.h}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={t('云阙仙宗舆图：显示岛屿、石林、各处碑亭与传送阵，以及你的位置')}>
         <defs>
           <radialGradient id="map-sea" cx="50%" cy="45%" r="75%"><stop offset="0%" stopColor="#223644" /><stop offset="100%" stopColor="#131e27" /></radialGradient>
           <pattern id="map-mist" width="120" height="120" patternUnits="userSpaceOnUse">
@@ -167,37 +171,38 @@ function MapPanel() {
           {ISLANDS.map((i) => <g key={i.id}>{label(i.name, i.top[0], i.top[2] + i.radius + unit * 16, 11)}</g>)}
         </g>
         <g className="map-orbs">{ORBS.filter((o) => orbs.includes(o.id)).map((o) => <circle key={o.id} data-orb-id={o.id} ref={(node) => { if (node) orbNodes.current.set(o.id, node); else orbNodes.current.delete(o.id) }} r={unit * 2.2} />)}</g>
-        <g ref={kun} className="map-kun" fill="#91d6c7" stroke="#d7ede1" strokeWidth="1.2"><title>鲲 · 平飞时可停靠</title><ellipse rx="7" ry="17" /><path d="M-5 -10 L-13 -19 L0 -15 L13 -19 L5 -10 M-6 2 L-17 -3 L-6 7 M6 2 L17 -3 L6 7" /><text x="17" y="5" fontSize="12" stroke="none">鲲</text></g>
+        <g ref={kun} className="map-kun" fill="#91d6c7" stroke="#d7ede1" strokeWidth="1.2"><title>{t('鲲 · 平飞时可停靠')}</title><ellipse rx="7" ry="17" /><path d="M-5 -10 L-13 -19 L0 -15 L13 -19 L5 -10 M-6 2 L-17 -3 L-6 7 M6 2 L17 -3 L6 7" /><text x="17" y="5" fontSize="12" stroke="none">{t('鲲')}</text></g>
         <g className="map-markers">{SITES.map((site) => <Marker key={site.id} site={site} done={siteDone(site, state)} unit={unit} />)}</g>
         <g ref={player} className="map-player"><circle r="11" className="map-player-ring" /><path d="M0 -13 L7.5 8 L0 3.5 L-7.5 8Z" /></g>
       </svg>
-      <div className="map-zoom" role="group" aria-label="舆图范围">
-        <button aria-pressed={zoom === 'sect'} onClick={() => setZoom('sect')}>宗门</button>
-        <button aria-pressed={zoom === 'world'} onClick={() => setZoom('world')}>全图</button>
+      <div className="map-zoom" role="group" aria-label={t('舆图范围')}>
+        <button aria-pressed={zoom === 'sect'} onClick={() => setZoom('sect')}>{t('宗门')}</button>
+        <button aria-pressed={zoom === 'world'} onClick={() => setZoom('world')}>{t('全图')}</button>
       </div>
-      <div className="map-compass" aria-hidden="true">北</div>
+      <div className="map-compass" aria-hidden="true">{t('北')}</div>
     </div>
     <aside className="map-side">
-      <h3>图例 <small>LEGEND</small></h3>
+      <h3>{t('图例')} <small>LEGEND</small></h3>
       <ul className="map-legend">
-        <li><i className="legend-stele" />石碑 <em>{steles.length}/{sitesOf('stele').length}</em></li>
-        <li><i className="legend-view" />观景台 <em>{viewpoints.length}/{sitesOf('viewpoint').length}</em></li>
-        <li><i className="legend-array" />传送阵 <em>{arrays.length}/{sitesOf('teleport').length}</em></li>
-        <li><i className="legend-bell" />古钟 · 祭坛</li>
-        <li><i className="legend-cushion" />蒲团</li>
-        <li><i className="legend-player" />你的位置</li>
+        <li><i className="legend-stele" />{t('石碑')} <em>{steles.length}/{sitesOf('stele').length}</em></li>
+        <li><i className="legend-view" />{t('观景台')} <em>{viewpoints.length}/{sitesOf('viewpoint').length}</em></li>
+        <li><i className="legend-array" />{t('传送阵')} <em>{arrays.length}/{sitesOf('teleport').length}</em></li>
+        <li><i className="legend-bell" />{t('古钟 · 祭坛')}</li>
+        <li><i className="legend-cushion" />{t('蒲团')}</li>
+        <li><i className="legend-player" />{t('你的位置')}</li>
       </ul>
-      <p className="map-hint">实心为已至之处。云雾遮蔽之地，登临观景台远眺即可揭示。</p>
-      <h3>已揭示 <small>REVEALED</small></h3>
+      <p className="map-hint">{t('实心为已至之处。云雾遮蔽之地，登临观景台远眺即可揭示。')}</p>
+      <h3>{t('已揭示')} <small>REVEALED</small></h3>
       <ul className="map-regions">
-        <li data-done="true">宗门腹地</li>
-        {Object.entries(VIEWPOINT_REGIONS).map(([id, region]) => <li key={id} data-done={viewpoints.includes(id)}>{viewpoints.includes(id) ? region.name : '？？？'}</li>)}
+        <li data-done="true">{t('宗门腹地')}</li>
+        {Object.entries(VIEWPOINT_REGIONS).map(([id, region]) => <li key={id} data-done={viewpoints.includes(id)}>{viewpoints.includes(id) ? t(region.name) : '???'}</li>)}
       </ul>
     </aside>
   </div>
 }
 
 function CodexPanel() {
+  const t = useTranslation()
   const read = useUiStore((state) => state.steles)
   const list = sitesOf('stele')
   const [selected, setSelected] = useState(() => read[read.length - 1] ?? list[0].id)
@@ -211,47 +216,48 @@ function CodexPanel() {
     event.currentTarget.querySelectorAll('button')[index]?.focus()
   }
   return <div className="codex-panel">
-    <ul className="codex-list" aria-label="碑文目录" onKeyDown={onListKeys}>
+    <ul className="codex-list" aria-label={t('碑文目录')} onKeyDown={onListKeys}>
       {list.map((site, i) => {
         const done = read.includes(site.id)
         return <li key={site.id}><button aria-pressed={selected === site.id} onClick={() => setSelected(site.id)} data-read={done}
-          aria-label={done ? `${STELE_LORE[site.id]?.title ?? site.name}，已研读` : `第 ${i + 1} 碑，尚未研读`}>
-          <span>{String(i + 1).padStart(2, '0')}</span><b>{done ? STELE_LORE[site.id]?.title ?? site.name : '未读之碑'}</b><small>{done ? '已录' : STELE_LORE[site.id]?.hint}</small>
+          aria-label={done ? `${t(STELE_LORE[site.id]?.title ?? site.name)}${t('，已研读')}` : t('第 {index} 碑，尚未研读', { index: i + 1 })}>
+          <span>{String(i + 1).padStart(2, '0')}</span><b>{done ? t(STELE_LORE[site.id]?.title ?? site.name) : t('未读之碑')}</b><small>{done ? t('已录') : t(STELE_LORE[site.id]?.hint ?? '')}</small>
         </button></li>
       })}
     </ul>
     <article className="codex-page" aria-live="polite">
       {entry && known ? <>
-        <header><small>{entry.era}</small><strong>{entry.title}</strong></header>
-        <p className="codex-text">{entry.text}</p>
-      </> : <div className="codex-unknown"><strong>碑文未录</strong><p>此碑尚待亲往研读。<br />所在：{entry?.hint ?? '未知'}</p></div>}
+        <header><small>{t(entry.era)}</small><strong>{t(entry.title)}</strong></header>
+        <p className="codex-text">{t(entry.text)}</p>
+      </> : <div className="codex-unknown"><strong>{t('碑文未录')}</strong><p>{t('此碑尚待亲往研读。')}<br />{t('所在：')}{t(entry?.hint ?? '未知')}</p></div>}
     </article>
   </div>
 }
 
 function CollectionPanel() {
+  const t = useTranslation()
   const orbs = useUiStore((state) => state.orbs), steles = useUiStore((state) => state.steles)
   const viewpoints = useUiStore((state) => state.viewpoints), arrays = useUiStore((state) => state.arrays)
   const groups = Object.keys(ORB_GROUP_LABELS) as OrbGroup[]
-  const bar = (label: string, value: number, total: number) => <span className="progress-bar" role="progressbar" aria-label={`${label} ${value}/${total}`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={value}><i style={{ width: `${(value / total) * 100}%` }} /></span>
+  const bar = (label: string, value: number, total: number) => <span className="progress-bar" role="progressbar" aria-label={`${t(label)} ${value}/${total}`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={value}><i style={{ width: `${(value / total) * 100}%` }} /></span>
   const rows: [string, string, string[], SiteSpec[]][] = [
     ['碑文', 'STELES', steles, sitesOf('stele')], ['远眺', 'VIEWPOINTS', viewpoints, sitesOf('viewpoint')], ['传送阵', 'ARRAYS', arrays, sitesOf('teleport')],
   ]
   return <div className="collection-panel">
     <section className="collection-orbs">
-      <header><small>SPIRIT LIGHT</small><strong>灵光 <b>{orbs.length}</b> / {ORB_COUNT}</strong>{bar('灵光', orbs.length, ORB_COUNT)}</header>
+      <header><small>SPIRIT LIGHT</small><strong>{t('灵光')} <b>{orbs.length}</b> / {ORB_COUNT}</strong>{bar('灵光', orbs.length, ORB_COUNT)}</header>
       <ul>
         {groups.map((group) => {
           const all = ORBS.filter((o) => o.group === group), got = all.filter((o) => orbs.includes(o.id)).length
-          return <li key={group} data-done={got === all.length}><span>{ORB_GROUP_LABELS[group]}</span>{bar(ORB_GROUP_LABELS[group], got, all.length)}<em>{got} / {all.length}</em></li>
+          return <li key={group} data-done={got === all.length}><span>{t(ORB_GROUP_LABELS[group])}</span>{bar(ORB_GROUP_LABELS[group], got, all.length)}<em>{got} / {all.length}</em></li>
         })}
       </ul>
-      <p className="map-hint">金色灵光可步行拾取；青碧与淡紫者，多在桥下、浮屿、石林与殿顶，需御剑方至。罗盘上的 ✦ 指向最近尚有灵光之处。</p>
+      <p className="map-hint">{t('金色灵光可步行拾取；青碧与淡紫者，多在桥下、浮屿、石林与殿顶，需御剑方至。罗盘上的 ✦ 指向最近尚有灵光之处。')}</p>
     </section>
     <section className="collection-sites">
       {rows.map(([name, en, done, list]) => <div key={en} className="collection-row">
-        <header><small>{en}</small><strong>{name} <b>{done.length}</b> / {list.length}</strong>{bar(name, done.length, list.length)}</header>
-        <ul>{list.map((site) => <li key={site.id} data-done={done.includes(site.id)}>{done.includes(site.id) ? site.name : '？？？'}</li>)}</ul>
+        <header><small>{en}</small><strong>{t(name)} <b>{done.length}</b> / {list.length}</strong>{bar(name, done.length, list.length)}</header>
+        <ul>{list.map((site) => <li key={site.id} data-done={done.includes(site.id)}>{done.includes(site.id) ? t(site.name) : '???'}</li>)}</ul>
       </div>)}
     </section>
   </div>

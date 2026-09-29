@@ -18,6 +18,7 @@ import { Modals } from '../ui/Modals'
 import { applySave, loadSave, safePosition, startAutosave } from '../ui/save'
 import type { SavedPosition } from '../ui/save'
 import { SettingsMenu } from '../ui/SettingsMenu'
+import { useTranslation } from '../ui/i18n'
 import { dismissOverlay, showOverlay, useUiStore } from '../ui/uiStore'
 import type { Overlay } from '../ui/uiStore'
 import { useUiKeys } from '../ui/useUiKeys'
@@ -27,8 +28,9 @@ import { RecoveryOverlay, RecoveryProbe, useGraphicsRecovery } from './GraphicsR
 const PhotoMode = lazy(() => import('../ui/PhotoMode').then((module) => ({ default: module.PhotoMode })))
 function PhotoLayer() {
   const active = useWorldStore((state) => state.cameraMode === 'photo')
+  const t = useTranslation()
   usePhotoInput(active)
-  return active ? <Suspense fallback={<div className="photo-ui"><p className="player-notice" role="status">正在载入拍照工具…</p></div>}><PhotoMode /></Suspense> : null
+  return active ? <Suspense fallback={<div className="photo-ui"><p className="player-notice" role="status">{t('正在载入拍照工具…')}</p></div>}><PhotoMode /></Suspense> : null
 }
 
 const ROUTES = [
@@ -51,6 +53,7 @@ const COMPACT_CONTROLS: [string, string][] = [['E', '交互'], ['TAB', '卷轴']
 
 /** Subscribe to the route stage, rather than every position/FPS update. */
 function Interface() {
+  const t = useTranslation()
   const started = useWorldStore((state) => state.started)
   const routeIndex = useWorldStore((state) => getPlayerRuntime()?.aboard ? 4 : state.telemetry.position[2] > 64 ? 0 : state.telemetry.position[2] > 20 ? 1 : state.telemetry.position[2] > -65 ? 2 : 3)
   const ready = useWorldStore((state) => worldAssetsReady(state.assets))
@@ -87,8 +90,8 @@ function Interface() {
     <>
       {(!started || hud) && <header className="topbar">
         {started && <>
-          <div className="brand-mark">云</div>
-          <div className="brand-copy"><strong>云阙仙宗</strong><span>CELESTIAL SECT · ABOVE THE CLOUD SEA</span></div>
+          <div className="brand-mark">{t('云')}</div>
+          <div className="brand-copy"><strong>{t('云阙仙宗')}</strong><span>CELESTIAL SECT · ABOVE THE CLOUD SEA</span></div>
         </>}
         {!started && <div className="topbar-right"><span className="status-dot" />{ready ? 'WORLD READY' : active ? `LOADING ${Math.round(progress)}%` : 'PREPARING WORLD'}</div>}
       </header>}
@@ -96,19 +99,19 @@ function Interface() {
       {hud && <>
         <div className="crosshair" aria-hidden="true"><i /><i /></div>
         <div className="route-card" data-shown={routeShown} aria-hidden={!routeShown}>
-          <div className="eyebrow">PILGRIMAGE ROUTE <span>{route.number}</span></div>
-          <strong>{route.name}</strong>
+          <div className="eyebrow">PILGRIMAGE ROUTE <span>{t(route.number)}</span></div>
+          <strong>{t(route.name)}</strong>
           <div className="route-bar"><span style={{ width: `${route.progress}%` }} /></div>
-          <div className="route-next">{route.next}</div>
+          <div className="route-next">{t(route.next)}</div>
         </div>
         <div className="character-dock">
-          <small>{CHARACTER_ASSETS[character].name} · {soundEnabled ? '音效开' : '音效关'}</small>
-          <small><kbd>1 / 2</kbd> 换人 · <kbd>M</kbd> 音效 · <kbd>Esc</kbd> 设置</small>
+          <small>{t(CHARACTER_ASSETS[character].name)} · {soundEnabled ? t('音效开') : t('音效关')}</small>
+          <small><kbd>1 / 2</kbd> {t('换人')} · <kbd>M</kbd> {t('音效')} · <kbd>Esc</kbd> {t('设置')}</small>
         </div>
-        <div className="mode-card" data-phase={phase}><span className="mode-icon">{phase === 'FLIGHT' ? '↗' : '⌁'}</span><div><small>TRAVEL MODE</small><b>{PHASE_LABELS[phase]}</b></div><em>{phase === 'GROUND' ? 'F 召剑' : phase === 'FLIGHT' ? 'F 落地' : phase === 'LANDING' ? 'F 取消' : '聚气中'}</em></div>
-        <div className="controls" aria-label="操作提示">{(fullControls ? CONTROLS : COMPACT_CONTROLS).map(([key, action], i) => <span key={key} className="control-item">{i > 0 && <i />}{key} <span>{action}</span></span>)}</div>
+        <div className="mode-card" data-phase={phase}><span className="mode-icon">{phase === 'FLIGHT' ? '↗' : '⌁'}</span><div><small>TRAVEL MODE</small><b>{t(PHASE_LABELS[phase])}</b></div><em>{t(phase === 'GROUND' ? 'F 召剑' : phase === 'FLIGHT' ? 'F 落地' : phase === 'LANDING' ? 'F 取消' : '聚气中')}</em></div>
+        <div className="controls" aria-label={t('操作提示')}>{(fullControls ? CONTROLS : COMPACT_CONTROLS).map(([key, action], i) => <span key={key} className="control-item">{i > 0 && <i />}{key} <span>{t(action)}</span></span>)}</div>
       </>}
-      {started && !hudHidden && cameraMode !== 'photo' && (!characterReady || notice) && <div className="player-notice" role="status">{!characterReady ? `正在载入${CHARACTER_ASSETS[character].name}与佩剑… ${Math.round(progress)}%` : notice}</div>}
+      {started && !hudHidden && cameraMode !== 'photo' && (!characterReady || notice) && <div className="player-notice" role="status">{!characterReady ? t('正在载入{character}与佩剑… {percent}%', { character: t(CHARACTER_ASSETS[character].name), percent: Math.round(progress) }) : t(notice ?? '')}</div>}
 
     </>
   )
@@ -145,7 +148,12 @@ export default function App() {
   const setStarted = useWorldStore((state) => state.setStarted)
   const started = useWorldStore((state) => state.started)
   const debug = useWorldStore((state) => state.debug)
+  const language = useUiStore((state) => state.language)
   const [save] = useState(loadSave)
+  useEffect(() => {
+    document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN'
+    document.title = language === 'en' ? 'Yunque Celestial Sect' : '云阙仙宗'
+  }, [language])
   useEffect(() => { if (save) applySave(save) }, [save])
   useEffect(() => startAutosave(), [])
   useEffect(() => mixer.watchVisibility(), [])

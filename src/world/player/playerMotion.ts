@@ -7,6 +7,8 @@ import { deckAnchor, evaluateDeckAnchor, kunBodyBlocked, kunClearance, kunDeckHi
 import type { DeckAnchor } from '../colossi/kunDeck'
 import { shiftCameraRig } from './CameraRig'
 import { useWorldStore } from '../store'
+import { useUiStore } from '../../ui/uiStore'
+import { translate } from '../../ui/i18n'
 
 export type PlayerPhase = 'GROUND' | 'SUMMONING' | 'BOARDING' | 'FLIGHT' | 'LANDING' | 'DISMOUNTING'
 export const PHASE_LABELS: Record<PlayerPhase, string> = {
@@ -71,6 +73,7 @@ export function isAirborne(phase: PlayerPhase) {
 }
 
 const carrierPoint = new Vector3(), previousPoint = new Vector3(), playerBefore = new Vector3(), UP = new Vector3(0, 1, 0)
+const localizedNotice = (text: string) => useWorldStore.getState().setNotice(translate(text, useUiStore.getState().language))
 /** Runs even while the player is in a menu. Returns the carrier's turn for the free-look camera. */
 export function carryPlayer(runtime: PlayerRuntime, delta: number) {
   runtime.carrierDelta.set(0, 0, 0)
@@ -87,13 +90,13 @@ export function carryPlayer(runtime: PlayerRuntime, delta: number) {
   runtime.yaw -= turn; runtime.facing -= turn; runtime.sequenceYaw -= turn
   shiftCameraRig(previousPoint, now, turn)
   anchor.point.copy(now); anchor.yaw = kunState.heading
-  if (kunState.time >= 150 && !runtime.kunWarned) { runtime.kunWarned = true; useWorldStore.getState().setNotice('鲲将没入云海') }
+  if (kunState.time >= 150 && !runtime.kunWarned) { runtime.kunWarned = true; localizedNotice('鲲将没入云海') }
   if (runtime.phase === 'LANDING') {
     runtime.destination.y = now.y + FLIGHT_SEQUENCE.hover
-    if (!kunDockable()) { changePhase(runtime, 'FLIGHT'); useWorldStore.getState().setNotice('鲲正没入云海，无法停靠') }
+    if (!kunDockable()) { changePhase(runtime, 'FLIGHT'); localizedNotice('鲲正没入云海，无法停靠') }
   }
   if (runtime.aboard && (runtime.position.y + Math.min(0, runtime.carrierVelocity.y) * delta <= -24 || kunState.headY < -44)) {
-    catchWithSword(runtime); useWorldStore.getState().setNotice('飞剑载你离开鲲背')
+    catchWithSword(runtime); localizedNotice('飞剑载你离开鲲背')
   }
   return turn
 }
@@ -133,7 +136,8 @@ export function descentClear(x: number, fromY: number, toY: number, z: number) {
 }
 
 export function requestFlightToggle(runtime: PlayerRuntime): string | null {
-  if (!runtime.ready) return '角色与动作正在载入，请稍候'
+  const language = useUiStore.getState().language
+  if (!runtime.ready) return translate('角色与动作正在载入，请稍候', language)
   if (runtime.phase === 'GROUND' && runtime.inAir) {
     catchWithSword(runtime)
     return null
@@ -148,7 +152,7 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
       return { x, z, direction, height: groundHeight(x, z, position.y + 0.8) }
     }).find((candidate) => candidate.height !== null && Math.abs(position.y - candidate.height) <= 0.8 && bodyClear(candidate.x, candidate.height, candidate.z) &&
       !kunBodyBlocked(position.x, position.y, position.z, candidate.x, candidate.z))
-    if (!landing || landing.height === null) return '请在平稳、开阔的位置召剑'
+    if (!landing || landing.height === null) return translate('请在平稳、开阔的位置召剑', language)
     runtime.origin.copy(position)
     runtime.destination.set(landing.x, landing.height + FLIGHT_SEQUENCE.hover, landing.z)
     runtime.sequenceYaw = landing.direction
@@ -160,11 +164,11 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
   if (runtime.phase === 'FLIGHT') {
     const hit = groundHit(runtime.position.x, runtime.position.z, runtime.position.y)
     const surface = hit?.y ?? null
-    if (surface === null) return '请飞到地面、平台或浮岛上方，再按 F 落地'
-    if (terrainSlope(runtime.position.x, runtime.position.z, runtime.position.y) > 40) return '下方地势陡峭，请飞到平缓处再落地'
-    if (hit?.surfaceId === 'kun' && !kunDockable()) return '鲲正在爬升或入云，请待平飞时停靠'
-    if (hit && hit.normalY < Math.cos(40 * Math.PI / 180)) return '鲲背此处陡峭，请移到平缓处'
-    if (!descentClear(runtime.position.x, runtime.position.y, surface, runtime.position.z)) return '下方有遮挡，请移到开阔处落地'
+    if (surface === null) return translate('请飞到地面、平台或浮岛上方，再按 F 落地', language)
+    if (terrainSlope(runtime.position.x, runtime.position.z, runtime.position.y) > 40) return translate('下方地势陡峭，请飞到平缓处再落地', language)
+    if (hit?.surfaceId === 'kun' && !kunDockable()) return translate('鲲正在爬升或入云，请待平飞时停靠', language)
+    if (hit && hit.normalY < Math.cos(40 * Math.PI / 180)) return translate('鲲背此处陡峭，请移到平缓处', language)
+    if (!descentClear(runtime.position.x, runtime.position.y, surface, runtime.position.z)) return translate('下方有遮挡，请移到开阔处落地', language)
     runtime.destination.copy(runtime.position).setY(surface + FLIGHT_SEQUENCE.hover)
     runtime.velocity.set(0, 0, 0)
     changePhase(runtime, 'LANDING')
@@ -248,7 +252,7 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
     case 'LANDING': {
       if (!descentClear(position.x, position.y, runtime.destination.y - FLIGHT_SEQUENCE.hover, position.z)) {
         changePhase(runtime, 'FLIGHT')
-        useWorldStore.getState().setNotice('降落路径出现遮挡，已停止降落')
+        localizedNotice('降落路径出现遮挡，已停止降落')
         break
       }
       position.y = Math.max(runtime.destination.y, position.y - Math.min(28, (position.y - runtime.destination.y) * 2 + 1) * delta)

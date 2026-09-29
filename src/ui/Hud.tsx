@@ -9,6 +9,7 @@ import type { InteractKind } from '../world/sites'
 import { LAYOUT } from '../world/worldLayout'
 import { angleDelta, bearing, uiBridge } from './bridge'
 import { useUiStore } from './uiStore'
+import { useTranslation } from './i18n'
 
 const KIND_EN: Record<InteractKind, string> = { stele: 'STELE', viewpoint: 'OVERLOOK', bell: 'BELL', altar: 'ALTAR', meditation: 'MEDITATE', teleport: 'ARRAY' }
 
@@ -28,11 +29,11 @@ interface CompassItem {
 
 const CARDINALS: [number, string][] = [[0, '北'], [90, '东'], [180, '南'], [270, '西']]
 
-function staticItems(): CompassItem[] {
+function staticItems(t: ReturnType<typeof useTranslation>): CompassItem[] {
   const items: CompassItem[] = []
   for (let deg = 0; deg < 360; deg += 15) {
     const cardinal = CARDINALS.find(([d]) => d === deg)
-    if (cardinal) items.push({ key: `c${deg}`, className: 'compass-cardinal', label: cardinal[1], angle: (deg * Math.PI) / 180 })
+    if (cardinal) items.push({ key: `c${deg}`, className: 'compass-cardinal', label: t(cardinal[1]), angle: (deg * Math.PI) / 180 })
     else items.push({ key: `t${deg}`, className: deg % 45 === 0 ? 'compass-tick compass-tick-major' : 'compass-tick', label: '', angle: (deg * Math.PI) / 180 })
   }
   return items
@@ -60,14 +61,16 @@ function nearestOrbCluster(x: number, y: number, z: number, collected: string[])
 
 /** Top-centre compass bar: cardinals, ticks, overlooks, arrays, the main hall and the nearest orb cluster. */
 function Compass() {
+  const t = useTranslation()
+  const language = useUiStore((state) => state.language)
   const viewpoints = useUiStore((state) => state.viewpoints)
   const arrays = useUiStore((state) => state.arrays)
-  const ticks = useMemo(staticItems, [])
+  const ticks = useMemo(() => staticItems(t), [language])
   const sites = useMemo<CompassItem[]>(() => [
-    { key: 'hall', className: 'compass-marker compass-hall', label: '殿', target: [LAYOUT.main.position[0], LAYOUT.main.position[2]], title: '云阙主殿' },
-    ...sitesOf('viewpoint').map((s) => ({ key: s.id, className: 'compass-marker compass-view', label: '◇', target: [s.position[0], s.position[2]] as const, title: `观景 · ${s.name}` })),
-    ...sitesOf('teleport').map((s) => ({ key: s.id, className: 'compass-marker compass-array', label: '◎', target: [s.position[0], s.position[2]] as const, title: `传送阵 · ${s.name}` })),
-  ], [])
+    { key: 'hall', className: 'compass-marker compass-hall', label: t('殿'), target: [LAYOUT.main.position[0], LAYOUT.main.position[2]], title: t('云阙主殿') },
+    ...sitesOf('viewpoint').map((s) => ({ key: s.id, className: 'compass-marker compass-view', label: '◇', target: [s.position[0], s.position[2]] as const, title: `${t('观景 · ')}${t(s.name)}` })),
+    ...sitesOf('teleport').map((s) => ({ key: s.id, className: 'compass-marker compass-array', label: '◎', target: [s.position[0], s.position[2]] as const, title: `${t('传送阵 · ')}${t(s.name)}` })),
+  ], [language])
   const refs = useRef(new Map<string, HTMLElement>())
   const orbRef = useRef<HTMLElement | null>(null)
   const orbText = useRef<HTMLElement | null>(null)
@@ -106,7 +109,7 @@ function Compass() {
     return () => cancelAnimationFrame(frame)
   }, [ticks, sites])
   const done = (key: string) => viewpoints.includes(key) || arrays.includes(key)
-  return <div className="compass" role="img" aria-label="罗盘：显示方位、观景台、传送阵、主殿与最近的灵光">
+  return <div className="compass" role="img" aria-label={t('罗盘：显示方位、观景台、传送阵、主殿与最近的灵光')}>
     <div className="compass-strip" aria-hidden="true">
       {ticks.map((item) => <span key={item.key} ref={(el) => { if (el) refs.current.set(item.key, el); else refs.current.delete(item.key) }} className={item.className}>{item.label}</span>)}
       {sites.map((item) => <span key={item.key} ref={(el) => { if (el) refs.current.set(item.key, el); else refs.current.delete(item.key) }}
@@ -119,34 +122,37 @@ function Compass() {
 
 /** 「E 研读 · 入山碑」 above the crosshair when something is in reach. */
 function InteractPrompt() {
+  const t = useTranslation()
   const nearby = useUiStore((state) => state.nearby)
   const overlay = useUiStore((state) => state.overlay)
   const cameraMode = useWorldStore((state) => state.cameraMode)
   if (!nearby || overlay || cameraMode !== 'player') return null
   return <div className="interact-prompt" role="status" aria-live="polite">
-    <kbd>E</kbd><b>{nearby.verb}</b><span>·</span><strong>{nearby.name}</strong><small>{KIND_EN[nearby.kind]}</small>
+    <kbd>E</kbd><b>{t(nearby.verb)}</b><span>·</span><strong>{t(nearby.name)}</strong><small>{KIND_EN[nearby.kind]}</small>
   </div>
 }
 
 function OrbCounter() {
+  const t = useTranslation()
   const orbs = useUiStore((state) => state.orbs.length)
-  return <div className="orb-counter" aria-label={`已收集灵光 ${orbs} / ${ORB_COUNT}`}>
-    <i aria-hidden="true" /><span>灵光</span><b>{orbs}</b><em>/ {ORB_COUNT}</em>
+  return <div className="orb-counter" aria-label={`${t('已收集灵光')} ${orbs} / ${ORB_COUNT}`}>
+    <i aria-hidden="true" /><span>{t('灵光')}</span><b>{orbs}</b><em>/ {ORB_COUNT}</em>
   </div>
 }
 
 /** Cinematic caption plus letterbox bars (viewpoint sweeps and meditation). */
 function CaptionView() {
+  const t = useTranslation()
   const caption = useUiStore((state) => state.caption)
   const cameraMode = useWorldStore((state) => state.cameraMode)
   const cinematic = cameraMode === 'cinematic'
-  const skip = director.shot?.kind === 'meditation' ? '按 E 起身' : '按 E / Esc / 点击 跳过'
+  const skip = t(director.shot?.kind === 'meditation' ? '按 E 起身' : '按 E / Esc / 点击 跳过')
   return <>
     <div className="letterbox" data-on={cinematic} aria-hidden="true"><i /><i /></div>
     {cinematic && caption && <div className="cinema-caption" role="status" aria-live="polite">
-      <small>{caption.kicker}</small>
-      <strong>{caption.title}</strong>
-      <p>{caption.text}</p>
+      <small>{t(caption.kicker)}</small>
+      <strong>{t(caption.title)}</strong>
+      <p>{t(caption.text)}</p>
       <em>{skip}</em>
     </div>}
   </>

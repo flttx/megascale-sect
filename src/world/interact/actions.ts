@@ -1,5 +1,6 @@
 import { STELE_LORE, VIEWPOINT_LINES, VIEWPOINT_REGIONS } from '../../ui/lore'
 import { dismissOverlay, showOverlay, useUiStore } from '../../ui/uiStore'
+import { translate } from '../../ui/i18n'
 import { hasGameInput } from '../../ui/gameKeys'
 import { worldEvents } from '../events'
 import { getPlayerRuntime, teleportPlayer } from '../player/playerHandle'
@@ -14,7 +15,7 @@ import { facingYaw, SITE_BY_ID, sitesOf } from './registry'
 import type { SiteSpec } from './registry'
 import { playAttune, playBell, playTeleport } from './sounds'
 
-const notice = (text: string) => useWorldStore.getState().setNotice(text)
+const notice = (text: string, values: Record<string, string | number> = {}) => useWorldStore.getState().setNotice(translate(text, useUiStore.getState().language, values))
 const onFoot = () => getPlayerRuntime()?.phase === 'GROUND'
 let lastBell = -Infinity
 
@@ -44,7 +45,7 @@ function overlook(site: SiteSpec) {
   const region = VIEWPOINT_REGIONS[site.id]
   useUiStore.getState().setCaption({ kicker: 'VIEWPOINT · 远眺', title: site.name, text: VIEWPOINT_LINES[site.id] ?? '' })
   startShot('viewpoint', site, 9.5, () => {
-    if (first && region) { notice(`卷轴地图已揭示 · ${region.name}`); playAttune() }
+    if (first && region) { notice('卷轴地图已揭示 · {region}', { region: translate(region.name, useUiStore.getState().language) }); playAttune() }
   })
 }
 
@@ -70,7 +71,7 @@ export function triggerSite(id: string): boolean {
 
 export function announceArray(site: SiteSpec) {
   const total = sitesOf('teleport').length, count = useUiStore.getState().arrays.length
-  notice(`传送阵已感应 · ${site.name}（${count} / ${total}）`)
+  notice('传送阵已感应 · {name}（{count} / {total}）', { name: translate(site.name, useUiStore.getState().language), count, total })
   playAttune()
   const [x, y, z] = site.position
   emitSparks([x, y + 0.5, z], 36, [1, 0.82, 0.5], 4, 2.5, 1.4)
@@ -106,7 +107,7 @@ export function travel(fromId: string, toId: string) {
     if (!teleportPlayer(target, facingYaw(to.position, to.faceToward))) { notice('阵法感应不到你的气息，请先站稳再试'); return }
     worldEvents.emit('teleport', { from: start, to: target })
     emitSparks([x, y + 0.8, z], 48, [1, 0.85, 0.55], 4.5, 2.5, 1.4)
-    notice(`已抵达 · ${to.name}`)
+    notice('已抵达 · {name}', { name: translate(to.name, useUiStore.getState().language) })
   }, 420)
 }
 
@@ -115,7 +116,7 @@ export function chooseWeather(kind: WeatherKind | 'auto') {
   dismissOverlay()
   if (kind === 'auto') { world.setAutoWeather(true); notice('司天祭坛 · 天象顺其自然'); return }
   world.setWeather(kind)
-  notice(`司天祭坛 · 天象将转为${WEATHER_LABELS[kind]}`)
+  notice('司天祭坛 · 天象将转为{weather}', { weather: translate(WEATHER_LABELS[kind], useUiStore.getState().language) })
   playAttune()
 }
 

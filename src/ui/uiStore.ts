@@ -3,6 +3,16 @@ import type { InteractKind } from '../world/sites'
 import type { VolumeChannel } from '../world/audio/mixer'
 import { releaseLock, requestLock } from './bridge'
 
+export type Language = 'zh' | 'en'
+
+function readLanguage(): Language {
+  try {
+    return localStorage.getItem('yunque.language') === 'zh' ? 'zh' : 'en'
+  } catch {
+    return 'en'
+  }
+}
+
 /** The site the player could use right now (drives the 「E 研读 · 入山碑」 prompt). */
 export interface NearbySite { id: string; kind: InteractKind; name: string; verb: string }
 
@@ -28,6 +38,8 @@ export const PHOTO_FILTER_CSS: Record<PhotoFilter, string> = {
 export interface Caption { title: string; text: string; kicker: string }
 
 interface UiState {
+  language: Language
+  setLanguage: (value: Language) => void
   nearby: NearbySite | null
   overlay: Overlay | null
   scrollTab: ScrollTab
@@ -65,6 +77,15 @@ interface UiState {
 const add = (list: string[], id: string) => list.includes(id) ? null : [...list, id]
 
 export const useUiStore = create<UiState>((set, get) => ({
+  language: readLanguage(),
+  setLanguage: (language) => {
+    set({ language })
+    try {
+      localStorage.setItem('yunque.language', language)
+    } catch (error) {
+      console.warn('Could not persist language preference.', error)
+    }
+  },
   nearby: null, overlay: null, scrollTab: 'map', hudHidden: false,
   photoFilter: 'none', photoVignette: false, caption: null, veil: false, flashKey: 0, shutterKey: 0,
   orbs: [], steles: [], viewpoints: [], arrays: [],

@@ -1,5 +1,13 @@
 # 任务计划：云阙仙宗 · R9 后续实现与本机验收已完成
 
+## 2026-09-29 文档与中英界面
+
+- [x] 新增英文 `AGENTS.md`，记录技术栈、验证入口、性能与国际化约定。
+- [x] 将 `README.md` 全文改为英文，更新英文默认、中英切换、pnpm 命令和当前构建大小。
+- [x] 接入英文默认的 UI 语言状态与本地偏好，覆盖开场、设置、HUD、卷轴、弹窗、照片、游戏提示和碑文；不修改存档 schema。
+- [x] 扩展 `verify:ui` 覆盖首访默认、双向即时切换和刷新持久化。
+- [x] `pnpm build` 与翻译键扫描通过；`verify:ui` 的语言和界面断言通过，最终总错误检查受 Chrome 外部字体 / 纹理资源加载失败影响。
+
 **当前状态：R8 P0–P2 和 R9 后续修复均已交付。** 类型检查、构建、19 项验证及 CPU 降速性能采样通过。最新结果、提交与报告见 [PROGRESS.md](PROGRESS.md)；仍需外部设备或性能证据的事项见 [REMAINING_ISSUES.md](REMAINING_ISSUES.md)。
 
 ## R9 后续计划执行（2026-09-27）
@@ -17,18 +25,22 @@
 以下保留 R0–R8 的历史目标、实施计划与问题记录。
 
 ## 目标
+
 用户认为现有游戏效果太差，授权重建（2026-09-26）。目标：画面达到“东方奇幻写实”的氛围，操控顺手，突出巨物尺度感。可用 Tripo 与 Blender 制作模型和动画，其余自由设计，直接实现并运行验证。
 
 ## 既定约束（来自记忆，不再询问）
+
 - 无战斗、无任务；保留双主角 1/2 切换；仅桌面端。
 - Tripo 通过 HTTP API（`scripts/tripo/client.mjs`），积分不限。
 - 每个阶段完成后自动提交（不需询问）。
 
 ## 重建策略
+
 保留：技术栈（React + R3F + three）、用户提供的主殿/山门/侧塔/角色/佩剑、UI、交互点、存档、天象状态机、音频、验证框架。
 重建：天空与大气、云海、光照与调色、地形与山体、石柱与浮岛、广场、植被、巨物布景、相机与移动手感、飞行手感。
 
 ## 美术方向
+
 - 金色低角度主光 + 蓝色阴影；远景按空气透视逐层变蓝变淡；逆光方向暖色散射。
 - 体积云海在山腰以下，石柱和巨像从云海中升起。
 - 巨物：鲲（巨鲸，绕山游弋、破云而出）、两尊护山神像、主殿上空旋转的浑天仪、远峰上的镇山巨剑、铁链拴住的浮空山。
@@ -36,10 +48,12 @@
 ## 阶段
 
 ### R0 审查与计划 — complete
+
 - [x] 实玩截图审查（findings.md）
 - [x] 制定计划
 
 ### R1 渲染基础 — complete
+
 - [x] 大气散射天空（Rayleigh/Mie/臭氧单次散射 + 多次散射补偿，sky-view LUT 按需重绘）+ 太阳光晕
 - [x] 空气透视雾（云海薄雾 + 随海拔变淡的空气透视，颜色取自天空 LUT；日落后不再从地平线下泛红）
 - [x] 光照平衡：日光色由大气透射率计算；保留 ACES；调色（冷暗部、暖高光、轻对比、三角抖动）
@@ -48,6 +62,7 @@
 - 遗留到 R2：远处石柱之间有一片高于云顶的平坦地形，云海在此被裁开，需在地形重建时把外围地面压到云海之下
 
 ### R2 地形与世界构成 — complete
+
 - [x] Poly Haven / ambientCG CC0 贴图（岩壁、岩石细节、苔藓、草地、碎石、石板、汉白玉），worker 解码打包成 texture array
 - [x] 新山体高度场：主峰从云海升起，崖面带凹槽与台阶，三平面映射 + 黑色藻痕 / 铁锈斑 / 岩层 + 坡度与汇水材质
 - [x] 地形可行走：自然地面高于 −60 m 即可站立；上坡 45° / 下坡 55° 限制，受阻时沿边滑移；> 52° 陡坡滑落；陡坡处拒绝落剑
@@ -56,6 +71,7 @@
 - 移到 R5：跳跃 / 坠落救援、按碰撞体行走（亭台、香炉等目前只挡飞行）
 
 ### R3 巨物布景 — complete
+
 - [x] 鲲：Tripo 建模 → Blender 骨骼与游动动画 → GLB；沿闭合路径绕山一周 197.8 s，在前方山谷破云，转弯时侧倾，破云时鸣叫，身体穿出云顶处云海隆起
 - [x] 护山神像 ×2（Tripo，放大 4.4 倍）从 x ≈ ±450 的云海中升起，头部约在 y 280
 - [x] 浑天仪（程序化）：直径 120 m，悬于主殿上方 y 560，三层环反向旋转，八卦符文发光
@@ -63,6 +79,7 @@
 - [x] 锁云屿：5 条铁链从岛缘系缆桩连到周围石柱，另有一道瀑布
 
 ### R4 广场与植被 — complete
+
 - [x] 主平台：在 R7d 完成（御道、香炉丹墀、幡旗、树池、水池；没有切成分层台地，原有栏杆沿用）
 - [x] Blender 程序化黄山松（针叶卡片 + 树皮），替换实心盘状松树（岩架上的 pine_small 自带偏蓝的盆景石座，近看像蓝色圆团，换成 pine_0 崖边斜松）：合并为一次实例化绘制，风摆 + 阴影同摆，针叶透光
 - [x] 景石：rock_moss 换成 Blender 巨石（6 形合一，按实例哈希选形），rock_scholar 改用浅灰石灰岩表面
@@ -70,6 +87,7 @@
 - [x] GPU 草地（风动），只在玩家附近：地形三角面烘焙跟随相机，与地形共用草 / 苔遮罩，铺装、道路、交互点与桥不长草；风浪 + 抖动，玩家与低空御剑推开草叶；高 / 中档 9 万 / 4 万簇一次绘制，低档关闭
 
 ### R5 操控 — complete
+
 - [x] 第三人称相机：鼠标环绕、肩部偏移、碰撞拉近（采样 + 二分）、高度缓动；传送时直接跳到位
 - [x] 地面：慢跑 5.5 / 冲刺 10 m/s，跳跃（含起跳缓冲），按碰撞体行走，长距离坠落时召剑救援，落地缓冲
 - [x] 飞行：巡航 45 / 加速 140 m/s，解析积分（与帧率无关），速度线、风声、相机滞后与抖动、俯冲加速
@@ -77,6 +95,7 @@
 - [x] 独立审查修正：镜头臂长 / 滞后 / 模式切换的跳变，铁链空气墙，空中落进碰撞体，飞行穿细杆，空中召剑与状态残留，拍照时速度线
 
 ### R5b 动作片段接入 — complete
+
 - [x] 加载 anim.glb（idle / walk / run / sprint / jump / fall / land），按速度混合步态，相位按实际位移同步（零滑步），各片段按左脚支撑中点对齐。实现时没有用 AnimationMixer，改为手动采样插值器，原因见 findings.md
 - [x] 程序姿态改为叠加层（落地缓冲、召剑、御剑、呼吸），平滑只作用于叠加量，不再低通片段
 - [x] 空中：起跳从 liftOff 播 jump，下落转 fall，着地播 land
@@ -84,6 +103,7 @@
 - [x] 飞行黑帧（剑尾拖光 pow 产生 NaN）修复；独立审查修正：落地后起跳 / 召剑的 land 跳变、fall 时钟冻结、断言空转、同类 NaN
 
 ### R6 集成与验证 — complete
+
 - [x] 交互点、灵光按新地形核对：落位探针显示全部离地正常，不需要重新落位（findings.md）
 - [x] 更新验证脚本：verify:riding-pose 增加飞行黑帧的亮度断言
 - [x] 性能：召剑时 444 → 387 次调用（合并刻度、forceSinglePass、跳过 N8AO 透明 pass）；verify:perf 最差 390 次，高档最低 145 FPS
@@ -92,7 +112,8 @@
 - [x] README / PROGRESS 更新，全部验证脚本复跑，提交
 
 ### R7 后续优化（2026-09-27，用户同意“按建议来”）— complete
-- [x] R7a 资产瘦身：2k 贴图与 roof_tiles 移出 public（留在 asset-pipeline/textures/hi/），删除不再加载的 Tripo 道具（pine_* / rock_moss / floating_isle_* / banner_pole）与 kun.lod1；build.mjs 的 2k 输出改到 hi/；构建后无 404。dist 103 → 67 MB；vite preview 实跑无 4xx，dist 中未被请求的只剩说明文件与 56 KB 的 meditation_platform.lod1
+
+- [x] R7a 资产瘦身：2k 贴图与 roof*tiles 移出 public（留在 asset-pipeline/textures/hi/），删除不再加载的 Tripo 道具（pine*_ / rock*moss / floating_isle*_ / banner_pole）与 kun.lod1；build.mjs 的 2k 输出改到 hi/；构建后无 404。dist 103 → 67 MB；vite preview 实跑无 4xx，dist 中未被请求的只剩说明文件与 56 KB 的 meditation_platform.lod1
 - [x] R7b 屋顶降饱和：画面里的纯蓝琉璃来自 Tripo 牌坊 / 亭子 / 钟架（建筑实测为石板灰，不改），着色器按色相把纯钴蓝拉向石板靛青，不改源 GLB；截图前后对比
 - [x] 用户报告：主殿檐顶的 8 团灵光被空气墙挡住。主殿飞行碰撞从包围盒改为按 LOD0 实测的屋顶高度场（2 m 格，逐格精确裁剪、外扩 1 m），8 团全部可以飞到并收集；审查修正：步行时整个占地范围算实心（修正边缘起跳掉进台面），orb_52 按实测屋面抬高；二轮复审：在建筑碰撞内起飞可向上升出，生成器补查旋转与缩放
 - [x] R7c 腾出绘制预算：按物体统计最差视角（高档 / 雷暴 / 道路）的调用来源；大台阶 14 个网格合为 1 个，平台顶面、出生平台、山门与塔基 16 个网格按材质合为 2 个；verify:perf 最差 390 → 292 次。远处 LOD1 不投影没有做（余量已够）
@@ -100,6 +121,7 @@
 - [x] R7e 独立审查（无阻断；修正分支内 fwidth、atan(0, 0)、补丁锚点告警、树池底常量）、README / PROGRESS / findings 更新、8 项验证全部复跑通过
 
 ### R8 起跳、鲲背、飞行光束（2026-09-27，用户需求）— complete
+
 - [x] 左右飞时光束分叉：拖尾改为沿实际行进方向（f3f49f9）
 - [x] 第一阶段（J1/J2、C1/C2、U2）：台沿起跳、缓冲清理、物理键码、C 下降、失焦/失锁/Cmd 清键、原生界面键盘行为与自动焦点；拍照模式同步。
 - [x] 第二阶段（U1/U5/U6）：先冻结旧 60 团映射，再引入语义 ID 与 v2；保留原 v1；备份坏 JSON、保护未知版本与失败备份；存储失败停止重试并提示；安全静态地面检查点。
@@ -114,38 +136,41 @@
 下一轮：C6–C8 帧率细节、C10 查询开销、剩余 UI/工程整理、低端机基线、KTX2、懒加载及 LOD 阴影。布料、室内、平台分层等长期限制保持不变。
 
 ## 历史资产并行任务（R0–R6）
-| agent | 内容 | 输出 |
-| --- | --- | --- |
-| kun | Tripo 鲲模型 → Blender 骨骼动画 | `public/assets/colossi/kun.glb` |
-| colossi | Tripo 神像、巨剑 | `public/assets/colossi/*.glb`（已交付） |
-| rocks | Blender 程序化石柱、浮空山、巨石 | `public/assets/environment/rocks/{pillars,islands,boulders}*.glb`（已交付） |
-| pines | Blender 程序化松树（针叶卡片） | `public/assets/vegetation/*.glb`（已交付） |
-| anim | Tripo 动作预设 → 重定向到 mixamo 骨架 | `public/assets/characters/{male,female}/anim.glb`（已交付） |
+
+| agent   | 内容                                  | 输出                                                                        |
+| ------- | ------------------------------------- | --------------------------------------------------------------------------- |
+| kun     | Tripo 鲲模型 → Blender 骨骼动画       | `public/assets/colossi/kun.glb`                                             |
+| colossi | Tripo 神像、巨剑                      | `public/assets/colossi/*.glb`（已交付）                                     |
+| rocks   | Blender 程序化石柱、浮空山、巨石      | `public/assets/environment/rocks/{pillars,islands,boulders}*.glb`（已交付） |
+| pines   | Blender 程序化松树（针叶卡片）        | `public/assets/vegetation/*.glb`（已交付）                                  |
+| anim    | Tripo 动作预设 → 重定向到 mixamo 骨架 | `public/assets/characters/{male,female}/anim.glb`（已交付）                 |
 
 ## 关键决策
-| 决策 | 理由 |
-| --- | --- |
-| 保留技术栈与基础设施，重建内容与渲染 | 问题集中在画面与操控；UI/交互/存档可用，推倒重写不提高效果 |
-| 贴图用 Poly Haven CC0 | 程序化噪声无法达到写实岩石质感；CC0 可商用 |
-| 石柱/浮岛/松树用 Blender 程序化生成 | Tripo 对大尺度自然形体效果差（石柱圆润、松冠实心） |
-| 神像/巨剑/鲲用 Tripo | 具象造型适合 Tripo |
-| 体积云海做成后处理，按深度裁剪 | 与山体、石柱软相交；同一张天空 LUT 同时照亮天空、雾与云，颜色一致 |
+
+| 决策                                 | 理由                                                              |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| 保留技术栈与基础设施，重建内容与渲染 | 问题集中在画面与操控；UI/交互/存档可用，推倒重写不提高效果        |
+| 贴图用 Poly Haven CC0                | 程序化噪声无法达到写实岩石质感；CC0 可商用                        |
+| 石柱/浮岛/松树用 Blender 程序化生成  | Tripo 对大尺度自然形体效果差（石柱圆润、松冠实心）                |
+| 神像/巨剑/鲲用 Tripo                 | 具象造型适合 Tripo                                                |
+| 体积云海做成后处理，按深度裁剪       | 与山体、石柱软相交；同一张天空 LUT 同时照亮天空、雾与云，颜色一致 |
 
 ## 遇到的错误
-| 错误 | 尝试次数 | 解决方案 |
-| --- | --- | --- |
-| Blender 路径 `/d/Program Files/Blender Foundation/blender.exe` 不存在 | 1 | 实际在 `Blender 5.2/` 子目录 |
-| 新建 `progress.md` 覆盖了已提交的 `PROGRESS.md`（Windows 文件名不区分大小写） | 1 | 从 HEAD 恢复，会话日志改写进 `PROGRESS.md` 的“第二次重建”一节；不再单建 progress.md |
-| 地形在建筑切口外全是 NaN | 1 | `smax(h, -Infinity)` 算出 ∞−∞；smin 在 \|a−b\| ≥ k 时直接返回 min |
-| 从平台东缘走出后滑下悬崖直到云顶 | 1 | 踏上 52–55° 坡立即触发滑落；改为行走时不允许踏上会滑落的坡，滑落只用于被放到陡坡上 |
-| 接入石柱后出生点 442 次调用（预算 400），石柱占 +123 次、+690 万三角面 | 1 | N8AO 透明感知 pass 每帧重渲场景两次并隐藏网格，LOD.update 在 render() 里又把网格级别重新显示；把每个 LOD 级别包进 Group，石柱降到 +41 次，出生点 360 |
-| 岩架上灵晶放大后成蓝色圆团，且与相邻岩架的松树重叠 | 1 | 岩架只种松树，同一位置 5 m 内不重复 |
-| 锁云屿铁链的铁箍悬在半空（pillar_3） | 1 | 柱顶倾斜并收尖，从柱址 xz 发的射线打不到岩体；改为取柱顶下第一个宽度 ≥ 18 m 的截面，从它的质心发射线找岩面 |
-| 鲲的 cleanup 调 `uncacheRoot` 后，StrictMode 重挂载时 play 抛 `_cacheIndex`，世界加载不出来 | 1 | cleanup 只 `stopAllAction()`，action 保留缓存，在 effect 里 play |
-| 鲲的剔除球取自 `geometry.boundingSphere`，半径 1.4 m，而蒙皮后身体约 160 m | 1 | 骨骼空间 ≠ 网格局部空间；先 `updateMatrixWorld(true)` 再 `SkinnedMesh.computeBoundingSphere()`，半径 ×1.3，实测最远顶点 162 m < 210 m |
-| 西桥桥板最多埋进地面 1.00 m（东桥 0.20 m），平台端桥下灵光埋深约 6 m，桥面长出松树 | 1 | 地形沿桥面挖槽；桥数据挪到独立的 `bridges.ts` 以免 terrain ↔ sites 循环依赖；`siteClearance` 改用整段桥面的胶囊距离；灵光沿桥外移直到地面低于它 3.5 m。没有挪桥端点，栏杆缺口依赖端点处的 siteClearance |
-| verify:interact 报 `does not provide an export named 'PROP_TINT'` | 1 | 验证进行中改了 src，HMR 把半改的模块推给了测试页面；用最终代码重跑通过。验证期间不再改 src |
-| 用 node heredoc 做多行替换时锚点匹配失败 | 1 | 模板字符串里的转义与源码不一致；多行替换改用 Edit 工具 |
-| 探针 `import('/src/world/player/playerHandle.ts')` 调用 teleportPlayer 没有效果 | 1 | HMR 后应用加载的 URL 带时间戳，裸路径得到另一份模块实例；改为从 `performance.getEntriesByType('resource')` 取页面实际加载的 URL |
-| verify 脚本的“亮度均值”其实是 R 通道均值 | 1 | sharp 的 `stats()` 读取编码后的原图，不经过管线；先 `greyscale().toBuffer()` 再对新 buffer 调 `stats()` |
-| 水池水面纯黑，调水的材质无效 | 2 | 不是水的材质：three 0.186 的 CSM lights 块缺 `#ifdef STANDARD` 的 DFG 查表，全场标准材质没有直接与间接高光；Lighting.tsx 把这段补回 ShaderChunk |
+
+| 错误                                                                                        | 尝试次数 | 解决方案                                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Blender 路径 `/d/Program Files/Blender Foundation/blender.exe` 不存在                       | 1        | 实际在 `Blender 5.2/` 子目录                                                                                                                                                                            |
+| 新建 `progress.md` 覆盖了已提交的 `PROGRESS.md`（Windows 文件名不区分大小写）               | 1        | 从 HEAD 恢复，会话日志改写进 `PROGRESS.md` 的“第二次重建”一节；不再单建 progress.md                                                                                                                     |
+| 地形在建筑切口外全是 NaN                                                                    | 1        | `smax(h, -Infinity)` 算出 ∞−∞；smin 在 \|a−b\| ≥ k 时直接返回 min                                                                                                                                       |
+| 从平台东缘走出后滑下悬崖直到云顶                                                            | 1        | 踏上 52–55° 坡立即触发滑落；改为行走时不允许踏上会滑落的坡，滑落只用于被放到陡坡上                                                                                                                      |
+| 接入石柱后出生点 442 次调用（预算 400），石柱占 +123 次、+690 万三角面                      | 1        | N8AO 透明感知 pass 每帧重渲场景两次并隐藏网格，LOD.update 在 render() 里又把网格级别重新显示；把每个 LOD 级别包进 Group，石柱降到 +41 次，出生点 360                                                    |
+| 岩架上灵晶放大后成蓝色圆团，且与相邻岩架的松树重叠                                          | 1        | 岩架只种松树，同一位置 5 m 内不重复                                                                                                                                                                     |
+| 锁云屿铁链的铁箍悬在半空（pillar_3）                                                        | 1        | 柱顶倾斜并收尖，从柱址 xz 发的射线打不到岩体；改为取柱顶下第一个宽度 ≥ 18 m 的截面，从它的质心发射线找岩面                                                                                              |
+| 鲲的 cleanup 调 `uncacheRoot` 后，StrictMode 重挂载时 play 抛 `_cacheIndex`，世界加载不出来 | 1        | cleanup 只 `stopAllAction()`，action 保留缓存，在 effect 里 play                                                                                                                                        |
+| 鲲的剔除球取自 `geometry.boundingSphere`，半径 1.4 m，而蒙皮后身体约 160 m                  | 1        | 骨骼空间 ≠ 网格局部空间；先 `updateMatrixWorld(true)` 再 `SkinnedMesh.computeBoundingSphere()`，半径 ×1.3，实测最远顶点 162 m < 210 m                                                                   |
+| 西桥桥板最多埋进地面 1.00 m（东桥 0.20 m），平台端桥下灵光埋深约 6 m，桥面长出松树          | 1        | 地形沿桥面挖槽；桥数据挪到独立的 `bridges.ts` 以免 terrain ↔ sites 循环依赖；`siteClearance` 改用整段桥面的胶囊距离；灵光沿桥外移直到地面低于它 3.5 m。没有挪桥端点，栏杆缺口依赖端点处的 siteClearance |
+| verify:interact 报 `does not provide an export named 'PROP_TINT'`                           | 1        | 验证进行中改了 src，HMR 把半改的模块推给了测试页面；用最终代码重跑通过。验证期间不再改 src                                                                                                              |
+| 用 node heredoc 做多行替换时锚点匹配失败                                                    | 1        | 模板字符串里的转义与源码不一致；多行替换改用 Edit 工具                                                                                                                                                  |
+| 探针 `import('/src/world/player/playerHandle.ts')` 调用 teleportPlayer 没有效果             | 1        | HMR 后应用加载的 URL 带时间戳，裸路径得到另一份模块实例；改为从 `performance.getEntriesByType('resource')` 取页面实际加载的 URL                                                                         |
+| verify 脚本的“亮度均值”其实是 R 通道均值                                                    | 1        | sharp 的 `stats()` 读取编码后的原图，不经过管线；先 `greyscale().toBuffer()` 再对新 buffer 调 `stats()`                                                                                                 |
+| 水池水面纯黑，调水的材质无效                                                                | 2        | 不是水的材质：three 0.186 的 CSM lights 块缺 `#ifdef STANDARD` 的 DFG 查表，全场标准材质没有直接与间接高光；Lighting.tsx 把这段补回 ShaderChunk                                                         |

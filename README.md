@@ -1,102 +1,102 @@
-# 云阙仙宗 · 修仙巨构探索
+# Yunque Celestial Sect
 
-桌面端 Web 3D 探索游戏：一座 420 m 高的仙宗主殿坐落在云海之上的山巅平台，四周是石林、浮空仙岛与悬桥。玩家可在两位主角之间切换，步行登阶或御剑飞行，寻访碑文、钟楼、天象祭坛、观景台和传送阵，收集灵光，并在昼夜流转与五种天象中拍照留念。没有战斗与任务，重点是氛围、尺度与探索。
+A desktop Web 3D exploration game set around a 420 m mountain sect above a sea of clouds. Walk the grand stairs or fly on a sword, switch between two characters, discover inscriptions and overlooks, gather spirit lights, and photograph the world through its day-night cycle and five weather states. There is no combat or quest system; the focus is atmosphere, scale, and exploration.
+
+The game supports English and Simplified Chinese. English is the first-visit default. Change languages from the title screen or the pause/settings menu; the choice is saved locally and does not alter game-save data.
+
+## Quick Start
+
+Requirements: Node.js 22+ and pnpm 10.34.5 (declared in `package.json`).
 
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
-pnpm dev        # 开发服务器（含 DEV 验证钩子）
-pnpm build      # 类型检查 + 生产构建到 dist/
+pnpm dev
+pnpm build
 ```
 
-依赖统一使用 `package.json` 声明的 **pnpm 10.34.5**，只维护 `pnpm-lock.yaml`。增删依赖使用 `pnpm add` / `pnpm remove`，同时提交 `package.json` 和锁文件。下文的 `npm run …` 仅运行脚本，可继续使用；安装依赖请使用 pnpm。
+Open the Vite URL, choose a character, wait for the world to load, then select **Enter the sect**. The game targets desktop Chrome and Edge with a discrete GPU.
 
-Vercel 使用 Vite 预设，构建命令 `pnpm run build`，输出目录 `dist`，安装命令保持自动检测。CI 保留冻结锁文件检查；如需在 Vercel 严格采用 `packageManager` 指定版本，启用项目环境变量 `ENABLE_EXPERIMENTAL_COREPACK=1`，见 [Vercel 包管理器说明](https://vercel.com/docs/package-managers)。
+Use pnpm for dependency changes (`pnpm add` / `pnpm remove`) and commit both `package.json` and `pnpm-lock.yaml`. Do not introduce another package manager or lockfile. Vercel uses the Vite preset, `pnpm run build`, and the `dist` output directory. To make Vercel honor the `packageManager` version through Corepack, set `ENABLE_EXPERIMENTAL_COREPACK=1`; see [Vercel package managers](https://vercel.com/docs/package-managers).
 
-打开开发服务器地址，选择角色，载入完成后点击「进入仙宗」锁定鼠标，也可用 Tab、Enter 或 Space 进入。仅支持桌面浏览器（Chrome / Edge，独立显卡）。
+## Controls
 
-## 操作
+| Action                                                                                      | Input            |
+| ------------------------------------------------------------------------------------------- | ---------------- |
+| Move / look                                                                                 | W A S D / mouse  |
+| Sprint / accelerate in flight                                                               | Shift            |
+| Jump on foot                                                                                | Space            |
+| Summon sword, board, and fly; press again to land; F in midair calls the sword to catch you | F                |
+| Ascend / descend / brake in flight                                                          | Space / C / X    |
+| Look around while keeping the flight heading                                                | Hold Alt + mouse |
+| Switch characters and matching swords                                                       | 1 / 2            |
+| Interact with steles, bell, altar, overlooks, cushions, or waygates                         | E                |
+| Open the map, codex, and collection scroll                                                  | Tab              |
+| Photo mode: free camera, focal length, filters, vignette, PNG export                        | P                |
+| Hide the HUD                                                                                | H                |
+| Pause, settings, and controls / exit a cinematic                                            | Esc              |
+| Mute                                                                                        | M                |
+| Debug panel / collision helpers                                                             | F3 / G           |
 
-| 操作 | 按键 |
-| --- | --- |
-| 移动 / 转向 | W A S D / 鼠标 |
-| 冲刺 / 飞行加速 | Shift |
-| 跳跃（地面） | Space |
-| 召剑 → 踏剑 → 御剑；飞行中再按自动降落收剑；空中按下由飞剑接住 | F |
-| 飞行升降 / 主动刹停 | Space / C / X |
-| 环视角色，保持飞行方向 | 按住 Alt + 鼠标 |
-| 男主角一 / 女主角二（同步更换佩剑） | 1 / 2 |
-| 交互（碑文、钟、祭坛、坐忘、观景台、传送阵） | E |
-| 卷轴：地图、碑文录、收集进度 | Tab |
-| 拍照模式（自由机位、焦距、滤镜、暗角、导出 PNG） | P |
-| 隐藏界面 | H |
-| 设置与操作说明 / 退出镜头 | Esc |
-| 静音 | M |
-| 数据面板 / 碰撞辅助 | F3 / G |
+Movement and photo mode use physical key codes. Ctrl is not used to descend. Blur, pointer-lock loss, and Cmd shortcuts clear held keys. Settings and the scroll suspend player input while the world continues to run; riding the Kun and cloud-entry rescue remain active. Esc exits photo mode directly; click the scene to resume, then press Esc again to open settings. Consecutive PNG exports use unique filenames.
 
-移动和拍照使用物理键位；Ctrl 不用于下降。失焦、失去指针锁和 Cmd 组合操作会清空按键。设置、卷轴打开时停止玩家主动操作，世界继续运行，鲲背随动和入云救援继续生效。
+## World
 
-设置中也可用鼠标或键盘切换角色、静音。拍照时 Esc 直接退出拍照，点击画面可继续操作；再次 Esc 打开设置。连续导出的 PNG 使用不同文件名。浏览器暂时拒绝锁定鼠标时，界面会提示重试。
+- **The sect:** a 380 × 450 m stone plaza, a 420 m main hall, a mountain gate, six side towers, walkable slopes, and a long central stair. The surrounding world includes 36 procedural karst pillars, eight floating isles, two walkable suspension bridges, waterfalls, distant ridges, and a horizon of mountain ranges.
+- **Colossal landmarks:** two guardian statues rise from the clouds; a 460 m sword pierces an eastern peak; the 310 m Kun circles the mountain and breaches the cloud sea; a 120 m armillary sphere turns above the main hall; five chains tether Cloudbound Isle to the pillars.
+- **Vegetation and atmosphere:** procedural Huangshan pines sway in the wind. Nearby GPU grass reacts to wind, footsteps, low flight, and snow. The sky uses atmospheric-scattering look-up tables; medium and high quality render volumetric clouds. Clear weather, mist, rain, snow, and storms cycle over a moving day-night clock.
+- **Movement:** walk, sprint, jump, climb the roof tiers, and fly at 45 m/s cruise speed or up to 140 m/s boosted speed. The shoulder camera avoids walls and props; the sword catches the player during a dangerous fall.
+- **Kunback exploration:** during the level-flight segment of its route, board the Kun, walk or jump across its animated back, and collect six spirit lights. The character, feet, and camera follow its skinned surface. Press F to leave with the Kun's velocity; cloud-entry rescue is available near the end of the route.
+- **Discoveries:** 25 interaction sites include steles, a bell, a weather altar, meditation cushions, overlooks, and waygates. Discover waygates by visiting them. Gather all 66 spirit lights; the compass points toward the nearest uncollected cluster, and the map marker follows the Kun.
+- **Sound:** wind, rain, thunder, wildlife, a pentatonic music bed, guzheng plucks, and movement effects are synthesized locally. Set channel volumes in the pause menu.
+- **Assets:** Tripo models include the guardians, sword, Kun, and several props. Other assets use Blender procedural modeling and animation. Props use instancing and distance-based LODs.
 
-## 世界与玩法
+## Saves and Recovery
 
-- **巨构场景**：主殿、山门与六座侧塔使用压缩后的 LOD 模型。山体用 CC0 扫描贴图，崖面有凹槽与台阶，山坡可以行走。四周有 36 根 Blender 程序化喀斯特石柱（25 根有可降落的岩架，其中 13 根在柱顶）、8 座浮空仙岛、两座可行走的悬索木桥、从岛缘流下的瀑布、汉白玉栏杆与旌旗；远处有 4 层山脊和 3 圈地平线山环。
-- **主平台**：380 × 450 m 的石板台面按 30 m 分区，每区石料略有色差，以深色花岗岩带分隔。汉白玉御道沿中轴从大台阶延伸到主殿前，中间是云纹雕刻的御路石。前庭有松树树池、两方映天的碧水池，大香炉坐在两级丹墀上，两侧立着幡旗。
-- **巨物**：两尊护山神像从山门两侧的云海中升起，双手没入云顶，头部约在 280 m 高处；约 460 m 的镇山巨剑插在东侧主峰上；约 310 m 长的鲲绕山巡游，破云时云海隆起、波纹扩散，并有远近不同的鸣叫；直径 120 m 的浑天仪悬在主殿上方，三层环反向旋转；锁云屿由五条铁链系在周围的石柱上。
-- **植被**：Blender 程序化黄山松随阵风摆动，逆光时针叶透光。相机附近有 GPU 草地，风吹过时起伏成波，步行或低空御剑时草向两边分开，雪天被压低。
-- **天象与昼夜**：晴空、山岚、细雨、落雪、雷暴五种天象自动流转，也可在天象祭坛或设置中切换。雨后地面湿润、有积水涟漪，雪后建筑积雪，雷暴有分叉闪电与按距离延迟的雷声。天空由大气散射 LUT 计算；中、高画质的云海是光线步进的体积云。云海薄雾贴着云顶，空气透视随距离逐渐加深，远山一层层淡入天色。晨昏有低角度的暖光，夜里有月光。
-- **操控**：慢跑 5.5 m/s，冲刺 10 m/s，可以跳跃，也可以跳下悬崖，下落过快时飞剑会自动接住。镜头在肩后，会避开墙体和道具。主殿按屋顶高度场碰撞，可以飞上各层檐顶取灵光。御剑巡航 45 m/s，加速 140 m/s，俯冲更快，高速时有风线和轻微的镜头抖动。两位主角的动作片段由 Blender 重定向，步态随实际速度混合。
-- **鲲背探索**：每圈路径时间 30 ≤ t < 150 s 时，可在坡度不超过 40° 的背部按 F 停靠，行走、起跳并收集 6 团灵光。角色、脚部和镜头随蒙皮表面移动；再次按 F 起飞会继承鲲的速度。鲲飞出普通世界边界时仍可离开并向内返航。入云前会提示，飞剑随后自动接走玩家。
-- **探索点**：25 处交互点。碑文记载宗门传说；敲钟会惊起鹤群；在祭坛可以改变天象；坐忘蒲团能快进时辰；观景台有运镜；传送阵需先点亮，之后即可互相传送。共有 **66 团灵光**，罗盘指向最近一簇未收集灵光，地图随鲲更新移动标记。
-- **声音**：本地合成风声、雨声、雷声、鸟鸣虫鸣，配五声音阶的铺底音乐与古筝拨弦，以及召剑、踏剑等动作音效。音量在设置中按通道调节。
-- **Tripo 模型**：护山神像、镇山巨剑和鲲由 Tripo 生成（鲲的骨骼动画在 Blender 中制作）。另通过 Tripo HTTP API 生成 22 种道具，场景中用了 15 种。竹、奇石、灯笼、牌坊、石狮、香炉、亭子和灵晶实例化渲染，按距离切换 LOD；石碑、钟架、天象祭坛、坐忘台和传送阵用作交互点；仙鹤组成鹤群。松树和苔石改用 Blender 程序化模型；浮岛与旌旗为程序化生成，以匹配巨构的尺度。
+Progress, character choice, and settings are autosaved to `yunque.save.v2`. A fixed mapping migrates the 60 legacy v1 spirit-light IDs while retaining the old data. Malformed JSON is backed up before recovery; unknown versions and backup failures preserve the original and pause writes. Storage errors stop retries for the session and are shown on the title or settings screen.
 
-## 存档与恢复
+Only safe static ground positions are saved; jumping, falling, and riding the Kun do not become checkpoints. Hidden tabs suspend audio and restore the unlocked audio context when visible again. If WebGL loses its context, the game rebuilds the canvas, preserves in-session progress and settings, and returns to the last safe checkpoint. A 12-second timeout exposes a manual retry.
 
-进入游戏后自动保存收集进度、所选角色与设置到 `yunque.save.v2`。首次读取旧 v1 时迁移固定的 60 条灵光 ID 映射，保留原 v1 数据。坏 JSON 先备份；未知版本或备份失败时保留原数据并暂停写入。存储不可用时本次会话停止重试，开场或设置界面显示提示。
+## Rendering and Performance
 
-位置只保存安全的静态地面，跳跃、下落和鲲背位置不会成为检查点；无有效位置时从出生点开始。页面隐藏时挂起音频，返回后恢复已解锁的音频上下文并保留静音设置。WebGL 上下文丢失时显示恢复遮罩；恢复后重建画布，保留本次进度与设置并回到检查点，12 秒超时后提供手动重试。
+The settings menu offers **Low**, **Medium**, and **High** quality. Resolution adapts to frame rate; optional auto quality can step down a preset after resolution scaling reaches its minimum. High quality includes four cascaded shadow levels, N8AO, Bloom, god rays, and 4× MSAA. The established 27-scene draw-call budget is at most 400; the R9 baseline peaked at 296 on an RTX 5060 Ti. CPU throttling is not a substitute for testing on a low-end GPU. See [PROGRESS.md](PROGRESS.md) for the recorded environment and measurements.
 
-## 画质与性能
+Photo mode and the scroll load on first use. The current build after localization is approximately 584 kB JavaScript (202 kB gzip) for the main bundle. Kunback queries reuse skinned bone matrices each frame; the recorded local index time improved from 3.40 ms to 1.69 ms.
 
-设置中有「流畅 / 均衡 / 极致」三档。渲染分辨率随帧率自适应；开启「自动」后，分辨率降到下限仍不够时会再降一档。极致档包含 4 级级联阴影、N8AO、Bloom、体积光和 4×MSAA。既有视角及鲲背视角的 draw calls 预算为 ≤400，由 `npm run verify:perf` 检查。R9 本轮 27 组场景最高 **296 次**，RTX 5060 Ti 上高档 147–238 fps；详细环境、CPU 降速与 GPU 分项数据见 [PROGRESS.md](PROGRESS.md)。CPU 降速不能代表真实低端 GPU。
+## Asset Pipelines
 
-拍照和卷轴面板在首次打开时加载；当前主包 562.64 kB（gzip 191.83 kB）。鲲背每帧复用骨骼矩阵，保持实时蒙皮查询；本机索引平均耗时从 3.40 ms 降至 1.69 ms。
+- `pnpm assets:buildings` generates building LOD0/LOD1 assets from source GLBs under `public/assets/models/`.
+- `pnpm assets:optimize` generates optimized character and sword GLBs. See [CHARACTER_PIPELINE.md](CHARACTER_PIPELINE.md) and [OPTIMIZATION.md](OPTIMIZATION.md).
+- `asset-pipeline/` contains source and generation tools for buildings, colossi, the Kun, rocks, vegetation, textures, and retargeted animation. Large source assets are ignored by Git. Blender scripts require Blender 5.2.
+- `node scripts/tripo/generate.mjs [--only id1,id2] [--force] [--optimize-only]` runs the prop-generation pipeline. Set `TRIPO_API_KEY` in the environment; never commit credentials. Generated downloads under `asset-pipeline/tripo/` are ignored.
 
-## 资产
+## Verification
 
-- **建筑**：`npm run assets:buildings` 从 `public/assets/models/` 下的原始 GLB 生成 LOD0/LOD1，体积由 151 MB 降到 21 MB。
-- **角色与佩剑**：`npm run assets:optimize` 生成 `.optimized.glb`，体积由 184.8 MB 降到 9.2 MB。骨骼与动作见 [CHARACTER_PIPELINE.md](CHARACTER_PIPELINE.md)，压缩细节见 [OPTIMIZATION.md](OPTIMIZATION.md)。
-- **重建资产**（`asset-pipeline/`，大体积原始文件已忽略）：`buildings/`（`meta.mjs` 从主殿 LOD0 测出屋顶高度场 `hallMeta.ts`）、`colossi/`（Tripo 神像与巨剑）、`kun/`（Tripo 鲲 + Blender 骨骼动画）、`rocks/`（Blender 石柱、浮岛、巨石，`meta.mjs` 生成 `rockMeta.ts`）、`vegetation/`（Blender 松树）、`textures/`（Poly Haven / ambientCG CC0 贴图）、`anim/`（动作重定向到角色骨骼）。Blender 脚本需 Blender 5.2。
-- **道具**：`node scripts/tripo/generate.mjs [--only id1,id2] [--force] [--optimize-only]`。流程依次为概念图、image-to-model、gltf-transform 优化（meshopt + WebP + LOD1）。脚本从环境变量 `TRIPO_API_KEY` 读取密钥，不写入仓库。原始下载位于 `asset-pipeline/tripo/`（已忽略）；任务 ID 与积分记录在 `scripts/tripo/manifest.lock.json`。
+Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright Chromium. Set `CHROME_PATH` to override discovery. Most scripts expect the dev server at `BASE_URL` (default `http://127.0.0.1:5173/`). `verify:loading` uses the production preview at `PREVIEW_URL` (default `http://127.0.0.1:4174/`). Reports and screenshots go under the ignored `artifacts/` directory.
 
-## 验证
+| Command                    | Coverage                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `pnpm verify:smoke`        | Load, pointer lock, real input, flight, and rendered output                                                   |
+| `pnpm verify:ui`           | Language switching, accessibility targets, settings, saves, photo mode, React commits, and audio-node cleanup |
+| `pnpm verify:interact`     | Interactions, exact spirit-light count, scroll, focus, photo, save/restore, draw-call deltas, and page errors |
+| `pnpm verify:perf`         | Three quality levels across 27 scenes; draw calls ≤400; supports `MIN_FPS`                                    |
+| `pnpm verify:visual`       | Time-of-day and weather views with brightness/contrast checks                                                 |
+| `pnpm verify:characters`   | Both characters, sword summon/flight, switching, and pause/resume                                             |
+| `pnpm verify:navigation`   | Gate, stairs, hall collision, and high-altitude traversal                                                     |
+| `pnpm verify:optimization` | Asset size, foot constraints, switching, braking, camera, and audio                                           |
+| `pnpm verify:riding-pose`  | Flight pose, foot contact, and non-black screenshots                                                          |
+| `pnpm verify:controls`     | 60/144 fps jumps, repeated keys, blur/lock loss, and photo input                                              |
+| `pnpm verify:save`         | v1 migration, malformed/unknown saves, storage failures, and safe positions                                   |
+| `pnpm verify:motion`       | Sword summon/landing avoidance and cliff paths at 20/60/144 fps                                               |
+| `pnpm verify:jumps`        | Both characters jumping onto a 1.2 m ledge at 60/144 fps                                                      |
+| `pnpm verify:kun`          | Boarding, movement, jumps, edge cases, rescue, collection, map, and docking window                            |
+| `pnpm verify:stability`    | Audio lifecycle and WebGL context-loss recovery                                                               |
+| `pnpm verify:framerate`    | Jump and trail behavior at 20/60/144 fps                                                                      |
+| `pnpm verify:environment`  | Graybox/review views, geometry, and source-building hashes                                                    |
+| `pnpm verify:profile`      | CPU throttle, Kun index/anchor timing, static queries, and GPU passes                                         |
+| `pnpm verify:loading`      | Production lazy loading, first use, quality/character changes, and WebGL recovery                             |
 
-脚本自动查找 Windows / macOS / Linux 的 Chrome，再尝试 Playwright Chromium；可用 `CHROME_PATH` 指定路径，找不到时给出明确提示。本轮在 Windows 实跑。开发验证使用 `BASE_URL`（默认 `http://127.0.0.1:5173/`）；生产加载验证使用 `PREVIEW_URL`（默认 `http://127.0.0.1:4174/`）。截图和报告写入 `artifacts/`（已忽略）。
-
-| 命令 | 内容 |
-| --- | --- |
-| `npm run verify:interact` | 交互、精确灵光计数、卷轴、设置焦点、拍照、存档内容及刷新恢复、交互绘制增量预算、无页面错误（42 项） |
-| `npm run verify:perf` | 三档画质 × 既有 7 视角与鲲背 + 高档雷暴，27 组，draw calls ≤400；记录累计三角面；可设 `MIN_FPS` 强制帧率 |
-| `npm run verify:visual` | 06/12/17.5/22 时 × 4 视角 + 四种天象 + 闪电，亮度 / 对比度检查，输出 `artifacts/visual/contact.png` |
-| `npm run verify:characters` | 双角色召剑、御剑、换人换剑、暂停恢复 |
-| `npm run verify:navigation` | 山门、台阶、主殿墙边召剑、高空绕至背面 |
-| `npm run verify:optimization` | 加载体积、脚部约束、换人、刹停、镜头、音频 |
-| `npm run verify:riding-pose` | 御剑站姿、脚底接触，飞行截图不能是黑帧 |
-| `npm run verify:smoke` | 基础载入、指针锁、真实按键进入飞行与画面渲染；失败非零退出 |
-| `npm run verify:controls` | 60/144 fps 台沿起跳、重复按键、异常 keyup / Cmd / 失锁、原生键盘进入、拍照输入 |
-| `npm run verify:save` | v1 坐标迁移、幂等、坏档备份、未知版本保护、存储失败不重试、安全位置 |
-| `npm run verify:motion` | 召剑/降落避障、20/60/144 fps 三条陡崖路线，每 0.05 s 比较完整轨迹 |
-| `npm run verify:jumps` | 双角色在 60/144 fps 跳上 1.2 m 高台时提前伸腿、连续起跳交叉淡化 |
-| `npm run verify:kun` | 双角色随动、落脚、跳跃、上下鲲、越界、菜单救援、6 团连续收集、地图和停靠时段 |
-| `npm run verify:stability` | 音频挂起/恢复/拒绝重试；真实 WebGL 丢失、Canvas 重建、超时重试和进度保留 |
-| `npm run verify:framerate` | 20/60/144 fps 跳高、滞空、低台阶贴地、高速尾迹和传送重置 |
-| `npm run verify:ui` | 卷轴可访问性、设置换人/静音、角色存档、拍照退出/文件名、React 提交次数和短音效节点释放 |
-| `npm run verify:environment` | 灰盒与实景 12 个视角、几何及原始建筑哈希；运行时快照默认输出到 artifacts，见管线说明 |
-| `npm run verify:profile` | 普通 / CPU 四倍降速、鲲索引与锚点计时、8,489 顶点参考对照、静态查询及 GPU 分项采样 |
-| `npm run verify:loading` | 生产包可选面板未提前下载；首次打开、换画质/角色、WebGL 恢复后再次使用 |
-
-性能采样可设置 `QUALITIES`、`WIDTH`、`HEIGHT`、`CPU_THROTTLE`、`PERF_OUT`。例如在 PowerShell 中运行额外的流畅档 CPU 降速检查：
+To run a throttled low-quality performance sample in PowerShell:
 
 ```powershell
 $env:QUALITIES = 'low'
@@ -104,14 +104,12 @@ $env:WIDTH = '1280'
 $env:HEIGHT = '720'
 $env:CPU_THROTTLE = '4'
 $env:PERF_OUT = 'artifacts/perf-low.json'
-npm run verify:perf
+pnpm verify:perf
 Remove-Item Env:QUALITIES, Env:WIDTH, Env:HEIGHT, Env:CPU_THROTTLE, Env:PERF_OUT
 ```
 
-生产加载检查前先执行 `npm run build`，在另一个终端启动 `npm run preview -- --port 4174 --strictPort`，然后运行 `npm run verify:loading`。GPU 分项仅在 DEV 的 `?profileGpu` 下拆开 pass，普通性能检查保持生产渲染方式。环境快照导出说明见 [environment-pipeline/README.md](environment-pipeline/README.md)。
+For production loading checks, run `pnpm build`, start `pnpm preview -- --port 4174 --strictPort` in another terminal, then run `pnpm verify:loading`. GPU pass profiling is enabled in a development build with `?profileGpu`; normal performance checks use production rendering behavior.
 
-开发用 URL 参数：`?quality=low|mid|high` 固定画质，`?hours=17.5` 固定时辰，`?weather=storm` 固定天象，`?kunAt=40` 从鲲的平飞阶段开始。`?env=graybox` 显示灰盒。DEV 构建在 `window` 上暴露验证钩子，例如 `__environmentReview`、`__setWeather`、`__setTimeOfDay`、`__kunSetTime`、`__ui` 和 `__interact`。重烘焙鲲背三角形与灵光锚点：`node asset-pipeline/kun/deck.mjs`。
+Development query parameters include `?quality=low|mid|high`, `?hours=17.5`, `?weather=storm`, `?kunAt=40`, and `?env=graybox`. Development builds expose verification hooks such as `__environmentReview`, `__setWeather`, `__setTimeOfDay`, `__kunSetTime`, `__ui`, and `__interact`. Rebuild the Kunback triangle/anchor index with `node asset-pipeline/kun/deck.mjs`.
 
-R9：类型检查、构建与上述 **19 项全部通过**，交互 42/42、视觉 21/21。汇总、日志、CPU / GPU 采样和生产恢复截图位于 `artifacts/r9/`；帧率报告位于 `artifacts/framerate/`；鲲背站立、行走、飞离截图位于 `artifacts/kun/`。真实低端设备复测、有条件开展的 KTX2 / 阴影优化及布料、室内等限制见 [REMAINING_ISSUES.md](REMAINING_ISSUES.md)。
-
-主场景参数在 `src/world/worldLayout.ts` 与 `src/world/sites.ts`，巨物布局在 `src/world/colossi/layout.ts`，昼夜配色与雾在 `src/world/sky/atmosphere.ts`，建筑资产在 `src/world/worldAssets.ts`，道具目录在 `src/world/props/propCatalog.ts`。
+The main scene layout is defined in `src/world/worldLayout.ts` and `src/world/sites.ts`; colossal placement is in `src/world/colossi/layout.ts`; atmosphere is in `src/world/sky/atmosphere.ts`; asset registration is in `src/world/worldAssets.ts`; and prop metadata is in `src/world/props/propCatalog.ts`. Known limitations and hardware-dependent follow-up work are tracked in [REMAINING_ISSUES.md](REMAINING_ISSUES.md).
