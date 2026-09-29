@@ -7,6 +7,7 @@ import { deckAnchor, evaluateDeckAnchor, kunBodyBlocked, kunClearance, kunDeckHi
 import type { DeckAnchor } from '../colossi/kunDeck'
 import { shiftCameraRig } from './CameraRig'
 import { useWorldStore } from '../store'
+import { windAt } from '../wind/windStreams'
 import { useUiStore } from '../../ui/uiStore'
 import { translate } from '../../ui/i18n'
 
@@ -34,6 +35,8 @@ export type PlayerRuntime = {
   /** Time into the crouch before a jump, and its length (0 when no jump is winding up). */
   takeoff: number; takeoffTime: number;
   aboard: DeckAnchor | null; carrierDelta: Vector3; carrierVelocity: Vector3; aboardJump: boolean; kunWarned: boolean; relocation: number;
+  /** Smoothed strength (0…1) of the wind stream carrying the flier. */
+  wind: number;
 }
 
 export function createPlayerRuntime(): PlayerRuntime {
@@ -44,6 +47,7 @@ export function createPlayerRuntime(): PlayerRuntime {
     rideMix: 0, impact: 0, braking: false, boostMix: 0,
     jumpBuffer: 0, inAir: false, air: 0, landing: 0, takeoff: 0, takeoffTime: 0,
     aboard: null, carrierDelta: new Vector3(), carrierVelocity: new Vector3(), aboardJump: false, kunWarned: false, relocation: 0,
+    wind: 0,
   }
 }
 
@@ -182,7 +186,11 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
   return null
 }
 
-export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boolean, delta: number) {
+const gust = new Vector3()
+let windNoticed = false
+
+/** `windy` lets the wind streams carry a flier; a photo camera holds the player still, so it passes false. */
+export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boolean, delta: number, windy = true) {
   runtime.time += delta
   runtime.elapsed += delta
   runtime.impact *= Math.exp(-8 * delta)
@@ -190,6 +198,7 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
   runtime.rideMix += ((isAirborne(runtime.phase) || (runtime.phase === 'BOARDING' && runtime.elapsed / FLIGHT_SEQUENCE.board > 0.75) ? 1 : 0) - runtime.rideMix) * (1 - Math.exp(-9 * delta))
   runtime.boostMix += ((boosting && runtime.phase === 'FLIGHT' && !runtime.braking && input.lengthSq() > 0 ? 1 : 0) - runtime.boostMix) * (1 - Math.exp(-3 * delta))
   const { position, velocity } = runtime
+  if (runtime.phase !== 'FLIGHT') runtime.wind *= Math.exp(-4 * delta)
   switch (runtime.phase) {
     case 'GROUND': {
       runtime.jumpBuffer = Math.max(0, runtime.jumpBuffer - delta)
@@ -242,7 +251,11 @@ export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boo
       const previousFacing = runtime.facing
       const angle = Math.atan2(Math.sin(runtime.yaw - runtime.facing), Math.cos(runtime.yaw - runtime.facing))
       runtime.facing += angle * (1 - Math.exp(-7 * delta))
-      stepFlight(position, velocity, input, runtime.facing, runtime.pitch, boosting, delta, runtime.braking)
+      const wind = windy ? windAt(position, gust) : 0
+      runtime.wind += (wind - runtime.wind) * (1 - Math.exp(-4 * delta))
+      // Waits for a free notice slot, so it never covers a trial start.
+      if (runtime.wind > 0.6 && !windNoticed && !useWorldStore.getState().notice) { windNoticed = true; localizedNotice('乘上灵风 · 顺着流光飞行可借力疾行') }
+      stepFlight(position, velocity, input, runtime.facing, runtime.pitch, boosting, delta, runtime.braking, wind > 0 ? gust : undefined)
       const turn = Math.atan2(Math.sin(runtime.facing - previousFacing), Math.cos(runtime.facing - previousFacing))
       const targetBank = Math.max(-0.38, Math.min(0.38, turn / Math.max(delta, 0.001) * -0.11 - input.x * 0.12))
       runtime.bank += (targetBank - runtime.bank) * (1 - Math.exp(-5 * delta))

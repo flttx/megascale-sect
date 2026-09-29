@@ -23,6 +23,8 @@ import { Landmarks } from './landmarks/Landmarks'
 import { PropField } from './props/PropField'
 import { Interactables } from './interact/Interactables'
 import { Colossi } from './colossi/Colossi'
+import { WindRibbons } from './wind/WindRibbons'
+import { TrialRings } from './trials/TrialRings'
 
 ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
@@ -86,6 +88,8 @@ export function World() {
       <Landmarks />
       <PropField />
       <Colossi />
+      <WindRibbons />
+      <TrialRings />
       <Interactables />
       <Player />
       <DebugHelpers />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ORB_COUNT, ORBS, orbPosition } from '../world/interact/orbs'
 import { Vector3 } from 'three'
 import { director } from '../world/interact/cinematics'
@@ -7,6 +7,9 @@ import { getPlayerRuntime } from '../world/player/playerHandle'
 import { useWorldStore } from '../world/store'
 import type { InteractKind } from '../world/sites'
 import { LAYOUT } from '../world/worldLayout'
+import { formatTrialTime, TRIAL_COURSES } from '../world/trials/courses'
+import type { TrialCourse, TrialId } from '../world/trials/courses'
+import { trialState } from '../world/trials/trials'
 import { angleDelta, bearing, uiBridge } from './bridge'
 import { useUiStore } from './uiStore'
 import { useTranslation } from './i18n'
@@ -59,21 +62,30 @@ function nearestOrbCluster(x: number, y: number, z: number, collected: string[])
   return best as [number, number, number] | null
 }
 
-/** Top-centre compass bar: cardinals, ticks, overlooks, arrays, the main hall and the nearest orb cluster. */
+const distanceText = (metres: number) => metres < 1000 ? `${Math.round(metres)}m` : `${(metres / 1000).toFixed(1)}km`
+
+/**
+ * Top-centre compass bar: cardinals, ticks, overlooks, arrays, the main hall, flight-trial starts and the nearest orb
+ * cluster; during a trial the starts give way to the next ring and its distance.
+ */
 function Compass() {
   const t = useTranslation()
   const language = useUiStore((state) => state.language)
   const viewpoints = useUiStore((state) => state.viewpoints)
   const arrays = useUiStore((state) => state.arrays)
+  const trials = useUiStore((state) => state.trials)
   const ticks = useMemo(() => staticItems(t), [language])
   const sites = useMemo<CompassItem[]>(() => [
     { key: 'hall', className: 'compass-marker compass-hall', label: t('殿'), target: [LAYOUT.main.position[0], LAYOUT.main.position[2]], title: t('云阙主殿') },
     ...sitesOf('viewpoint').map((s) => ({ key: s.id, className: 'compass-marker compass-view', label: '◇', target: [s.position[0], s.position[2]] as const, title: `${t('观景 · ')}${t(s.name)}` })),
     ...sitesOf('teleport').map((s) => ({ key: s.id, className: 'compass-marker compass-array', label: '◎', target: [s.position[0], s.position[2]] as const, title: `${t('传送阵 · ')}${t(s.name)}` })),
+    ...TRIAL_COURSES.map((c) => ({ key: `trial-${c.id}`, className: 'compass-marker compass-trial', label: '◯', target: [c.rings[0][0], c.rings[0][2]] as const, title: `${t('飞行试炼 · ')}${t(c.name)}` })),
   ], [language])
   const refs = useRef(new Map<string, HTMLElement>())
   const orbRef = useRef<HTMLElement | null>(null)
   const orbText = useRef<HTMLElement | null>(null)
+  const ringRef = useRef<HTMLElement | null>(null)
+  const ringText = useRef<HTMLElement | null>(null)
   useEffect(() => {
     let frame = 0, count = 0
     let cluster: [number, number, number] | null = null
@@ -92,6 +104,7 @@ function Compass() {
       for (const item of sites) {
         const el = refs.current.get(item.key)
         if (!el || !item.target) continue
+        if (trialState.course && item.className.includes('compass-trial')) { el.style.opacity = '0'; continue }
         const far = Math.hypot(item.target[0] - px, item.target[1] - pz)
         if (far < 6) { el.style.opacity = '0'; continue }
         place(el, bearing(px, pz, item.target[0], item.target[1]), heading)
@@ -101,20 +114,30 @@ function Compass() {
         if (!cluster || !p) orbRef.current.style.opacity = '0'
         else {
           place(orbRef.current, bearing(px, pz, cluster[0], cluster[1]), heading)
-          if (orbText.current) orbText.current.textContent = cluster[2] < 1000 ? `${Math.round(cluster[2])}m` : `${(cluster[2] / 1000).toFixed(1)}km`
+          if (orbText.current) orbText.current.textContent = distanceText(cluster[2])
+        }
+      }
+      if (ringRef.current) {
+        const run = trialState.course
+        if (!run || !p) ringRef.current.style.opacity = '0'
+        else {
+          const [x, y, z] = run.rings[trialState.next]
+          place(ringRef.current, bearing(px, pz, x, z), heading)
+          if (ringText.current) ringText.current.textContent = distanceText(Math.hypot(x - p.x, y - p.y, z - p.z))
         }
       }
     }
     tick()
     return () => cancelAnimationFrame(frame)
   }, [ticks, sites])
-  const done = (key: string) => viewpoints.includes(key) || arrays.includes(key)
-  return <div className="compass" role="img" aria-label={t('罗盘：显示方位、观景台、传送阵、主殿与最近的灵光')}>
+  const done = (key: string) => viewpoints.includes(key) || arrays.includes(key) || (key.startsWith('trial-') && trials[key.slice(6) as TrialId] !== undefined)
+  return <div className="compass" role="img" aria-label={t('罗盘：显示方位、观景台、传送阵、主殿、飞行试炼与最近的灵光')}>
     <div className="compass-strip" aria-hidden="true">
       {ticks.map((item) => <span key={item.key} ref={(el) => { if (el) refs.current.set(item.key, el); else refs.current.delete(item.key) }} className={item.className}>{item.label}</span>)}
       {sites.map((item) => <span key={item.key} ref={(el) => { if (el) refs.current.set(item.key, el); else refs.current.delete(item.key) }}
         className={item.className} data-done={done(item.key)} title={item.title}>{item.label}</span>)}
       <span ref={orbRef} className="compass-marker compass-orb">✦<small ref={orbText} /></span>
+      <span ref={ringRef} className="compass-marker compass-ring">◉<small ref={ringText} /></span>
     </div>
     <i className="compass-needle" aria-hidden="true" />
   </div>
@@ -137,6 +160,33 @@ function OrbCounter() {
   const orbs = useUiStore((state) => state.orbs.length)
   return <div className="orb-counter" aria-label={`${t('已收集灵光')} ${orbs} / ${ORB_COUNT}`}>
     <i aria-hidden="true" /><span>{t('灵光')}</span><b>{orbs}</b><em>/ {ORB_COUNT}</em>
+  </div>
+}
+
+/** Course, rings taken and clock of the flight trial under way; the clock is written each frame outside React. */
+function TrialTimer() {
+  const t = useTranslation()
+  const [course, setCourse] = useState<TrialCourse | null>(null)
+  const clock = useRef<HTMLElement | null>(null)
+  const count = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    let frame = 0, shown: TrialCourse | null = null
+    const tick = () => {
+      frame = requestAnimationFrame(tick)
+      const run = trialState.course
+      if (run !== shown) { shown = run; setCourse(run) }
+      if (!run) return
+      if (clock.current) clock.current.textContent = formatTrialTime(trialState.time)
+      if (count.current) count.current.textContent = `${trialState.next - 1} / ${run.rings.length - 1}`
+    }
+    tick()
+    return () => cancelAnimationFrame(frame)
+  }, [])
+  if (!course) return null
+  return <div className="trial-timer" role="timer" aria-label={`${t('飞行试炼计时')} · ${t(course.name)}`}>
+    <small>{t('试炼')}</small><strong>{t(course.name)}</strong>
+    <b ref={clock} />
+    <span>{t('环')} <em ref={count} /></span>
   </div>
 }
 
@@ -179,6 +229,7 @@ export function Hud() {
     {started && !hidden && cameraMode === 'player' && <>
       <Compass />
       <OrbCounter />
+      <TrialTimer />
       <InteractPrompt />
     </>}
     {started && cameraMode !== 'photo' && <CaptionView />}

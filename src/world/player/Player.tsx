@@ -13,6 +13,9 @@ import { playerAudio } from './playerAudio'
 import { bindPlayerRuntime } from './playerHandle'
 import { hasGameInput, isUiInput } from '../../ui/gameKeys'
 import { uiBridge } from '../../ui/bridge'
+import { updateTrial } from '../trials/trials'
+
+const trialFrom = new Vector3()
 
 export function Player() {
   const avatar = useRef<Group>(null)
@@ -128,9 +131,11 @@ export function Player() {
     // Scripted and photo cameras freeze the player in place; the world keeps simulating.
     const controlling = store.started && store.locked && state.ready && store.cameraMode === 'player'
     if (!controlling) input.current.set(0, 0, 0)
-    if (store.started && store.locked && state.ready) stepPlayer(state, input.current, current.has('ShiftLeft') || current.has('ShiftRight'), delta)
+    trialFrom.copy(state.position)
+    if (store.started && store.locked && state.ready) stepPlayer(state, input.current, current.has('ShiftLeft') || current.has('ShiftRight'), delta, store.cameraMode === 'player')
     else { state.time += delta; if (state.phase === 'GROUND') state.velocity.set(0, 0, 0) }
     updatePlayerSupport(state)
+    updateTrial(state, trialFrom, delta, store.started && store.locked && state.ready)
     playerAudio.update(state, store.started && store.locked && state.ready, store.soundEnabled)
     if (store.phase !== state.phase) store.setPhase(state.phase)
     if (avatar.current) {

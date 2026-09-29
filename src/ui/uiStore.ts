@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { InteractKind } from '../world/sites'
 import type { VolumeChannel } from '../world/audio/mixer'
+import type { TrialId } from '../world/trials/courses'
 import { releaseLock, requestLock } from './bridge'
 
 export type Language = 'zh' | 'en'
@@ -52,6 +53,8 @@ interface UiState {
   flashKey: number; shutterKey: number
   /** Progress (ids), persisted by `save.ts`. */
   orbs: string[]; steles: string[]; viewpoints: string[]; arrays: string[]
+  /** Best flight-trial times (s) by course id, persisted by `save.ts`. */
+  trials: Partial<Record<TrialId, number>>
   volumes: Record<VolumeChannel, number>
   /** DEV: let E work without pointer lock (headless verification). */
   devInput: boolean
@@ -69,6 +72,8 @@ interface UiState {
   flash: () => void; shutter: () => void
   collectOrb: (id: string) => boolean; readStele: (id: string) => boolean
   visitViewpoint: (id: string) => boolean; activateArray: (id: string) => boolean
+  /** Records a finished run; true when it is the course's new best. */
+  recordTrial: (id: TrialId, seconds: number) => boolean
   setVolumes: (value: Record<VolumeChannel, number>) => void
   setDevInput: (value: boolean) => void
 }
@@ -88,7 +93,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   },
   nearby: null, overlay: null, scrollTab: 'map', hudHidden: false,
   photoFilter: 'none', photoVignette: false, caption: null, veil: false, flashKey: 0, shutterKey: 0,
-  orbs: [], steles: [], viewpoints: [], arrays: [],
+  orbs: [], steles: [], viewpoints: [], arrays: [], trials: {},
   volumes: { master: 0.8, music: 0.55, ambience: 0.8, sfx: 0.9 },
   devInput: false,
   photoUnlocked: false, lockError: null,
@@ -105,6 +110,12 @@ export const useUiStore = create<UiState>((set, get) => ({
   readStele: (id) => { const steles = add(get().steles, id); if (steles) set({ steles }); return steles !== null },
   visitViewpoint: (id) => { const viewpoints = add(get().viewpoints, id); if (viewpoints) set({ viewpoints }); return viewpoints !== null },
   activateArray: (id) => { const arrays = add(get().arrays, id); if (arrays) set({ arrays }); return arrays !== null },
+  recordTrial: (id, seconds) => {
+    const previous = get().trials[id]
+    if (previous !== undefined && previous <= seconds) return false
+    set({ trials: { ...get().trials, [id]: seconds } })
+    return true
+  },
   setVolumes: (volumes) => set({ volumes }),
   setDevInput: (devInput) => set({ devInput }),
 }))

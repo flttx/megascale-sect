@@ -122,3 +122,26 @@ export function playAttune() {
   partial(context, gain, 587.3, 0.3, 2.2, now + 0.12)
   partial(context, gain, 784, 0.2, 2, now + 0.24)
 }
+
+/** Bright ring-pass tone for a flight trial; later rings climb higher up the scale. */
+export function playRing(step: number, total: number) {
+  const out = output(0.6)
+  if (!out) return
+  const { context, gain } = out, now = context.currentTime + 0.01
+  gain.gain.value = 0.2
+  const degree = Math.round((step / Math.max(1, total - 1)) * (PENTATONIC.length - 1))
+  const note = 660 * Math.pow(2, PENTATONIC[degree] / 12)
+  partial(context, gain, note, 0.45, 0.9, now, 'triangle')
+  partial(context, gain, note * 2, 0.14, 0.5, now + 0.03)
+  noiseBurst(context, gain, now, 0.25, 2600, 0.8, 0.18)
+}
+
+/** Rising arpeggio when a trial course is completed; a new best adds a high bell on top. */
+export function playTrialFinish(best: boolean) {
+  const out = output(0.9)
+  if (!out) return
+  const { context, gain } = out, now = context.currentTime + 0.01
+  gain.gain.value = 0.22
+  ;[523.3, 659.3, 784, 1046.5].forEach((note, i) => partial(context, gain, note, 0.36, 1.8, now + i * 0.11))
+  if (best) { partial(context, gain, 2093, 0.18, 2.6, now + 0.5); partial(context, gain, 2093 * 1.5, 0.08, 2, now + 0.55) }
+}

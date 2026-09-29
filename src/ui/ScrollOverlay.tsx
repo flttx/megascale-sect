@@ -14,6 +14,7 @@ import { getPlayerRuntime } from '../world/player/playerHandle'
 import { BRIDGES, ISLANDS, PILLARS } from '../world/sites'
 import type { InteractKind } from '../world/sites'
 import { LAYOUT } from '../world/worldLayout'
+import { formatTrialTime, TRIAL_COURSES } from '../world/trials/courses'
 import { uiBridge } from './bridge'
 import { Dialog } from './Dialog'
 import { CORE_REGION, STELE_LORE, VIEWPOINT_REGIONS } from './lore'
@@ -289,6 +290,8 @@ function CollectionPanel() {
   const t = useTranslation()
   const orbs = useUiStore((state) => state.orbs), steles = useUiStore((state) => state.steles)
   const viewpoints = useUiStore((state) => state.viewpoints), arrays = useUiStore((state) => state.arrays)
+  const trials = useUiStore((state) => state.trials)
+  const finished = TRIAL_COURSES.filter((course) => trials[course.id] !== undefined).length
   const groups = Object.keys(ORB_GROUP_LABELS) as OrbGroup[]
   const bar = (label: string, value: number, total: number) => <span className="progress-bar" role="progressbar" aria-label={`${t(label)} ${value}/${total}`} aria-valuemin={0} aria-valuemax={total} aria-valuenow={value}><i style={{ width: `${(value / total) * 100}%` }} /></span>
   const rows: [string, string, string[], SiteSpec[]][] = [
@@ -310,6 +313,14 @@ function CollectionPanel() {
         <header><small>{en}</small><strong>{t(name)} <b>{done.length}</b> / {list.length}</strong>{bar(name, done.length, list.length)}</header>
         <ul>{list.map((site) => <li key={site.id} data-done={done.includes(site.id)}>{done.includes(site.id) ? t(site.name) : '???'}</li>)}</ul>
       </div>)}
+      <div className="collection-row collection-trials">
+        <header><small>FLIGHT TRIALS</small><strong>{t('飞行试炼')} <b>{finished}</b> / {TRIAL_COURSES.length}</strong>{bar('飞行试炼', finished, TRIAL_COURSES.length)}</header>
+        <ul>{TRIAL_COURSES.map((course) => {
+          const best = trials[course.id]
+          return <li key={course.id} data-done={best !== undefined}>{t(course.name)} <em>{best !== undefined ? formatTrialTime(best) : t('未完成')}</em></li>
+        })}</ul>
+        <p className="map-hint">{t('御剑穿过金色的起始环即开始计时，再依次穿过亮起的环；落地、传送或远离航线则试炼中断。罗盘上的 ◯ 指向各试炼起点。')}</p>
+      </div>
     </section>
   </div>
 }

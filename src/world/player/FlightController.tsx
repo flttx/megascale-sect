@@ -15,6 +15,11 @@ const forward = new Vector3(), right = new Vector3(), desired = new Vector3(), s
 /** Pointing straight down raises the target speed by this fraction: a dive trades height for speed. */
 const DIVE_GAIN = 0.4
 const HOVER = 0.55, MAX_CLIMB = 1.5
+/**
+ * Share of a wind stream's velocity a flier takes up: all of it flying with the flow, a third of it hovering or
+ * steering across or against it, so a rider can always leave the stream.
+ */
+const CATCH = { least: 0.3, against: -0.2, along: 0.8 }
 
 /** Resolve terrain in each collision substep. A cliff blocks sideways travel instead of lifting to its top. */
 function moveAcross(position: Vector3, nx: number, nz: number) {
@@ -29,7 +34,7 @@ function moveAcross(position: Vector3, nx: number, nz: number) {
 
 export function stepFlight(
   position: Vector3, velocity: Vector3, input: Vector3,
-  yaw: number, pitch: number, boosting: boolean, delta: number, braking = false,
+  yaw: number, pitch: number, boosting: boolean, delta: number, braking = false, wind?: Vector3,
 ) {
   // A body already outside the bounds (a teleport or a carrier) is held where it is rather than snapped back.
   const { world } = LAYOUT
@@ -42,6 +47,11 @@ export function stepFlight(
   if (desired.lengthSq() > 1) desired.normalize()
   const dive = desired.lengthSq() > 0 ? Math.max(0, -desired.y / desired.length()) : 0
   desired.multiplyScalar(braking ? 0 : (boosting ? LAYOUT.player.flightBoostSpeed : LAYOUT.player.flightSpeed) * (1 + DIVE_GAIN * dive))
+  if (wind && !braking && wind.lengthSq() > 0) {
+    const along = desired.lengthSq() > 0 ? desired.dot(wind) / Math.sqrt(desired.lengthSq() * wind.lengthSq()) : 0
+    const t = Math.max(0, Math.min(1, (along - CATCH.against) / (CATCH.along - CATCH.against)))
+    desired.addScaledVector(wind, CATCH.least + (1 - CATCH.least) * t * t * (3 - 2 * t))
+  }
   const slowing = desired.lengthSq() < velocity.lengthSq() || desired.dot(velocity) < 0
   const response = braking ? 12 : input.lengthSq() === 0 ? 5.5 : slowing ? 4.5 : boosting ? 1.8 : 3.2
   const blend = 1 - Math.exp(-response * delta)

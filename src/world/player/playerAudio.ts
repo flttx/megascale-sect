@@ -12,6 +12,7 @@ class PlayerAudio {
   private samples = new Float32Array(256)
   private phase: PlayerPhase = 'GROUND'
   private previousImpact = 0
+  private gusting = false
   private previousLanding = 0
   private muted = false
   private windLevel = 0
@@ -77,7 +78,8 @@ class PlayerAudio {
     }
     this.master.gain.setTargetAtTime(enabled ? 0.24 : 0, context.currentTime, 0.035)
     const speed = state.velocity.length()
-    this.windLevel = state.phase === 'FLIGHT' ? 0.035 + Math.pow(Math.min(1, speed / 140), 1.2) * 0.6
+    // A wind stream adds its own rush on top of the speed's.
+    this.windLevel = state.phase === 'FLIGHT' ? 0.035 + Math.pow(Math.min(1, speed / 140), 1.2) * 0.6 + state.wind * 0.12
       : state.phase === 'SUMMONING' ? Math.sin(Math.PI * Math.min(1, state.elapsed / 1.2)) * 0.18
       // A fall on foot rushes past the ears before the sword catches it.
       : state.phase === 'GROUND' && state.inAir ? Math.min(0.25, Math.max(0, -state.velocity.y) / 60) : 0
@@ -91,6 +93,9 @@ class PlayerAudio {
       this.phase = state.phase
     }
     if (state.impact > 0.9 && this.previousImpact < 0.5) this.chime('sword-contact', 1080, 720, 0.65, 0.13)
+    // Hysteresis, so skimming a stream's edge does not chime over and over.
+    if (!this.gusting && state.wind > 0.5) { this.gusting = true; this.chime('gust', 520, 880, 1.1, 0.05) }
+    else if (this.gusting && state.wind < 0.3) this.gusting = false
     this.previousImpact = state.impact
     // Feet meeting the ground after a jump or drop; harder landings thump louder.
     if (state.landing > this.previousLanding + 0.2) this.chime('thud', 120, 55, 0.18, 0.04 + state.landing * 0.07)
