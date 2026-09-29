@@ -61,7 +61,7 @@ interface View { x: number; z: number; w: number; h: number }
 const SECT_VIEW: View = { x: -380, z: -620, w: 760, h: 840 }
 function worldView(): View {
   let minX = -400, maxX = 400, minZ = -620, maxZ = 220
-  for (const p of PILLARS) { minX = Math.min(minX, p.x - p.radius); maxX = Math.max(maxX, p.x + p.radius); minZ = Math.min(minZ, p.z - p.radius); maxZ = Math.max(maxZ, p.z + p.radius) }
+  for (const p of PILLARS.filter((q) => !q.outer)) { minX = Math.min(minX, p.x - p.radius); maxX = Math.max(maxX, p.x + p.radius); minZ = Math.min(minZ, p.z - p.radius); maxZ = Math.max(maxZ, p.z + p.radius) }
   for (const i of ISLANDS) { minX = Math.min(minX, i.top[0] - i.radius); maxX = Math.max(maxX, i.top[0] + i.radius); minZ = Math.min(minZ, i.top[2] - i.radius); maxZ = Math.max(maxZ, i.top[2] + i.radius) }
   for (const [x, , z] of KUN_PATH) { minX = Math.min(minX, x - 180); maxX = Math.max(maxX, x + 180); minZ = Math.min(minZ, z - 180); maxZ = Math.max(maxZ, z + 180) }
   const pad = 60

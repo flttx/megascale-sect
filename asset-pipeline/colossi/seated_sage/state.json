@@ -1,0 +1,51 @@
+{
+  "concepts": {
+    "front_seedream_v5_muml38bq_0": {
+      "task_id": "e6404657-2eba-4ddf-93a2-b33bc0a6a43c",
+      "variant": "front",
+      "model": "seedream_v5",
+      "ref": null,
+      "file": "front_seedream_v5_muml38bq_0.jpg",
+      "at": "2026-09-29T11:20:05.942Z"
+    },
+    "front_seedream_v5_muml48qe_1": {
+      "task_id": "776c60c0-32cf-4f0c-8e2b-f98c7539aeae",
+      "variant": "front",
+      "model": "seedream_v5",
+      "ref": null,
+      "file": "front_seedream_v5_muml48qe_1.jpg",
+      "at": "2026-09-29T11:20:42.530Z"
+    },
+    "front_seedream_v5_muml50yr_2": {
+      "task_id": "1574eb9c-091f-4746-91e1-8f78e0ef6a1a",
+      "variant": "front",
+      "model": "seedream_v5",
+      "ref": null,
+      "file": "front_seedream_v5_muml50yr_2.jpg",
+      "at": "2026-09-29T11:21:11.542Z"
+    }
+  },
+  "models": {
+    "front_seedream_v5_muml38bq_0__m": {
+      "task_id": "4fc06648-95c0-4ff8-a1c2-a46b7fe326d9",
+      "concept": "front_seedream_v5_muml38bq_0",
+      "request": {
+        "input": "e6404657-2eba-4ddf-93a2-b33bc0a6a43c",
+        "model": "v3.1-20260211",
+        "texture": true,
+        "pbr": true,
+        "texture_quality": "detailed",
+        "geometry_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "delight": true,
+        "face_limit": 58000,
+        "texture_alignment": "original_image"
+      },
+      "file": "front_seedream_v5_muml38bq_0__m.glb",
+      "bytes": 22220184,
+      "preview": "front_seedream_v5_muml38bq_0__m_preview.webp",
+      "credits": 60,
+      "at": "2026-09-29T12:44:30.623Z"
+    }
+  }
+}

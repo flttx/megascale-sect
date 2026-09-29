@@ -47,6 +47,8 @@ export interface PillarSite {
   topY: number
   /** Mean radius of the shaft. */
   radius: number
+  /** Stands in a gulf between the sect and an outer region (R10), not among the sect's ranges. */
+  outer: boolean
 }
 /** Deep enough to root in the outer ground (TERRAIN_BASE), so no pillar floats inside a cloud rift. */
 export const PILLAR_BASE_Y = -440
@@ -61,29 +63,40 @@ function groundMax(cx: number, cz: number, r: number) {
   return best
 }
 
-// [centre x, centre z, spread, candidates, min top, max top]
-const PILLAR_CLUSTERS: [number, number, number, number, number, number][] = [
+// [centre x, centre z, spread, candidates, min top, max top, max radius (48)]. The seeds run on from one cluster to the
+// next, so appending a cluster leaves every earlier pillar where it was.
+const PILLAR_CLUSTERS: [number, number, number, number, number, number, number?][] = [
   [-760, -300, 300, 8, 20, 180],
   [880, -250, 280, 8, 30, 200],
   [-620, 330, 300, 6, 0, 140],
   [680, 380, 300, 6, 0, 150],
   [-720, -760, 220, 4, 40, 200],
   [800, -720, 220, 4, 40, 200],
+  // R10: the outer gulfs — before the sage's terrace, below the dragon spine and the western mesas, flanking the sky
+  // gate. Wider and taller than the sect's, and ≥ 175 m from the kun's loop.
+  [-330, -1640, 200, 6, 80, 320, 90],
+  [330, -1640, 200, 6, 80, 320, 90],
+  [1620, -760, 260, 7, 60, 360, 100],
+  [-2050, -1600, 250, 6, 60, 300, 100],
+  [-900, 1800, 280, 8, 40, 300, 100],
+  [900, 1800, 280, 8, 40, 300, 100],
 ]
+/** Clusters before this index stand among the sect's ranges; the rest are outer. */
+const CORE_CLUSTERS = 6
 
 function generatePillars(): PillarSite[] {
   const out: PillarSite[] = []
   let seed = 0
-  PILLAR_CLUSTERS.forEach(([cx, cz, spread, count, minTop, maxTop], cluster) => {
+  PILLAR_CLUSTERS.forEach(([cx, cz, spread, count, minTop, maxTop, maxRadius = 48], cluster) => {
     for (let placed = 0, attempt = 0; placed < count && attempt < count * 8; attempt++) {
       seed++
       const x = cx + (hash(seed, 1, 501) - 0.5) * spread * 2, z = cz + (hash(seed, 2, 502) - 0.5) * spread * 2
       const topY = minTop + hash(seed, 3, 503) * (maxTop - minTop)
-      const radius = Math.min(48, Math.max(12, (topY + 84) * (0.1 + hash(seed, 4, 504) * 0.08) + 8))
+      const radius = Math.min(maxRadius, Math.max(12, (topY + 84) * (0.1 + hash(seed, 4, 504) * 0.08) + 8))
       if (groundMax(x, z, radius + 30) > -110) continue
       if (out.some((p) => Math.hypot(p.x - x, p.z - z) < p.radius + radius + 30)) continue
       if (ISLANDS.some((i) => !i.chains && Math.hypot(i.top[0] - x, i.top[2] - z) < i.radius + radius + 25)) continue
-      out.push({ id: `pillar_${out.length}`, cluster, x, z, topY, radius })
+      out.push({ id: `pillar_${out.length}`, cluster, x, z, topY, radius, outer: cluster >= CORE_CLUSTERS })
       placed++
     }
   })

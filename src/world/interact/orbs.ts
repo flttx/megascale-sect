@@ -72,8 +72,8 @@ function placeOrbs(): OrbSite[] {
   }
   ISLANDS.forEach((island, index) => { if (!island.chains) islandOrbs(island, index) })
 
-  // Crowns of the six tallest pillars.
-  PILLARS.map((pillar, i) => ({ pillar, summit: PILLAR_SUMMITS[i] })).sort((a, b) => b.summit[1] - a.summit[1]).slice(0, 6)
+  // Crowns of the six tallest pillars around the sect.
+  PILLARS.map((pillar, i) => ({ pillar, summit: PILLAR_SUMMITS[i] })).filter(({ pillar }) => !pillar.outer).sort((a, b) => b.summit[1] - a.summit[1]).slice(0, 6)
     .forEach(({ pillar, summit: [x, y, z] }) => push([x, y + 2.4, z], 'pillar', pillar.id))
   ISLANDS.forEach((island, index) => { if (island.chains) islandOrbs(island, index) })
 

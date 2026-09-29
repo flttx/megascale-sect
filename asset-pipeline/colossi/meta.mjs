@@ -19,8 +19,11 @@ const dir = resolve(root, 'public', 'assets', 'colossi')
 await MeshoptDecoder.ready
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder })
 
-/** Band height and raster cell (asset metres) per model: the thin sword blade needs the finer cell. */
-const MODELS = { guardian_a: { band: 7.5, cell: 2.5 }, guardian_b: { band: 7.5, cell: 2.5 }, giant_sword: { band: 10, cell: 2 } }
+/** Band height and raster cell (asset metres) per model: the thin sword blade, the dragon's coils and the gate's openings need finer cells. */
+const MODELS = {
+  guardian_a: { band: 7.5, cell: 2.5 }, guardian_b: { band: 7.5, cell: 2.5 }, giant_sword: { band: 10, cell: 2 },
+  seated_sage: { band: 7.5, cell: 2.5 }, dragon_pillar: { band: 5, cell: 1.5 }, sky_gate: { band: 5, cell: 2 },
+}
 const RAY_HEIGHTS = [0.15, 0.5, 0.85]
 /** A cell this many cells beyond a circle's edge counts as covered by it (at most that much of the rim is left out). */
 const FRINGE = 0.75

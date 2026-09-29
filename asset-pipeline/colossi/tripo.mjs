@@ -31,15 +31,31 @@ const PROMPTS = {
     muted: 'An immense ancient Chinese straight double-edged jian sword, shown vertically with the blade tip pointing straight down, the whole sword visible from the ring pommel at the top to the sharp blade tip at the bottom, long straight thin flat blade of old grey steel with a dull bronze tint, light rust and faint verdigris stains, engraved seal-script runes running along the central fuller, compact crossguard of dark muted celadon antique jade with worn gold inlay, straight hilt tightly wrapped in dark brown cord, a round bronze ring pommel at the top with a long faded dusty red silk tassel hanging straight down beside the hilt, front view with the flat of the blade facing the viewer, museum artifact photograph, single isolated object, centered, no hand, no person, no ground, no stone, plain flat light grey studio background, soft even diffuse lighting, matte, high detail',
     front: 'An immense ancient Chinese straight double-edged jian sword, shown vertically with the blade tip pointing straight down, the whole sword visible from the ring pommel at the top to the sharp blade tip at the bottom, long straight blade of slightly corroded dark bronze-steel with green verdigris patina and pitting, engraved seal-script runes running along the central fuller, ornate crossguard of carved green jade inlaid with gold, straight hilt tightly wrapped in dark cord, a round ring pommel at the top with a long faded red silk tassel hanging down beside the hilt, front view with the flat of the blade facing the viewer, single isolated object, centered, no hand, no person, no ground, no stone, plain flat light grey studio background, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
   },
+  seated_sage: {
+    front: `Colossal statue of a Chinese Taoist immortal sage (仙尊), seated cross-legged in deep meditation, full body, long layered robes draped over the crossed legs and spreading in heavy carved folds over the base, wide sleeves, long flowing beard, tall ornate crown, both hands resting together in the lap in a meditation mudra, eyes closed, serene timeless face, seated on a broad rough rocky natural stone base slightly wider than the knees, front view, symmetrical, ${STATUE_STYLE}`,
+  },
+  dragon_pillar: {
+    front: 'An immense ancient carved stone column with a long Chinese dragon coiled tightly around it, the dragon body spiralling upward three times from the base to the top, the dragon head at the very top turned upward roaring toward the sky, four claws gripping the column, carved scales, horns and flowing whiskers, the column rising from a rough craggy rocky base, tall slender vertical composition, the entire column visible from the base to the dragon head, monumental weathered pale grey granite, moss and lichen streaks, fine cracks, faint remnants of gold leaf on the horns and claws, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no ground plane, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+  },
+  turtle: {
+    q34: 'A colossal ancient mythical sea turtle (鳌) swimming forward, three-quarter front side view from slightly above, the whole creature visible, a huge high domed shell whose top is a craggy rocky mountain with a broad flat stone terrace on the summit holding a small Chinese temple hall with a curved tiled roof and a few gnarled pines, four very large wide flippers spread out to the sides, long thick wrinkled neck and a massive ancient head stretched forward with calm old eyes, weathered grey-green stone-like skin with barnacles, moss and lichen, shell plates cracked and mossy, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no water, no clouds, no ground, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+  },
+  sky_gate: {
+    front: 'A colossal ancient Chinese stone memorial gateway archway (天门牌坊) with three openings, four massive square stone pillars carved with swirling cloud and dragon reliefs, heavy stone crossbeams and carved bracket sets, three stepped curved stone tiled roofs with sweeping upturned eaves on top, a large blank stone plaque in the centre, standing on a rough rocky stone base, front view, symmetrical, the entire gateway visible, monumental weathered pale grey granite, moss and lichen streaks, fine cracks and chipped edges, faint remnants of gold leaf on the plaque and roof ridges, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no ground plane, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+  },
 }
 const NEG = {
   guardian_a: STATUE_NEG,
   guardian_b: STATUE_NEG,
+  seated_sage: `${STATUE_NEG}, standing, legs cut off`,
+  dragon_pillar: 'cropped, cut off, multiple columns, building, temple, landscape, mountains, sky, clouds, ground, floor, text, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint, western dragon, wings',
+  turtle: 'cropped, cut off, water, ocean, waves, clouds, sky, ground, floor, multiple turtles, tortoise legs with toes, land tortoise, text, watermark, blurry, low quality, painting, flat 2D, cartoon',
+  sky_gate: 'cropped, cut off, people, landscape, mountains, sky, clouds, ground, floor, modern building, text, characters on plaque, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint',
   giant_sword: 'hand, person, ground, rock, stone, embedded, scabbard, curved blade, katana, broken blade, multiple swords, cropped, cut off, text, watermark, blurry, low quality, glowing, fire',
 }
-const SIZE = { guardian_a: '1728x3072', guardian_b: '1728x3072', giant_sword: '1152x3456' }
-const CHAT_SIZE = { guardian_a: '1024x1536', guardian_b: '1024x1536', giant_sword: '1024x1536' }
-const FACE_LIMIT = { guardian_a: 58000, guardian_b: 58000, giant_sword: 19000 }
+const SIZE = { guardian_a: '1728x3072', guardian_b: '1728x3072', giant_sword: '1152x3456', seated_sage: '2048x2048', dragon_pillar: '1152x3456', turtle: '3072x1728', sky_gate: '3072x1728' }
+const CHAT_SIZE = { guardian_a: '1024x1536', guardian_b: '1024x1536', giant_sword: '1024x1536', seated_sage: '1024x1024', dragon_pillar: '1024x1536', turtle: '1536x1024', sky_gate: '1536x1024' }
+const FACE_LIMIT = { guardian_a: 58000, guardian_b: 58000, giant_sword: 19000, seated_sage: 58000, dragon_pillar: 60000, turtle: 60000, sky_gate: 36000 }
 
 const [cmd, asset, ...rest] = process.argv.slice(2)
 if (!PROMPTS[asset]) throw new Error(`unknown asset ${asset}`)

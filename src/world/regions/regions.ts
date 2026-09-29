@@ -26,11 +26,11 @@ export interface RegionSpec {
 export const REGIONS: RegionSpec[] = [
   {
     id: 'north', name: '玄穹峰', bounds: { minX: -1300, maxX: 1300, minZ: -3800, maxZ: -1300 }, center: [0, -2150],
-    xs: [[-1200, 1200, 10], [-420, 420, 6]], zs: [[-3400, -1500, 10], [-2420, -1880, 6]], coarse: 20,
+    xs: [[-1200, 1200, 10], [-420, 420, 6]], zs: [[-3400, -1500, 10], [-2560, -1740, 6]], coarse: 20,
   },
   {
     id: 'east', name: '龙脊岭', bounds: { minX: 1300, maxX: 3500, minZ: -3800, maxZ: 900 }, center: [2200, -420],
-    xs: [[1400, 3000, 10], [2000, 2400, 6]], zs: [[-3000, 850, 10], [-620, -220, 6]], coarse: 20,
+    xs: [[1400, 3000, 10], [1930, 2470, 6]], zs: [[-3000, 850, 10], [-690, -150, 6]], coarse: 20,
   },
   {
     id: 'west', name: '万剑冢', bounds: { minX: -3500, maxX: -1300, minZ: -3800, maxZ: 900 }, center: [-2200, -450],
@@ -102,7 +102,7 @@ function cut(h: number, x: number, z: number, ax: number, az: number, bx: number
 
 // ---------- North · 玄穹峰: the seated sage's terrace, walled by the highest peaks in the world ----------
 /** Terrace the colossal sage sits on (walkable flat top). */
-export const SAGE_TERRACE = { x: 0, z: -2150, radius: 240, top: 150 }
+export const SAGE_TERRACE = { x: 0, z: -2150, radius: 300, top: 150 }
 // [x, z, radius, summit]
 const NORTH_PEAKS: [number, number, number, number][] = [
   [0, -2760, 300, 960], [-430, -2560, 190, 700], [440, -2600, 210, 780], [-860, -2780, 250, 640], [880, -2840, 260, 720],
@@ -123,7 +123,7 @@ function northHeight(x: number, z: number) {
 }
 
 // ---------- East · 龙脊岭: a serrated spine with the dragon column on its central mesa ----------
-export const DRAGON_MESA = { x: 2200, z: -420, radius: 170, top: 210 }
+export const DRAGON_MESA = { x: 2200, z: -420, radius: 200, top: 210 }
 const EAST_SPINE: [number, number][] = [[1880, -2500], [2050, -1650], [2230, -900], [2260, -420], [2380, 200], [2520, 760]]
 const EAST_SPINE_HEIGHT = [380, 560, 470, DRAGON_MESA.top, 520, 300]
 const EAST_PEAKS: [number, number, number, number][] = [
