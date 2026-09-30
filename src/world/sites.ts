@@ -148,6 +148,20 @@ export const INTERACT_SITES: InteractSite[] = [
   { id: 'teleport_back', kind: 'teleport', name: '后山阵', position: [70, 24, -492], faceToward: [70, 24, -600], clearance: 5 },
   { id: 'teleport_isle_west', kind: 'teleport', name: '听松阵', position: [-302, 30, -102], faceToward: [-186, 24, -102], clearance: 5 },
   { id: 'teleport_star', kind: 'teleport', name: '摘星阵', position: [640, 175, -260], faceToward: [0, 175, -320], clearance: 5 },
+  // R10 outer regions: stele, overlook and array on flat, open ground of each region's mesa or isle.
+  { id: 'stele_sage', kind: 'stele', name: '坐忘碑', position: [-70, 153.14, -1894], faceToward: [0, 152, -1880], clearance: 3 },
+  { id: 'view_sage', kind: 'viewpoint', name: '仰圣台', position: [0, 152.16, -1870], faceToward: [0, 470, -2175], clearance: 3 },
+  { id: 'teleport_sage', kind: 'teleport', name: '玄穹阵', position: [70, 149.55, -1890], faceToward: [0, 300, -2175], clearance: 5 },
+  { id: 'stele_dragon', kind: 'stele', name: '盘龙碑', position: [2080, 208.95, -360], faceToward: [1990, 209, -360], clearance: 3 },
+  // Looks north along the spine: a sweep toward the pillar would pass into its base.
+  { id: 'view_dragon', kind: 'viewpoint', name: '望脊台', position: [2070, 209.85, -440], faceToward: [1950, 450, -1500], clearance: 3 },
+  { id: 'teleport_dragon', kind: 'teleport', name: '龙脊阵', position: [2090, 210.7, -500], faceToward: [2200, 400, -420], clearance: 5 },
+  { id: 'stele_tomb', kind: 'stele', name: '葬剑碑', position: [-1880, 139.94, -560], faceToward: [-1780, 140, -560], clearance: 3 },
+  { id: 'view_tomb', kind: 'viewpoint', name: '观剑台', position: [-1860, 141.49, -620], faceToward: [-2200, 420, -250], clearance: 3 },
+  { id: 'teleport_tomb', kind: 'teleport', name: '万剑阵', position: [-1850, 139.57, -450], faceToward: [-2200, 300, -250], clearance: 5 },
+  { id: 'stele_guixu', kind: 'stele', name: '归墟碑', position: [-50, 60.41, 2400], faceToward: [-50, 60, 2300], clearance: 3 },
+  { id: 'view_guixu', kind: 'viewpoint', name: '望门台', position: [0, 61.12, 2380], faceToward: [0, 170, 2000], clearance: 3 },
+  { id: 'teleport_guixu', kind: 'teleport', name: '归墟阵', position: [50, 60.27, 2420], faceToward: [0, 60, 2000], clearance: 5 },
 ]
 
 /**

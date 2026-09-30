@@ -137,7 +137,7 @@ try {
     const { ORB_COUNT } = await window.__liveImport('/src/world/interact/orbs.ts')
     return { ids: window.__interact.orbs().filter((o) => o.collected).map((o) => o.id), total: ORB_COUNT, saved: JSON.parse(localStorage.getItem(save.SAVE_KEY)) }
   })
-  assert.equal(collected.total, 66)
+  assert.equal(collected.total, 86)
   assert.deepEqual(collected.ids.sort(), Array.from({ length: 6 }, (_, i) => `orb_kun_${i}`))
   assert.deepEqual(collected.saved.position, safe, 'never save a position on the moving deck')
   assert.deepEqual(collected.saved.orbs.sort(), collected.ids)
@@ -149,7 +149,7 @@ try {
   assert.notEqual(await marker.getAttribute('cx'), firstX, 'map orb follows the kun')
   await page.screenshot({ path: 'artifacts/kun/map.png' })
   await page.keyboard.press('Tab')
-  console.log('PASS six orbs, 66 total, moving map, static checkpoint')
+  console.log('PASS six orbs, 86 total, moving map, static checkpoint')
   const edge = await page.evaluate(async () => {
     const { registerWalkables } = await window.__liveImport('/src/world/surfaces.ts')
     const { stepGround } = await window.__liveImport('/src/world/player/GroundController.tsx')

@@ -42,6 +42,22 @@ export const STELE_LORE: Record<string, LoreEntry> = {
     title: '摘星碑', era: '无记', hint: '摘星台 · 无桥可渡',
     text: '摘星台悬于天外，无桥可渡。能至此者，剑心已成。台上星辰低垂，伸手可触；然触之即散，唯余一掌清凉。',
   },
+  stele_sage: {
+    title: '坐忘碑', era: '第三代 · 坐忘', hint: '玄穹峰 · 坐像台地前沿',
+    text: '第三代掌门在北方云海之外面朝宗门入定，说听满一万次钟声便醒。弟子年年来此上香，香灰积成了台地，他却渐渐化作了石。钟至今仍在敲，只是没有人再数。',
+  },
+  stele_dragon: {
+    title: '盘龙碑', era: '上古 · 无考', hint: '龙脊岭 · 盘龙台地西侧',
+    text: '石龙不是人雕的。开山之前它便盘在柱上，龙首向东，像在等日出。典籍说龙脊岭是它蜕下的旧鳞，绕柱而上的灵风，是它还没吐尽的一口气。',
+  },
+  stele_tomb: {
+    title: '葬剑碑', era: '历代 · 剑修', hint: '万剑冢 · 台地东缘',
+    text: '剑修一生只葬一剑。剑尖入土那一刻，便不再以剑为名，下山做个寻常人。碑上名录已刻满三面，第四面至今空白，留给最后一位肯放下剑的人。',
+  },
+  stele_guixu: {
+    title: '归墟碑', era: '无记', hint: '归墟云海 · 天门孤屿',
+    text: '归墟是众水所归之处，云海也归于此。古人立天门为界，门外再无记载。曾有弟子御剑穿门而去，数十年后从北方云海归来，说门外仍是云阙。',
+  },
 }
 
 /** Captions for viewpoint cinematics. */
@@ -52,6 +68,10 @@ export const VIEWPOINT_LINES: Record<string, string> = {
   view_back_east: '东望沧溟，石林如戟，拔出云海。',
   view_isle_west: '松风入耳，天池在望。',
   view_star: '手可摘星辰，回首云阙渺。',
+  view_sage: '千年一坐，钟声未满。',
+  view_dragon: '龙脊化山，一路北去，没入云中。',
+  view_tomb: '万剑无主，风过如鸣。',
+  view_guixu: '门外无路，云海自归。',
 }
 
 /** Map regions each viewpoint unveils on its first visit: [x, z, radius] circles in world metres. */
@@ -62,6 +82,10 @@ export const VIEWPOINT_REGIONS: Record<string, { name: string; circles: [number,
   view_back_east: { name: '东野石林', circles: [[880, -250, 340], [800, -720, 270]] },
   view_isle_west: { name: '天池云径', circles: [[-160, -780, 220], [-302, -102, 110]] },
   view_star: { name: '摘星天外', circles: [[640, -260, 200], [332, -85, 110]] },
+  view_sage: { name: '玄穹峰', circles: [[0, -2150, 700], [0, -3050, 700], [-850, -2550, 520], [850, -2550, 520], [-330, -1640, 280], [330, -1640, 280]] },
+  view_dragon: { name: '龙脊岭', circles: [[2200, -420, 700], [2400, -1500, 700], [2400, -2700, 700], [2400, 450, 520], [1620, -760, 360]] },
+  view_tomb: { name: '万剑冢', circles: [[-2200, -450, 750], [-2400, -1550, 650], [-2400, -2750, 650], [-2400, 450, 520], [-2050, -1600, 350]] },
+  view_guixu: { name: '归墟云海', circles: [[0, 2300, 800], [-1600, 1950, 800], [1600, 1950, 800], [-2850, 2050, 620], [2850, 2050, 620], [-900, 1800, 380], [900, 1800, 380]] },
 }
 
 /** 万象图录 pages (by entry id): the page text and a clue to where or when each is found. */

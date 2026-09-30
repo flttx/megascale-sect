@@ -18,6 +18,14 @@ const key = (i: number, j: number) => (i + 32768) * 65536 + j + 32768
 let corners = new Float32Array(0), normals = new Float32Array(0), stamps = new Uint32Array(0)
 let owner: Object3D | null = null, reach = 0, query = 0
 const grid = new Map<number, number[]>()
+/**
+ * Local (x, z) of the back's spirit orbs (R10f): before the pavilion and behind its two rear corners, on one level of
+ * its terrace that is open, flat and walkable throughout, so the highest surface over each is the one to stand on.
+ */
+const ORB_SPOTS: [number, number][] = [[0, -14], [-20, -52], [20, -52]]
+export const TURTLE_ORB_COUNT = ORB_SPOTS.length
+/** Local deck height under each orb spot (the deck is rigid, so it is found once per bind). */
+let orbHeights: number[] = []
 const ray = new Ray(), a = new Vector3(), b = new Vector3(), c = new Vector3(), hitPoint = new Vector3()
 const localFrom = new Vector3(), localDirection = new Vector3(), side = new Vector3(), across = new Vector3(), bodyFrom = new Vector3()
 
@@ -55,8 +63,10 @@ export function bindTurtleDeck(scene: Object3D) {
       }
     }
   }
+  orbHeights = ORB_SPOTS.map(([x, z]) => deckTop(x, z))
+  if (!orbHeights.every(Number.isFinite)) throw new Error('Turtle orb spot is off the deck')
   owner = scene; turtleState.ready = false
-  return () => { if (owner === scene) { owner = null; grid.clear(); corners = normals = new Float32Array(0); stamps = new Uint32Array(0); turtleState.ready = false } }
+  return () => { if (owner === scene) { owner = null; grid.clear(); corners = normals = new Float32Array(0); stamps = new Uint32Array(0); orbHeights = []; turtleState.ready = false } }
 }
 
 export function updateTurtleDeck(center: Vector3, heading: number) {
@@ -93,6 +103,24 @@ function heightOver(triangle: number, px: number, pz: number) {
   return corners[o + 1] * u + corners[o + 4] * v + corners[o + 7] * (1 - u - v)
 }
 const cellOf = (p: Vector3) => grid.get(key(Math.floor(p.x / CELL), Math.floor(p.z / CELL))) ?? []
+
+/** Highest upward-facing deck height over local (x, z), or NaN off the deck. */
+function deckTop(x: number, z: number) {
+  let best = -Infinity
+  for (const triangle of cellOf(localFrom.set(x, 0, z))) {
+    if (normals[triangle * 3 + 1] <= 0.05) continue
+    const y = heightOver(triangle, x, z)
+    if (y > best) best = y
+  }
+  return Number.isFinite(best) ? best : NaN
+}
+
+/** The `index`-th spirit orb on the back, 1.5 m over the deck, or null while the deck is not ready. */
+export function turtleOrbPosition(index: number, out: Vector3): Vector3 | null {
+  const spot = ORB_SPOTS[index], height = orbHeights[index]
+  if (!turtleState.ready || !spot || !Number.isFinite(height)) return null
+  return toWorld(out.set(spot[0], height + 1.5, spot[1]), true)
+}
 
 export function turtleDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit | null {
   if (!turtleState.ready || Math.hypot(x - turtleState.center.x, z - turtleState.center.z) > reach) return null

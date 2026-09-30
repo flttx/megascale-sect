@@ -234,7 +234,8 @@ function BellShockwave() {
 const ORB_TINT: Record<string, [number, number, number]> = {
   road: [2.6, 2.05, 1.15], platform: [2.6, 2.05, 1.15], bridge: [1.25, 2.4, 2.15],
   island: [1.25, 2.4, 2.15], pillar: [1.9, 1.75, 2.6], roof: [2.7, 2.2, 1.3], sky: [1.9, 1.75, 2.6],
-  kun: [1.25, 2.6, 2.35],
+  kun: [1.25, 2.6, 2.35], sage: [2.4, 2.15, 1.6], dragon: [1.25, 2.4, 2.15], tomb: [2.2, 2.3, 2.6], gate: [1.9, 1.75, 2.6],
+  turtle: [1.6, 2.6, 1.5],
 }
 
 function SpiritOrbs() {

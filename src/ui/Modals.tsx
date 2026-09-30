@@ -78,6 +78,7 @@ function WeatherPicker() {
 
 const ARRAY_REGIONS: Record<string, string> = {
   teleport_spawn: '山门前路', teleport_forecourt: '云阙广场', teleport_back: '后山台地', teleport_isle_west: '听松屿', teleport_star: '摘星台',
+  teleport_sage: '坐像台地', teleport_dragon: '盘龙台地', teleport_tomb: '剑冢台地', teleport_guixu: '天门孤屿',
 }
 
 function TeleportList({ from }: { from: string }) {

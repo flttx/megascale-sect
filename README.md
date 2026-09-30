@@ -1,6 +1,6 @@
 # Yunque Celestial Sect
 
-A desktop Web 3D exploration game set around a 420 m mountain sect above a sea of clouds. Walk the grand stairs or fly on a sword, switch between two characters, discover inscriptions and overlooks, gather spirit lights, and photograph the world through its day-night cycle and five weather states. There is no combat or quest system; the focus is atmosphere, scale, and exploration.
+A desktop Web 3D exploration game set around a 420 m mountain sect above a sea of clouds, with four outer regions across a world about 6 km on a side. Walk the grand stairs or fly on a sword, ride the spirit winds and race flight trials, board the Kun or the cloud-sea turtle, discover inscriptions and overlooks, gather spirit lights, and photograph colossi and sky phenomena for the compendium through a day-night cycle and five weather states. There is no combat or quest system; the focus is atmosphere, scale, and exploration.
 
 The game supports English and Simplified Chinese. English is the first-visit default. Change languages from the title screen or the pause/settings menu; the choice is saved locally and does not alter game-save data.
 
@@ -43,25 +43,29 @@ Movement and photo mode use physical key codes. Ctrl is not used to descend. Blu
 ## World
 
 - **The sect:** a 380 × 450 m stone plaza, a 420 m main hall, a mountain gate, six side towers, walkable slopes, and a long central stair. The surrounding world includes 36 procedural karst pillars, eight floating isles, two walkable suspension bridges, waterfalls, distant ridges, and a horizon of mountain ranges.
+- **Outer regions:** the flyable world spans x ±3000 m and z −3300…2700 m, with a 1600 m flight ceiling. Azure Vault Peaks to the north hold a seated sage about 375 m tall on a terrace facing the main hall. Dragonspine Ridge to the east rises around a dragon-coiled pillar about 660 m tall. The Tomb of Myriad Swords to the west is a broken mesa with sword-scar canyons, five great swords, and 180 instanced lesser swords. The Guixu Cloud Sea to the south has 20 sea stacks and a sky gate about 360 m wide. Six outer pillar clusters fill the gulfs between regions, and the horizon ranges sit 5.8–8.5 km out.
 - **Colossal landmarks:** two guardian statues rise from the clouds; a 460 m sword pierces an eastern peak; the 310 m Kun circles the mountain and breaches the cloud sea; a 120 m armillary sphere turns above the main hall; five chains tether Cloudbound Isle to the pillars.
 - **Vegetation and atmosphere:** procedural Huangshan pines sway in the wind. Nearby GPU grass reacts to wind, footsteps, low flight, and snow. The sky uses atmospheric-scattering look-up tables; medium and high quality render volumetric clouds. Clear weather, mist, rain, snow, and storms cycle over a moving day-night clock.
 - **Movement:** walk, sprint, jump, climb the roof tiers, and fly at 45 m/s cruise speed or up to 140 m/s boosted speed. The shoulder camera avoids walls and props; the sword catches the player during a dangerous fall.
 - **Kunback exploration:** during the level-flight segment of its route, board the Kun, walk or jump across its animated back, and collect six spirit lights. The character, feet, and camera follow its skinned surface. Press F to leave with the Kun's velocity; cloud-entry rescue is available near the end of the route.
-- **Discoveries:** 25 interaction sites include steles, a bell, a weather altar, meditation cushions, overlooks, and waygates. Discover waygates by visiting them. Gather all 66 spirit lights; the compass points toward the nearest uncollected cluster, and the map marker follows the Kun.
+- **Turtleback:** a mountain-bearing turtle cruises a closed loop through the southern cloud sea. It can be boarded at any point on its route; walk its shell among rocks, pines, and a pavilion, and collect the three spirit lights on the pavilion's terrace. Press F over any gentle, open part of the back to land on it.
+- **Spirit winds and flight trials:** six wind streams link the regions: a ring through all four, four spokes from the sect, and an updraft coiling the dragon pillar. Flying with a stream borrows its speed; flying against it slows you. Each region has a ring course (10, 11, 10, and 8 rings): pass through the first ring from the front to start the timer, then take the rings in order. Landing, teleporting, straying more than 1500 m, or exceeding 10 minutes ends the run. Best times appear in the scroll.
+- **Compendium:** 14 entries cover seven colossi, three creatures (the Kun, the turtle, and cranes), and four sky phenomena. Photos taken in photo mode count when the subject fills enough of the frame and is not hidden behind terrain, the cloud sea, or other colliders; a framing hint shows before the shutter. Entries appear on their own scroll tab.
+- **Discoveries:** 37 interaction sites include steles, a bell, a weather altar, meditation cushions, overlooks, and waygates; each outer region has its own stele, overlook, and waygate. Overlooks reveal their region on the map, and waygates are discovered by visiting them. Gather all 86 spirit lights; the compass points toward the nearest uncollected cluster, and the map markers follow the Kun and the turtle.
 - **Sound:** wind, rain, thunder, wildlife, a pentatonic music bed, guzheng plucks, and movement effects are synthesized locally. Set channel volumes in the pause menu.
-- **Assets:** Tripo models include the guardians, sword, Kun, and several props. Other assets use Blender procedural modeling and animation. Props use instancing and distance-based LODs.
+- **Assets:** Tripo models include the guardians, sword, Kun, seated sage, dragon pillar, sky gate, turtle, and several props. Other assets use Blender procedural modeling and animation. Props use instancing and distance-based LODs.
 
 ## Saves and Recovery
 
 Progress, character choice, and settings are autosaved to `yunque.save.v2`. A fixed mapping migrates the 60 legacy v1 spirit-light IDs while retaining the old data. Malformed JSON is backed up before recovery; unknown versions and backup failures preserve the original and pause writes. Storage errors stop retries for the session and are shown on the title or settings screen.
 
-Only safe static ground positions are saved; jumping, falling, and riding the Kun do not become checkpoints. Hidden tabs suspend audio and restore the unlocked audio context when visible again. If WebGL loses its context, the game rebuilds the canvas, preserves in-session progress and settings, and returns to the last safe checkpoint. A 12-second timeout exposes a manual retry.
+Flight-trial best times and compendium entries are optional fields of the same v2 save. Only safe static ground positions are saved; jumping, falling, and riding the Kun or the turtle do not become checkpoints. Hidden tabs suspend audio and restore the unlocked audio context when visible again. If WebGL loses its context, the game rebuilds the canvas, preserves in-session progress and settings, and returns to the last safe checkpoint. A 12-second timeout exposes a manual retry.
 
 ## Rendering and Performance
 
-The settings menu offers **Low**, **Medium**, and **High** quality. Resolution adapts to frame rate; optional auto quality can step down a preset after resolution scaling reaches its minimum. High quality includes four cascaded shadow levels, N8AO, Bloom, god rays, and 4× MSAA. The established 27-scene draw-call budget is at most 400; the R9 baseline peaked at 296 on an RTX 5060 Ti. CPU throttling is not a substitute for testing on a low-end GPU. See [PROGRESS.md](PROGRESS.md) for the recorded environment and measurements.
+The settings menu offers **Low**, **Medium**, and **High** quality. Resolution adapts to frame rate; optional auto quality can step down a preset after resolution scaling reaches its minimum. High quality includes four cascaded shadow levels, N8AO, Bloom, god rays, and 4× MSAA. The established 45-scene draw-call budget is at most 400; the R9 baseline peaked at 296 on an RTX 5060 Ti, and the R10 world peaks at 318. Outer-region terrain casts shadows only while the camera is within 500 m of that region; all wind streams share one draw, as do all trial rings. CPU throttling is not a substitute for testing on a low-end GPU. See [PROGRESS.md](PROGRESS.md) for the recorded environment and measurements.
 
-Photo mode and the scroll load on first use. The current build after localization is approximately 584 kB JavaScript (202 kB gzip) for the main bundle. Kunback queries reuse skinned bone matrices each frame; the recorded local index time improved from 3.40 ms to 1.69 ms.
+Photo mode and the scroll load on first use. The current build after R10 is approximately 672 kB JavaScript (234 kB gzip) for the main bundle. Kunback queries reuse skinned bone matrices each frame; the recorded local index time improved from 3.40 ms to 1.69 ms.
 
 ## Asset Pipelines
 
@@ -79,7 +83,7 @@ Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright 
 | `pnpm verify:smoke`        | Load, pointer lock, real input, flight, and rendered output                                                   |
 | `pnpm verify:ui`           | Language switching, accessibility targets, settings, saves, photo mode, React commits, and audio-node cleanup |
 | `pnpm verify:interact`     | Interactions, exact spirit-light count, scroll, focus, photo, save/restore, draw-call deltas, and page errors |
-| `pnpm verify:perf`         | Three quality levels across 27 scenes; draw calls ≤400; supports `MIN_FPS`                                    |
+| `pnpm verify:perf`         | Three quality levels across 45 scenes plus the Kun deck; draw calls ≤400; supports `MIN_FPS`                  |
 | `pnpm verify:visual`       | Time-of-day and weather views with brightness/contrast checks                                                 |
 | `pnpm verify:characters`   | Both characters, sword summon/flight, switching, and pause/resume                                             |
 | `pnpm verify:navigation`   | Gate, stairs, hall collision, and high-altitude traversal                                                     |
@@ -90,6 +94,7 @@ Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright 
 | `pnpm verify:motion`       | Sword summon/landing avoidance and cliff paths at 20/60/144 fps                                               |
 | `pnpm verify:jumps`        | Both characters jumping onto a 1.2 m ledge at 60/144 fps                                                      |
 | `pnpm verify:kun`          | Boarding, movement, jumps, edge cases, rescue, collection, map, and docking window                            |
+| `pnpm verify:turtle`       | Turtle spirit lights over open deck, collected on foot around the pavilion                                    |
 | `pnpm verify:stability`    | Audio lifecycle and WebGL context-loss recovery                                                               |
 | `pnpm verify:framerate`    | Jump and trail behavior at 20/60/144 fps                                                                      |
 | `pnpm verify:environment`  | Graybox/review views, geometry, and source-building hashes                                                    |
