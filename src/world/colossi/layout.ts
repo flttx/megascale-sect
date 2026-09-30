@@ -117,7 +117,8 @@ export const TURTLE_PATH: [number, number][] = [
 ]
 /**
  * Scale, speed (m/s), the model origin's height (its underside, deep in the cloud sea: shell rim ≈ −57, summit
- * terrace ≈ +37, pavilion ridge ≈ +80), the swell it rides (m, s), the asset's footprint centre ahead of its origin
- * (asset m) and the distance the reduced model takes over.
+ * terrace ≈ +37, pavilion ridge ≈ +80), how far it rises with each stroke of the fore flippers (m) and the stroke's
+ * period (s: half the `swim` clip, build_turtle.py STROKE), the asset's footprint centre ahead of its origin (asset m)
+ * and the distance the reduced model takes over.
  */
-export const TURTLE = { scale: 1.3, speed: 7, baseY: -115, bob: 1.2, bobPeriod: 14, centerZ: 24.15, lodDistance: 1400 }
+export const TURTLE = { scale: 1.3, speed: 7, baseY: -115, bob: 1.2, stroke: 9, centerZ: 24.15, lodDistance: 1400 }

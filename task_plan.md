@@ -32,6 +32,20 @@
 
 每阶段完成后自动提交。存档保持 v2，新字段均为可选。
 
+## R11 巨鳌骨骼动画（2026-09-30，已完成）
+
+用户反馈：巨鳌动作不自然，鲲的动作自然；选定“Blender 绑骨”方案（仿照 `asset-pipeline/kun/build_kun.py`）。
+
+现状（已核实）：`turtle.glb` 单网格、无 skin、无动画；四鳍在 `Turtle.tsx` 顶点着色器里按区域 |x| 85–125 m、y < 62 m 绕 x = ±85 的前后轴整块上下摆（前 ±0.2 rad、后 ±0.13 rad、周期约 9 s，对称正弦）。几何实测：头朝 +Z，头 z 130–180、颈 z 88–128（|x| < 32），前鳍根在壳前沿下方 x 40–80 / z 88–112、鳍尖到 |x| 156，后鳍根 x 64–80 / z −88…−72，尾很小（z −136…−112）。着色器铰链在 x = 85，前鳍中段折弯，这是主要的违和感来源。约束：背部站立面（`turtleDeck.ts`）只按朝向 + 中心换算，龟身只能偏航和升降，不能俯仰 / 侧倾。
+
+### 阶段
+
+- [x] T1 绑骨与片段（`asset-pipeline/colossi/turtle/`）：`decode.mjs` 把现有 LOD0 解成 Blender 可读的 GLB（原始 Tripo 源已不在本机）；`build_turtle.py`（Blender 5.2）按顶点主轴测出四鳍轴线，建约 15 根骨（root / 颈 2 / 头 / 尾 / 前鳍各 3 / 后鳍各 2），脚本权重：壳、山石、松、仙亭 100% root；`swim` 循环片段（约 8 s）：前鳍飞行式划水（下划 + 后掠 + 鳍面翻转，鳍尖滞后，下划快上收慢），后鳍小幅掌舵，颈头随划水轻点、慢摆，尾轻摆。形变检查：root 顶点位移为 0，鳍 / 颈边长比例、循环接缝误差。导出 `turtle_rigged.glb` + `.blend` + 报告。
+- [x] T2 优化：`optimize_turtle.mjs` 出 LOD0（保留面数）/ LOD1（约 11.6k 面，同骨架与片段），贴图沿用现有 WebP（不做二次压缩），meshopt + 量化；校验 skin / 片段 / 体积。
+- [x] T3 运行时：`Turtle.tsx` 去掉 `withPaddling`，两个 LOD 各一个 AnimationMixer，片段时间取巡游时钟（`?turtleAt` 可复现）；蒙皮包围球按鲲的做法重算；朝向平滑（与传给 deck 的朝向一致）；起伏与划水同步、划水时轻微前冲。`turtleDeck.ts` 顶点改用 `getVertexPosition`，只收 100% root 权重的三角形（替代 `FLIPPER_X` 规则；头颈不再可站立）。
+- [x] T4 验证与记录：tsc / build、`verify:turtle`、`verify:kun`、`verify:motion`、`verify:perf`（≤ 400）、`verify:save`；`?turtleAt` 多时刻截图对比前后；findings / README 资产说明更新。
+  - 完成：见 findings「R11 巨鳌骨骼动画」。片段 18 s（两次划水），朝向平滑没有做（航线本身已平滑，保持最小改动）。verify:turtle、motion、save、perf（最差 318）、build 通过；verify:kun 在改动前后都会随机超时（见 findings），不是这次引入的问题。
+
 ## 上一轮：R9 后续实现与本机验收已完成
 
 ## 2026-09-29 文档与中英界面

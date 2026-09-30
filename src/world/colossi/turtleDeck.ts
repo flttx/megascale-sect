@@ -1,18 +1,19 @@
 import { Matrix4, Ray, Vector3 } from 'three'
-import type { Mesh, Object3D } from 'three'
+import type { Object3D, SkinnedMesh } from 'three'
 import type { SurfaceAddress, SurfaceHit } from '../surfaces'
 import { TURTLE } from './layout'
 
 /**
- * 巨鳌's deck (R10e). The turtle is rigid (only its flippers paddle, in the vertex shader), so its triangles are
- * gathered once in its own frame — footprint centre at the origin, head toward +Z, metres — and every query is
- * turned into that frame by the live pose Turtle.tsx writes each frame. The paddling flippers are left out: they
- * churn the cloud sea and are nothing to stand on.
+ * 巨鳌's deck (R10e). The shell and everything on it are bound wholly to the skeleton's root, which the `swim` clip
+ * never moves (R11), so those triangles are gathered once in the turtle's own frame — footprint centre at the origin,
+ * head toward +Z, metres — and every query is turned into that frame by the live pose Turtle.tsx writes each frame.
+ * Triangles with any weight on another bone (flippers, neck, head, tail) are left out: they move with the stroke and
+ * are nothing to stand on.
  */
 export const turtleState = { ready: false, heading: 0, center: new Vector3(), frame: 0 }
 
-/** Asset |x| beyond which a triangle belongs to a flipper (the shell rim reaches ±85 m). */
-const FLIPPER_X = 90
+/** Skin weight on the root at or above which a vertex is part of the rigid body (weights are stored in 8 bits). */
+const RIGID = 0.999
 const CELL = 4
 const key = (i: number, j: number) => (i + 32768) * 65536 + j + 32768
 let corners = new Float32Array(0), normals = new Float32Array(0), stamps = new Uint32Array(0)
@@ -31,19 +32,29 @@ const localFrom = new Vector3(), localDirection = new Vector3(), side = new Vect
 
 /** Gathers the deck from the loaded full-detail model (the scene may already be placed; its own frame is used). */
 export function bindTurtleDeck(scene: Object3D) {
-  scene.updateWorldMatrix(true, true)
-  const mesh = scene.getObjectByProperty('isMesh', true) as Mesh | undefined
-  const index = mesh?.geometry.index, position = mesh?.geometry.attributes.position
-  if (!mesh || !index || !position) throw new Error('Turtle deck needs an indexed mesh')
+  // A skinned mesh refreshes its bind inverse only in updateMatrixWorld (not updateWorldMatrix).
+  scene.updateWorldMatrix(true, false)
+  scene.updateMatrixWorld(true)
+  const mesh = scene.getObjectByProperty('isSkinnedMesh', true) as SkinnedMesh | undefined
+  const geometry = mesh?.geometry, index = geometry?.index
+  const skinIndex = geometry?.attributes.skinIndex, skinWeight = geometry?.attributes.skinWeight
+  const root = mesh?.skeleton.bones.findIndex((bone) => bone.name === 'root') ?? -1
+  if (!mesh || !index || !skinIndex || !skinWeight || root < 0) throw new Error('Turtle deck needs an indexed mesh skinned to a root bone')
   const toAsset = new Matrix4().copy(scene.matrixWorld).invert().multiply(mesh.matrixWorld)
   const kept: number[] = [], up: number[] = [], v = new Vector3(), ab = new Vector3(), ac = new Vector3(), n = new Vector3()
+  const rigid = (i: number) => {
+    for (let k = 0; k < 4; k++) if (skinIndex.getComponent(i, k) === root && skinWeight.getComponent(i, k) >= RIGID) return true
+    return false
+  }
+  // Positions through the skin (the stored ones are quantised in bone space); the root sits at its bind pose.
   const vertex = (i: number) => {
-    v.fromBufferAttribute(position, i).applyMatrix4(toAsset)
+    mesh.getVertexPosition(i, v).applyMatrix4(toAsset)
     return [v.x * TURTLE.scale, v.y * TURTLE.scale, (v.z - TURTLE.centerZ) * TURTLE.scale]
   }
   for (let t = 0; t < index.count; t += 3) {
-    const p = [vertex(index.getX(t)), vertex(index.getX(t + 1)), vertex(index.getX(t + 2))]
-    if (Math.abs(p[0][0] + p[1][0] + p[2][0]) / 3 > FLIPPER_X * TURTLE.scale) continue
+    const i0 = index.getX(t), i1 = index.getX(t + 1), i2 = index.getX(t + 2)
+    if (!rigid(i0) || !rigid(i1) || !rigid(i2)) continue
+    const p = [vertex(i0), vertex(i1), vertex(i2)]
     a.fromArray(p[0]); b.fromArray(p[1]); c.fromArray(p[2])
     n.crossVectors(ab.subVectors(b, a), ac.subVectors(c, a))
     if (n.lengthSq() < 1e-12) continue

@@ -1,8 +1,8 @@
 import { Detailed, useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
-import { CatmullRomCurve3, Vector3 } from 'three'
-import type { Group, Material, Mesh, Object3D, WebGLProgramParametersWithUniforms } from 'three'
+import { AnimationMixer, CatmullRomCurve3, Vector3 } from 'three'
+import type { AnimationAction, AnimationClip, Group, Mesh, Object3D, SkinnedMesh } from 'three'
 import { registerWalkables } from '../surfaces'
 import { simulationDelta } from '../simulation'
 import { withSceneWeather } from '../weather/surfaceWeather'
@@ -18,58 +18,20 @@ const SHADOW_RANGE = 700
 /** Dev: `?turtleAt=seconds` starts the turtle that far along its loop. */
 const START = import.meta.env.DEV ? Number(new URLSearchParams(window.location.search).get('turtleAt')) || 0 : 0
 
-/** Shared clock for the flippers' stroke (seconds). */
-const paddle = { value: 0 }
-const paddled = new WeakSet<Material>()
+/** Its forward speed swells by this fraction with each downstroke of the fore flippers. */
+const SURGE = 0.08
 /**
- * The flippers row in the vertex shader: each swings about a fore-and-aft axis at the shell rim (asset x ±85,
- * y 35), fading in beyond it and out above the rim, the fore pair wider and ahead of the hind pair. The shell,
- * rocks and pavilion never move, so the deck stays rigid. Chained before the weather patch (asset metres are the
- * mesh's normalised positions scaled by its node).
+ * Stroke angles (rad past the top of the stroke) where the body rides highest, just after the downstroke ends
+ * (~37 % of the stroke), and moves fastest, mid-downstroke.
  */
-function withPaddling(root: Object3D) {
-  root.updateWorldMatrix(true, true)
-  root.traverse((object) => {
-    const mesh = object as Mesh
-    if (!mesh.isMesh) return
-    for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
-      if (paddled.has(material)) continue
-      paddled.add(material)
-      const scale = mesh.scale.x, offset = mesh.position.clone()
-      material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
-        shader.uniforms.uPaddle = paddle
-        shader.uniforms.uPaddleScale = { value: scale }
-        shader.uniforms.uPaddleOffset = { value: offset }
-        shader.vertexShader = `uniform float uPaddle;
-uniform float uPaddleScale;
-uniform vec3 uPaddleOffset;
-float paddleAngle(vec3 a) {
-  float w = smoothstep(85.0, 125.0, abs(a.x)) * (1.0 - smoothstep(48.0, 62.0, a.y));
-  float stroke = a.z > 24.0 ? 0.2 * sin(uPaddle * 0.7) : 0.13 * sin(uPaddle * 0.7 + 1.9);
-  return sign(a.x) * w * stroke;
-}
-vec2 paddleTurn(vec2 p, float angle) { float c = cos(angle), s = sin(angle); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
-${shader.vertexShader}`
-          .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
-  objectNormal.xy = paddleTurn(objectNormal.xy, paddleAngle(position * uPaddleScale + uPaddleOffset));`)
-          .replace('#include <begin_vertex>', `#include <begin_vertex>
-  {
-    vec3 asset = transformed * uPaddleScale + uPaddleOffset;
-    vec2 pivot = vec2(sign(asset.x) * 85.0, 35.0);
-    asset.xy = pivot + paddleTurn(asset.xy - pivot, paddleAngle(asset));
-    transformed = (asset - uPaddleOffset) / uPaddleScale;
-  }`)
-      }
-      material.needsUpdate = true
-    }
-  })
-  return root
-}
+const HEAVE_PEAK = 2.6, SURGE_PEAK = 1.2
 
 /**
  * 巨鳌 (R10e): a mountain-backed turtle swimming its loop round the south-western sea stack, its underside and
- * flippers in the cloud sea, rising and settling on a slow swell. Its back is a moving walkable deck
- * (turtleDeck.ts) that may be boarded at any time; the path drives position and heading.
+ * flippers in the cloud sea. The skinned `swim` clip (R11, build_turtle.py) strokes the flippers and turns the head;
+ * the body rises after each downstroke and surges a little with it. Clip, heave and surge all run off one cruise
+ * clock, so `?turtleAt` reproduces a moment exactly. Its back is a moving walkable deck (turtleDeck.ts) that may
+ * be boarded at any time; the path drives position and heading.
  */
 export function Turtle() {
   const [gltf, lod] = useGLTF(URLS)
@@ -80,11 +42,20 @@ export function Turtle() {
     return c
   }, [])
   const length = useMemo(() => curve.getLength(), [curve])
-  // One turtle, so the loaded scenes are used as they are. Paddling first, so the weather patch chains onto it.
+  // One turtle, so the loaded scenes are used as they are (a plain clone would lose the skeleton binding).
   const { scene, lodScene, meshes } = useMemo(() => {
-    const scene = withSceneWeather(withPaddling(gltf.scene)), lodScene = withSceneWeather(withPaddling(lod.scene))
+    const scene = withSceneWeather(gltf.scene), lodScene = withSceneWeather(lod.scene)
     const meshes: Mesh[] = []
-    for (const s of [scene, lodScene]) s.traverse((object) => { if ((object as Mesh).isMesh) meshes.push(object as Mesh) })
+    for (const s of [scene, lodScene]) {
+      // Skinned bounds come from the posed bones; the strokes reach past the bind pose, so the sphere is a third larger.
+      s.updateMatrixWorld(true)
+      s.traverse((object) => {
+        const mesh = object as SkinnedMesh
+        if (!mesh.isMesh) return
+        meshes.push(mesh)
+        if (mesh.isSkinnedMesh) { mesh.computeBoundingSphere(); mesh.boundingSphere.radius *= 1.3 }
+      })
+    }
     return { scene, lodScene, meshes }
   }, [gltf.scene, lod.scene])
   useEffect(() => {
@@ -93,29 +64,52 @@ export function Turtle() {
     return () => { unregister(); unbind() }
   }, [scene])
 
-  const state = useMemo(() => ({ distance: START * TURTLE.speed, time: 0, casting: true, position: new Vector3(), tangent: new Vector3() }), [])
+  // One mixer per level; both are posed at the same clip time, so the switch between them never jumps.
+  const anim = useMemo(() => {
+    const levels: [Object3D, AnimationClip[]][] = [[scene, gltf.animations], [lodScene, lod.animations]]
+    const actions: AnimationAction[] = []
+    const mixers = levels.map(([root, clips]) => {
+      const mixer = new AnimationMixer(root)
+      const clip = clips.find((c) => c.name === 'swim')
+      if (clip) actions.push(mixer.clipAction(clip))
+      return mixer
+    })
+    return { mixers, actions, duration: actions[0]?.getClip().duration ?? 0 }
+  }, [scene, lodScene, gltf.animations, lod.animations])
+  // Played in the effect so a remount (StrictMode, HMR) plays them again after the cleanup stopped them; the actions
+  // stay cached (replaying an uncached action throws in three 0.186).
+  useEffect(() => {
+    anim.actions.forEach((action) => action.play())
+    return () => anim.mixers.forEach((mixer) => mixer.stopAllAction())
+  }, [anim])
+
+  const state = useMemo(() => ({ clock: START, casting: true, position: new Vector3(), tangent: new Vector3() }), [])
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const w = window as unknown as { __turtle?: () => unknown; __turtleSetTime?: (t: number) => void }
-    w.__turtleSetTime = (t) => { state.distance = t * TURTLE.speed }
-    w.__turtle = () => ({ position: state.position.toArray().map(Math.round), time: +(state.distance / TURTLE.speed).toFixed(1), period: +(length / TURTLE.speed).toFixed(1) })
+    w.__turtleSetTime = (t) => { state.clock = t }
+    w.__turtle = () => ({ position: state.position.toArray().map(Math.round), time: +state.clock.toFixed(1), period: +(length / TURTLE.speed).toFixed(1), clip: +(state.clock % (anim.duration || 1)).toFixed(2) })
     return () => { delete w.__turtle; delete w.__turtleSetTime }
-  }, [state, length])
+  }, [state, length, anim])
 
   useFrame(({ camera }, delta) => {
     const group = root.current
     if (!group) return
-    const dt = simulationDelta(delta)
-    state.time += dt
-    state.distance += TURTLE.speed * dt
-    paddle.value = state.time
-    const u = ((state.distance / length) % 1 + 1) % 1
+    state.clock += simulationDelta(delta)
+    const stroke = (state.clock / TURTLE.stroke) * Math.PI * 2
+    const distance = TURTLE.speed * (state.clock + SURGE * (TURTLE.stroke / (Math.PI * 2)) * Math.sin(stroke - SURGE_PEAK))
+    const u = ((distance / length) % 1 + 1) % 1
     curve.getPointAt(u, state.position)
     curve.getTangentAt(u, state.tangent)
-    state.position.y = TURTLE.baseY + Math.sin(state.time * Math.PI * 2 / TURTLE.bobPeriod) * TURTLE.bob
+    state.position.y = TURTLE.baseY + Math.cos(stroke - HEAVE_PEAK) * TURTLE.bob
     const heading = Math.atan2(state.tangent.x, state.tangent.z)
     group.position.copy(state.position)
     group.rotation.set(0, heading, 0)
+    if (anim.duration > 0) {
+      const time = state.clock % anim.duration
+      for (const action of anim.actions) action.time = time
+      for (const mixer of anim.mixers) mixer.update(0)
+    }
     group.updateMatrixWorld(true)
     const casting = Math.hypot(camera.position.x - state.position.x, camera.position.z - state.position.z) < SHADOW_RANGE
     if (casting !== state.casting) { state.casting = casting; meshes.forEach((mesh) => { mesh.userData.castShadow = casting }) }
