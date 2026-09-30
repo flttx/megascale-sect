@@ -3,7 +3,7 @@ import type { Language } from './uiStore'
 
 const ENGLISH: Record<string, string> = {
   Language: 'Language', '语言': 'Language', '中文': '中文',
-  '云阙仙宗': 'Yunque Celestial Sect', '云': 'Yunque',
+  '云阙仙宗': 'Yunque Celestial Sect',
   '云端 · 巨构实境漫游': 'ABOVE THE CLOUDS · A COLOSSAL REALM',
   '入云阙，': 'Enter Yunque', '见云海。': 'Rise above.',
   '登临四百二十米云阙，步行或御剑探索，寻访碑文与云海，收集 {count} 道灵光。': 'Explore the 420 m sect on foot or by sword. Find steles, cross the cloud sea, and gather {count} spirit lights.',

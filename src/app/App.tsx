@@ -91,7 +91,7 @@ function Interface() {
     <>
       {(!started || hud) && <header className="topbar">
         {started && <>
-          <div className="brand-mark">{t('云')}</div>
+          <div className="brand-mark" aria-hidden="true">云</div>
           <div className="brand-copy"><strong>{t('云阙仙宗')}</strong><span>CELESTIAL SECT · ABOVE THE CLOUD SEA</span></div>
         </>}
         {!started && <div className="topbar-right"><span className="status-dot" />{ready ? 'WORLD READY' : active ? `LOADING ${Math.round(progress)}%` : 'PREPARING WORLD'}</div>}

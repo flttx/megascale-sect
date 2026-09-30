@@ -90,6 +90,10 @@ button { font: inherit; }
 /* Dialog shell */
 .dialog-backdrop { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 24px; background: radial-gradient(ellipse at center, #0d151c80, #0b1218c8); backdrop-filter: blur(3px); pointer-events: auto; animation: ui-fade .22s ease-out; }
 .dialog { position: relative; max-width: 96vw; max-height: calc(100dvh - 48px); overflow: auto; color: #ecf2f5; outline: none; animation: ui-rise .26s cubic-bezier(.2, .8, .2, 1); }
+/* Scrollbars: a thin gold thumb on a clear track, brown on the parchment pages. */
+.dialog, .debug-hud, .map-side, .codex-list, .collection-panel, .intro-panel { scrollbar-width: thin; scrollbar-color: #d6c29973 transparent; }
+.dialog:hover, .map-side:hover, .codex-list:hover, .collection-panel:hover { scrollbar-color: #e6d4afb3 transparent; }
+.lore-paper, .codex-page { scrollbar-width: thin; scrollbar-color: #8a6a3e80 transparent; }
 .dialog-title { margin: 0 0 6px; font-size: 18px; font-weight: 600; letter-spacing: .16em; color: #eedcb4; }
 .panel-dialog { width: min(580px, 94vw); padding: 26px 28px 22px; background: #17232df2; border: 1px solid #d6c29955; box-shadow: 0 24px 80px #070c1199, inset 0 1px 0 #f2dfb41a; }
 .dialog-lead { margin: 6px 0 18px; color: #c3cfd4; font-size: 12px; line-height: 1.9; letter-spacing: .05em; }
@@ -112,6 +116,12 @@ button { font: inherit; }
 .lore-head span { font-size: 12px; letter-spacing: .24em; color: #7a5f3a; }
 .lore-text { margin: 0; writing-mode: vertical-rl; max-height: 336px; font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif; font-size: 17px; line-height: 2.15; letter-spacing: .2em; text-align: justify; }
 .lore-seal { position: absolute; left: 30px; bottom: 30px; padding: 5px 6px; border: 2px solid #a5352b; color: #a5352b; font-size: 13px; font-weight: 700; line-height: 1.15; letter-spacing: .08em; transform: rotate(-5deg); opacity: .82; }
+/* Latin script is set horizontally: vertical-rl would turn every line on its side. */
+html:lang(en) .lore-paper { flex-direction: column; gap: 18px; padding-bottom: 88px; }
+html:lang(en) .lore-head { writing-mode: horizontal-tb; flex-direction: column; gap: 8px; padding: 0 0 16px; border-left: 0; border-bottom: 1px solid #8a6a3e55; }
+html:lang(en) .lore-head strong { font-size: 26px; letter-spacing: .06em; }
+html:lang(en) .lore-head span { letter-spacing: .1em; }
+html:lang(en) .lore-text { writing-mode: horizontal-tb; max-height: none; max-width: 64ch; font-size: 18px; line-height: 1.75; letter-spacing: .01em; text-align: left; }
 .lore-foot { display: flex; justify-content: space-between; align-items: center; margin: 22px 18px 0; color: #e6d4af; font-size: 12px; letter-spacing: .1em; text-shadow: 0 1px 6px #0b1116; }
 
 /* Weather altar */
