@@ -118,16 +118,16 @@ export function updateCameraRig(
   rig.arm = free < rig.arm ? free : rig.arm + (Math.min(free, length) - rig.arm) * (1 - Math.exp(-3.5 * delta))
   camera.position.copy(focus).addScaledVector(view, -rig.arm)
 
-  // Buffeting above ~60 m/s: small, incommensurate wobble in position and roll.
+  // Buffeting above ~60 m/s: a slow (~1–2 Hz), incommensurate sway in position and roll, read as air rather than shake.
   rig.time += delta
   const buffet = flight ? smooth((speed - 60) / 80) : 0
   let roll = -bank * 0.08
   if (buffet > 0) {
     const t = rig.time
     up.crossVectors(side, view)
-    camera.position.addScaledVector(side, (Math.sin(t * 37.1) * 0.6 + Math.sin(t * 23.3) * 0.4) * buffet * 0.04)
-    camera.position.addScaledVector(up, (Math.sin(t * 31.7 + 1.3) * 0.6 + Math.sin(t * 19.9) * 0.4) * buffet * 0.04)
-    roll += Math.sin(t * 27.3 + 0.7) * buffet * 0.004
+    camera.position.addScaledVector(side, (Math.sin(t * 11.3) * 0.6 + Math.sin(t * 7.1) * 0.4) * buffet * 0.02)
+    camera.position.addScaledVector(up, (Math.sin(t * 9.7 + 1.3) * 0.6 + Math.sin(t * 6.1) * 0.4) * buffet * 0.02)
+    roll += Math.sin(t * 8.3 + 0.7) * buffet * 0.002
   }
   const surface = groundHeight(camera.position.x, camera.position.z, camera.position.y)
   if (surface !== null) camera.position.y = Math.max(surface + 0.3, camera.position.y)
