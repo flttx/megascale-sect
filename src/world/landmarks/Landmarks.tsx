@@ -25,7 +25,8 @@ function landmarkSurfaces() {
 
 const ROCK_URLS = ['pillars.glb', 'pillars.lod1.glb', 'islands.glb', 'islands.lod1.glb']
   .map((file) => `${import.meta.env.BASE_URL}assets/environment/rocks/${file}`.replace(/\/{2,}/g, '/'))
-ROCK_URLS.forEach((url) => useGLTF.preload(url))
+// Preload the exact list RockField reads: the loader cache is keyed by the whole URL list, not per file.
+useGLTF.preload(ROCK_URLS)
 
 /**
  * The Blender karst pillars and floating islands (asset-pipeline/rocks), baked into place per cluster with

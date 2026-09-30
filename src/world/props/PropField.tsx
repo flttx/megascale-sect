@@ -34,7 +34,8 @@ const STONE: Partial<Record<PropId, (scene: Object3D) => Source>> = { rock_moss:
 const GLAZED = new Set<PropId>(['pailou', 'pavilion'])
 
 const URLS = PROP_IDS.flatMap((id) => [propUrl(id, false), ...(PROPS[id].lod1 ? [propUrl(id, true)] : [])])
-URLS.forEach((url) => useGLTF.preload(url))
+// Preload the exact list PropFieldContent reads: the loader cache is keyed by the whole URL list, not per file.
+useGLTF.preload(URLS)
 
 /** One prop type: a near LOD0 and a far LOD1 InstancedMesh sharing a precomputed matrix pool. */
 class PropBucket {

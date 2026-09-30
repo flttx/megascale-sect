@@ -9,7 +9,8 @@ import { worldAssetsReady } from '../world/worldAssets'
 import { useTranslation } from './i18n'
 import { LanguagePicker } from './LanguagePicker'
 
-const ART = `/assets/references/${encodeURIComponent('主概念图')}.png`
+// WebP of the 2.7 MB reference PNG (sharp, quality 80); index.html preloads the same URL.
+const ART = `/assets/references/${encodeURIComponent('主概念图')}.webp`
 const GUIDE: [string, string][] = [
   ['W A S D', '行走'], ['鼠标', '视角'], ['F', '召剑御空'], ['E', '交互'], ['Tab', '卷轴舆图'], ['Esc', '暂停设置'],
 ]

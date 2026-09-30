@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+/* Noto Sans SC is linked from index.html (with preconnect) so it no longer waits for this stylesheet. */
 
 :root { font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif; color: #ecf2f5; background: #17212b; font-synthesis: none; }
 * { box-sizing: border-box; }
