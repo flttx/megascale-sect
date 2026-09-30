@@ -39,7 +39,7 @@ browser captures use the same six viewpoints.
 
 ## Verify and refresh the snapshot
 
-With the Vite development server running, use `npm run verify:environment`.
+With the Vite+ development server running, use `vp run verify:environment`.
 `BASE_URL` selects the server (default `http://127.0.0.1:5173/`), and
 `CHROME_PATH` optionally selects Chrome. The script captures six graybox and
 six runtime views, checks geometry, and verifies the original building hashes
@@ -52,7 +52,7 @@ snapshot unchanged. To refresh the snapshot used by Blender explicitly:
 
 ```powershell
 $env:EXPORT_ENVIRONMENT = '1'
-npm run verify:environment
+vp run verify:environment
 Remove-Item Env:EXPORT_ENVIRONMENT
 ```
 

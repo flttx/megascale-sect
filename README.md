@@ -6,18 +6,17 @@ The game supports English and Simplified Chinese. English is the first-visit def
 
 ## Quick Start
 
-Requirements: Node.js 22+ and pnpm 10.34.5 (declared in `package.json`).
+Requirements: Node.js 22+ and the Vite+ CLI (`vp`, [installation guide](https://viteplus.dev/guide/)). The package manager is pinned to pnpm 10.34.5 in `package.json`.
 
 ```bash
-corepack enable
-pnpm install --frozen-lockfile
-pnpm dev
-pnpm build
+vp install --frozen-lockfile
+vp run dev
+vp run build
 ```
 
 Open the Vite URL, choose a character, wait for the world to load, then select **Enter the sect**. The game targets desktop Chrome and Edge with a discrete GPU.
 
-Use pnpm for dependency changes (`pnpm add` / `pnpm remove`) and commit both `package.json` and `pnpm-lock.yaml`. Do not introduce another package manager or lockfile. Vercel uses the Vite preset, `pnpm run build`, and the `dist` output directory. To make Vercel honor the `packageManager` version through Corepack, set `ENABLE_EXPERIMENTAL_COREPACK=1`; see [Vercel package managers](https://vercel.com/docs/package-managers).
+Use `vp add` / `vp remove` for dependency changes and commit both `package.json` and `pnpm-lock.yaml`. The lockfile remains pnpm-managed through the `packageManager` declaration; do not introduce another package manager or lockfile. Vercel uses the Vite preset, `vp run build`, and the `dist` output directory. To make Vercel honor the `packageManager` version through Corepack, set `ENABLE_EXPERIMENTAL_COREPACK=1`; see [Vercel package managers](https://vercel.com/docs/package-managers).
 
 ## Controls
 
@@ -69,8 +68,8 @@ Photo mode and the scroll load on first use. The current build after R10 is appr
 
 ## Asset Pipelines
 
-- `pnpm assets:buildings` generates building LOD0/LOD1 assets from source GLBs under `public/assets/models/`.
-- `pnpm assets:optimize` generates optimized character and sword GLBs. See [CHARACTER_PIPELINE.md](CHARACTER_PIPELINE.md) and [OPTIMIZATION.md](OPTIMIZATION.md).
+- `vp run assets:buildings` generates building LOD0/LOD1 assets from source GLBs under `public/assets/models/`.
+- `vp run assets:optimize` generates optimized character and sword GLBs. See [CHARACTER_PIPELINE.md](CHARACTER_PIPELINE.md) and [OPTIMIZATION.md](OPTIMIZATION.md).
 - `asset-pipeline/` contains source and generation tools for buildings, colossi, the Kun, rocks, vegetation, textures, and retargeted animation. Large source assets are ignored by Git. Blender scripts require Blender 5.2.
 - `node scripts/tripo/generate.mjs [--only id1,id2] [--force] [--optimize-only]` runs the prop-generation pipeline. Set `TRIPO_API_KEY` in the environment; never commit credentials. Generated downloads under `asset-pipeline/tripo/` are ignored.
 
@@ -78,28 +77,28 @@ Photo mode and the scroll load on first use. The current build after R10 is appr
 
 Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright Chromium. Set `CHROME_PATH` to override discovery. Most scripts expect the dev server at `BASE_URL` (default `http://127.0.0.1:5173/`). `verify:loading` uses the production preview at `PREVIEW_URL` (default `http://127.0.0.1:4174/`). Reports and screenshots go under the ignored `artifacts/` directory.
 
-| Command                    | Coverage                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `pnpm verify:smoke`        | Load, pointer lock, real input, flight, and rendered output                                                   |
-| `pnpm verify:ui`           | Language switching, accessibility targets, settings, saves, photo mode, React commits, and audio-node cleanup |
-| `pnpm verify:interact`     | Interactions, exact spirit-light count, scroll, focus, photo, save/restore, draw-call deltas, and page errors |
-| `pnpm verify:perf`         | Three quality levels across 45 scenes plus the Kun deck; draw calls ≤400; supports `MIN_FPS`                  |
-| `pnpm verify:visual`       | Time-of-day and weather views with brightness/contrast checks                                                 |
-| `pnpm verify:characters`   | Both characters, sword summon/flight, switching, and pause/resume                                             |
-| `pnpm verify:navigation`   | Gate, stairs, hall collision, and high-altitude traversal                                                     |
-| `pnpm verify:optimization` | Asset size, foot constraints, switching, braking, camera, and audio                                           |
-| `pnpm verify:riding-pose`  | Flight pose, foot contact, and non-black screenshots                                                          |
-| `pnpm verify:controls`     | 60/144 fps jumps, repeated keys, blur/lock loss, and photo input                                              |
-| `pnpm verify:save`         | v1 migration, malformed/unknown saves, storage failures, and safe positions                                   |
-| `pnpm verify:motion`       | Sword summon/landing avoidance and cliff paths at 20/60/144 fps                                               |
-| `pnpm verify:jumps`        | Both characters jumping onto a 1.2 m ledge at 60/144 fps                                                      |
-| `pnpm verify:kun`          | Boarding, movement, jumps, edge cases, rescue, collection, map, and docking window                            |
-| `pnpm verify:turtle`       | Turtle spirit lights over open deck, collected on foot around the pavilion                                    |
-| `pnpm verify:stability`    | Audio lifecycle and WebGL context-loss recovery                                                               |
-| `pnpm verify:framerate`    | Jump and trail behavior at 20/60/144 fps                                                                      |
-| `pnpm verify:environment`  | Graybox/review views, geometry, and source-building hashes                                                    |
-| `pnpm verify:profile`      | CPU throttle, Kun index/anchor timing, static queries, and GPU passes                                         |
-| `pnpm verify:loading`      | Production lazy loading, first use, quality/character changes, and WebGL recovery                             |
+| Command                      | Coverage                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `vp run verify:smoke`        | Load, pointer lock, real input, flight, and rendered output                                                   |
+| `vp run verify:ui`           | Language switching, accessibility targets, settings, saves, photo mode, React commits, and audio-node cleanup |
+| `vp run verify:interact`     | Interactions, exact spirit-light count, scroll, focus, photo, save/restore, draw-call deltas, and page errors |
+| `vp run verify:perf`         | Three quality levels across 45 scenes plus the Kun deck; draw calls ≤400; supports `MIN_FPS`                  |
+| `vp run verify:visual`       | Time-of-day and weather views with brightness/contrast checks                                                 |
+| `vp run verify:characters`   | Both characters, sword summon/flight, switching, and pause/resume                                             |
+| `vp run verify:navigation`   | Gate, stairs, hall collision, and high-altitude traversal                                                     |
+| `vp run verify:optimization` | Asset size, foot constraints, switching, braking, camera, and audio                                           |
+| `vp run verify:riding-pose`  | Flight pose, foot contact, and non-black screenshots                                                          |
+| `vp run verify:controls`     | 60/144 fps jumps, repeated keys, blur/lock loss, and photo input                                              |
+| `vp run verify:save`         | v1 migration, malformed/unknown saves, storage failures, and safe positions                                   |
+| `vp run verify:motion`       | Sword summon/landing avoidance and cliff paths at 20/60/144 fps                                               |
+| `vp run verify:jumps`        | Both characters jumping onto a 1.2 m ledge at 60/144 fps                                                      |
+| `vp run verify:kun`          | Boarding, movement, jumps, edge cases, rescue, collection, map, and docking window                            |
+| `vp run verify:turtle`       | Turtle spirit lights over open deck, collected on foot around the pavilion                                    |
+| `vp run verify:stability`    | Audio lifecycle and WebGL context-loss recovery                                                               |
+| `vp run verify:framerate`    | Jump and trail behavior at 20/60/144 fps                                                                      |
+| `vp run verify:environment`  | Graybox/review views, geometry, and source-building hashes                                                    |
+| `vp run verify:profile`      | CPU throttle, Kun index/anchor timing, static queries, and GPU passes                                         |
+| `vp run verify:loading`      | Production lazy loading, first use, quality/character changes, and WebGL recovery                             |
 
 To run a throttled low-quality performance sample in PowerShell:
 
@@ -109,11 +108,11 @@ $env:WIDTH = '1280'
 $env:HEIGHT = '720'
 $env:CPU_THROTTLE = '4'
 $env:PERF_OUT = 'artifacts/perf-low.json'
-pnpm verify:perf
+vp run verify:perf
 Remove-Item Env:QUALITIES, Env:WIDTH, Env:HEIGHT, Env:CPU_THROTTLE, Env:PERF_OUT
 ```
 
-For production loading checks, run `pnpm build`, start `pnpm preview -- --port 4174 --strictPort` in another terminal, then run `pnpm verify:loading`. GPU pass profiling is enabled in a development build with `?profileGpu`; normal performance checks use production rendering behavior.
+For production loading checks, run `vp run build`, start `vp run preview --port 4174 --strictPort` in another terminal, then run `vp run verify:loading`. GPU pass profiling is enabled in a development build with `?profileGpu`; normal performance checks use production rendering behavior.
 
 Development query parameters include `?quality=low|mid|high`, `?hours=17.5`, `?weather=storm`, `?kunAt=40`, and `?env=graybox`. Development builds expose verification hooks such as `__environmentReview`, `__setWeather`, `__setTimeOfDay`, `__kunSetTime`, `__ui`, and `__interact`. Rebuild the Kunback triangle/anchor index with `node asset-pipeline/kun/deck.mjs`.
 

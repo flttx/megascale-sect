@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.34.5",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview --host 0.0.0.0",
+    "dev": "vp dev --host 0.0.0.0",
+    "build": "tsc -b && vp build",
+    "preview": "vp preview --host 0.0.0.0",
     "verify:smoke": "node scripts/smoke.mjs",
     "verify:navigation": "node scripts/navigation.mjs",
     "verify:characters": "node scripts/characters.mjs",
@@ -29,7 +28,8 @@
     "verify:profile": "node scripts/verify-profile.mjs",
     "verify:loading": "node scripts/verify-loading.mjs",
     "assets:optimize": "node scripts/optimize-characters.mjs",
-    "assets:buildings": "node scripts/optimize-buildings.mjs && node asset-pipeline/buildings/meta.mjs"
+    "assets:buildings": "node scripts/optimize-buildings.mjs && node asset-pipeline/buildings/meta.mjs",
+    "prepare": "vp config"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -45,6 +45,7 @@
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/extensions": "^4.5.0",
     "@gltf-transform/functions": "^4.5.0",
+    "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.186.0",
@@ -53,6 +54,8 @@
     "playwright": "^1.63.0",
     "sharp": "^0.35.4",
     "typescript": "^7.0.2",
-    "vite": "^8.3.0"
-  }
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "packageManager": "pnpm@10.34.5"
 }
