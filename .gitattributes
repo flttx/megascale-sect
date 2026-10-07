@@ -1,1 +1,3 @@
 * text=auto eol=lf
+# Historical Markdown uses two-space hard line breaks.
+docs/archive/*.md whitespace=-blank-at-eol

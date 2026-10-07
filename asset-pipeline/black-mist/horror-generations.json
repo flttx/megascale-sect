@@ -1,0 +1,54 @@
+{
+  "approval": "Approved by the user on 2026-10-07: 同意使用积分. Exactly two 50-credit text_to_model calls.",
+  "plan": "horror-plan.json",
+  "tasks": [
+    {
+      "asset": "watcher",
+      "task_id": "28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+      "type": "text_to_model",
+      "status": "success",
+      "credits_consumed": 50,
+      "input": {
+        "pbr": true,
+        "prompt": "Photorealistic cinematic cosmic horror creature, an ancient floating abyssal organism, complete isolated full body. A colossal asymmetrical hooded cephalopod with a broad drooping fleshy mantle, one deep central amber eye and a few much smaller recessed eyes, heavy wrinkled organic tissue hanging into thick muscular tapered tendrils. Coherent living anatomy, fleshy membranes connecting roots to the body, irregular folds, pores, wet mucosal recesses and varied leathery roughness. Desaturated charcoal brown and mottled olive skin with muted burgundy soft tissue. Frightening practical film creature sculpture, ancient incomprehensible intelligence, substantial three dimensional volume. Upright suspended silhouette, neutral studio lighting, no pedestal, no human, no clothing, no scene.",
+        "texture": true,
+        "export_uv": true,
+        "face_limit": 80000,
+        "model_version": "v3.1-20260211",
+        "texture_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "geometry_quality": "detailed",
+        "texture_alignment": "geometry"
+      },
+      "created_at": "2026-10-07T08:28:32.547067Z",
+      "completed_at": "2026-10-07T08:31:31.184330Z",
+      "sourceDirectory": "asset-pipeline/black-mist/tripo-out/shroud-watcher-28f32cbc"
+    },
+    {
+      "asset": "behemoth",
+      "task_id": "f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+      "type": "text_to_model",
+      "status": "success",
+      "credits_consumed": 50,
+      "input": {
+        "pbr": true,
+        "prompt": "Photorealistic cinematic Cthulhu elder beast, complete isolated full body, massive hunched quadrupedal abyssal organism with a heavy broad ribbed torso, folded membranous fins along its shoulders, a cephalopod head with a cluster of short muscular facial tentacles and deeply recessed small amber eyes. Asymmetrical ancient coral-like growths integrated into leathery flesh, thick jointed limbs supporting believable weight, fused organic roots, stretched wrinkled membranes, pores, tendon detail and mottled charcoal olive skin with dark reddish brown recesses. Terrifying immense primordial creature with an ominous silhouette, practical horror movie sculpture, realistic PBR and varied roughness, full three dimensional volumetric anatomy. Neutral studio lighting, no human, no armor, no clothes, no pedestal, no environment.",
+        "texture": true,
+        "export_uv": true,
+        "face_limit": 80000,
+        "model_version": "v3.1-20260211",
+        "texture_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "geometry_quality": "detailed",
+        "texture_alignment": "geometry"
+      },
+      "created_at": "2026-10-07T08:28:32.845474Z",
+      "completed_at": "2026-10-07T08:31:40.294126Z",
+      "sourceDirectory": "asset-pipeline/black-mist/tripo-out/abyss-behemoth-f4630d28"
+    }
+  ],
+  "actualTotalCredits": 100,
+  "balanceAfter": 13850,
+  "frozenAfter": 0,
+  "processing": "Local source-preserving PBR/LOD optimization only. No paid conversion, texture, rigging or reroll."
+}

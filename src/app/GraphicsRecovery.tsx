@@ -7,6 +7,7 @@ import { useWorldStore } from '../world/store'
 import { director } from '../world/interact/cinematics'
 import { getPlayerRuntime, teleportPlayer } from '../world/player/playerHandle'
 import { useTranslation } from '../ui/i18n'
+import { blackMistAudio } from '../world/blackMist/audio'
 
 type Status = 'ready' | 'lost' | 'rebuilding' | 'failed'
 
@@ -18,39 +19,62 @@ export function useGraphicsRecovery() {
   const checkpoint = useRef<ReturnType<typeof safePosition> | null>(null)
   const timer = useRef(0)
   const detach = useRef<(() => void) | null>(null)
-  const transition = useCallback((next: Status) => { current.current = next; setStatus(next) }, [])
+  const transition = useCallback((next: Status) => {
+    current.current = next
+    setStatus(next)
+  }, [])
   const deadline = useCallback(() => {
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => transition('failed'), 12000)
   }, [transition])
   const retry = useCallback(() => {
-    detach.current?.(); detach.current = null
-    transition('rebuilding'); deadline()
+    detach.current?.()
+    detach.current = null
+    transition('rebuilding')
+    deadline()
     setEpoch((value) => value + 1)
   }, [deadline, transition])
-  const attach = useCallback((canvas: HTMLCanvasElement) => {
-    detach.current?.()
-    uiBridge.canvas = canvas
-    const lost = (event: Event) => {
-      event.preventDefault()
-      if (current.current === 'lost' || current.current === 'failed') return
-      uiBridge.graphicsBlocked = true
-      flushSave(); checkpoint.current = safePosition()
-      releaseLock(); useWorldStore.getState().setLocked(false)
-      window.dispatchEvent(new Event('blur'))
-      exitPhoto(); director.shot = null
-      useWorldStore.getState().setCameraMode('player')
-      useUiStore.setState({ overlay: null, veil: false, caption: null, nearby: null, photoUnlocked: false, lockError: null })
-      transition('lost'); deadline()
-    }
-    const restored = () => { if (current.current === 'lost') retry() }
-    canvas.addEventListener('webglcontextlost', lost)
-    canvas.addEventListener('webglcontextrestored', restored)
-    detach.current = () => {
-      canvas.removeEventListener('webglcontextlost', lost)
-      canvas.removeEventListener('webglcontextrestored', restored)
-    }
-  }, [deadline, retry, transition])
+  const attach = useCallback(
+    (canvas: HTMLCanvasElement) => {
+      detach.current?.()
+      uiBridge.canvas = canvas
+      const lost = (event: Event) => {
+        event.preventDefault()
+        if (current.current === 'lost' || current.current === 'failed') return
+        uiBridge.graphicsBlocked = true
+        // Frames stop immediately on context loss, so silence voices without waiting for a frame update.
+        blackMistAudio.dispose()
+        flushSave()
+        checkpoint.current = safePosition()
+        releaseLock()
+        useWorldStore.getState().setLocked(false)
+        window.dispatchEvent(new Event('blur'))
+        exitPhoto()
+        director.shot = null
+        useWorldStore.getState().setCameraMode('player')
+        useUiStore.setState({
+          overlay: null,
+          veil: false,
+          caption: null,
+          nearby: null,
+          photoUnlocked: false,
+          lockError: null,
+        })
+        transition('lost')
+        deadline()
+      }
+      const restored = () => {
+        if (current.current === 'lost') retry()
+      }
+      canvas.addEventListener('webglcontextlost', lost)
+      canvas.addEventListener('webglcontextrestored', restored)
+      detach.current = () => {
+        canvas.removeEventListener('webglcontextlost', lost)
+        canvas.removeEventListener('webglcontextrestored', restored)
+      }
+    },
+    [deadline, retry, transition],
+  )
   const ready = useCallback(() => {
     if (current.current !== 'rebuilding') return
     const p = checkpoint.current ?? safePosition()
@@ -60,9 +84,14 @@ export function useGraphicsRecovery() {
     transition('ready')
     useWorldStore.getState().setNotice('画面已恢复，已回到最近的安全落脚点')
   }, [transition])
-  useEffect(() => () => {
-    window.clearTimeout(timer.current); detach.current?.(); uiBridge.graphicsBlocked = false
-  }, [])
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current)
+      detach.current?.()
+      uiBridge.graphicsBlocked = false
+    },
+    [],
+  )
   return { epoch, status, attach, ready, retry }
 }
 
@@ -70,7 +99,10 @@ export function useGraphicsRecovery() {
 export function RecoveryProbe({ active, onReady }: { active: boolean; onReady: () => void }) {
   const frames = useRef(0)
   useFrame(() => {
-    if (!active) { frames.current = 0; return }
+    if (!active) {
+      frames.current = 0
+      return
+    }
     if (++frames.current >= 3 && getPlayerRuntime()?.ready) onReady()
   })
   return null
@@ -80,10 +112,19 @@ export function RecoveryOverlay({ status, retry }: { status: Status; retry: () =
   const t = useTranslation()
   if (status === 'ready') return null
   const failed = status === 'failed'
-  return <div className="graphics-recovery" role="alertdialog" aria-modal="true" aria-labelledby="graphics-title">
-    <div><h2 id="graphics-title">{t(failed ? '画面暂未恢复' : '正在恢复画面')}</h2>
-      <p>{t(failed ? '进度与设置仍保留在本次会话中。请点击重试。' : '正在重建画面，稍后将在最近的安全落脚点继续。')}</p>
-      {failed && <button autoFocus onClick={retry}>{t('重试恢复画面')}</button>}
+  return (
+    <div className="graphics-recovery" role="alertdialog" aria-modal="true" aria-labelledby="graphics-title">
+      <div>
+        <h2 id="graphics-title">{t(failed ? '画面暂未恢复' : '正在恢复画面')}</h2>
+        <p>
+          {t(failed ? '进度与设置仍保留在本次会话中。请点击重试。' : '正在重建画面，稍后将在最近的安全落脚点继续。')}
+        </p>
+        {failed && (
+          <button autoFocus onClick={retry}>
+            {t('重试恢复画面')}
+          </button>
+        )}
+      </div>
     </div>
-  </div>
+  )
 }

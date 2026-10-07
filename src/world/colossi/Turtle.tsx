@@ -8,6 +8,9 @@ import { simulationDelta } from '../simulation'
 import { withSceneWeather } from '../weather/surfaceWeather'
 import { TURTLE, TURTLE_PATH } from './layout'
 import { bindTurtleDeck, turtleDeckHit, updateTurtleDeck } from './turtleDeck'
+import { useWorldStore } from '../store'
+import { ColossusMutation, createColossusMutationAnchors } from '../blackMist/ColossusMutation'
+import { useEldritchLoadingStore } from '../blackMist/eldritchLoading'
 
 const turtleUrl = (file: string) => `${import.meta.env.BASE_URL}assets/colossi/${file}`.replace(/\/{2,}/g, '/')
 const URLS = [turtleUrl('turtle.glb'), turtleUrl('turtle.lod1.glb')]
@@ -24,7 +27,8 @@ const SURGE = 0.08
  * Stroke angles (rad past the top of the stroke) where the body rides highest, just after the downstroke ends
  * (~37 % of the stroke), and moves fastest, mid-downstroke.
  */
-const HEAVE_PEAK = 2.6, SURGE_PEAK = 1.2
+const HEAVE_PEAK = 2.6,
+  SURGE_PEAK = 1.2
 
 /**
  * 巨鳌 (R10e): a mountain-backed turtle swimming its loop round the south-western sea stack, its underside and
@@ -36,15 +40,22 @@ const HEAVE_PEAK = 2.6, SURGE_PEAK = 1.2
 export function Turtle() {
   const [gltf, lod] = useGLTF(URLS)
   const root = useRef<Group>(null)
+  const mutated = useWorldStore((state) => state.gameMode === 'black-mist')
+  const mutationReady = useEldritchLoadingStore((state) => state.status === 'ready')
   const curve = useMemo(() => {
-    const c = new CatmullRomCurve3(TURTLE_PATH.map(([x, z]) => new Vector3(x, 0, z)), true, 'centripetal')
+    const c = new CatmullRomCurve3(
+      TURTLE_PATH.map(([x, z]) => new Vector3(x, 0, z)),
+      true,
+      'centripetal',
+    )
     c.arcLengthDivisions = 1000
     return c
   }, [])
   const length = useMemo(() => curve.getLength(), [curve])
   // One turtle, so the loaded scenes are used as they are (a plain clone would lose the skeleton binding).
   const { scene, lodScene, meshes } = useMemo(() => {
-    const scene = withSceneWeather(gltf.scene), lodScene = withSceneWeather(lod.scene)
+    const scene = withSceneWeather(gltf.scene),
+      lodScene = withSceneWeather(lod.scene)
     const meshes: Mesh[] = []
     for (const s of [scene, lodScene]) {
       // Skinned bounds come from the posed bones; the strokes reach past the bind pose, so the sphere is a third larger.
@@ -53,20 +64,30 @@ export function Turtle() {
         const mesh = object as SkinnedMesh
         if (!mesh.isMesh) return
         meshes.push(mesh)
-        if (mesh.isSkinnedMesh) { mesh.computeBoundingSphere(); mesh.boundingSphere.radius *= 1.3 }
+        if (mesh.isSkinnedMesh) {
+          mesh.computeBoundingSphere()
+          mesh.boundingSphere.radius *= 1.3
+        }
       })
     }
     return { scene, lodScene, meshes }
   }, [gltf.scene, lod.scene])
+  const mutationAnchors = useMemo(() => createColossusMutationAnchors('turtle', scene), [scene])
   useEffect(() => {
     const unbind = bindTurtleDeck(scene)
     const unregister = registerWalkables([{ kind: 'moving', hitAt: turtleDeckHit }])
-    return () => { unregister(); unbind() }
+    return () => {
+      unregister()
+      unbind()
+    }
   }, [scene])
 
   // One mixer per level; both are posed at the same clip time, so the switch between them never jumps.
   const anim = useMemo(() => {
-    const levels: [Object3D, AnimationClip[]][] = [[scene, gltf.animations], [lodScene, lod.animations]]
+    const levels: [Object3D, AnimationClip[]][] = [
+      [scene, gltf.animations],
+      [lodScene, lod.animations],
+    ]
     const actions: AnimationAction[] = []
     const mixers = levels.map(([root, clips]) => {
       const mixer = new AnimationMixer(root)
@@ -87,9 +108,19 @@ export function Turtle() {
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const w = window as unknown as { __turtle?: () => unknown; __turtleSetTime?: (t: number) => void }
-    w.__turtleSetTime = (t) => { state.clock = t }
-    w.__turtle = () => ({ position: state.position.toArray().map(Math.round), time: +state.clock.toFixed(1), period: +(length / TURTLE.speed).toFixed(1), clip: +(state.clock % (anim.duration || 1)).toFixed(2) })
-    return () => { delete w.__turtle; delete w.__turtleSetTime }
+    w.__turtleSetTime = (t) => {
+      state.clock = t
+    }
+    w.__turtle = () => ({
+      position: state.position.toArray().map(Math.round),
+      time: +state.clock.toFixed(1),
+      period: +(length / TURTLE.speed).toFixed(1),
+      clip: +(state.clock % (anim.duration || 1)).toFixed(2),
+    })
+    return () => {
+      delete w.__turtle
+      delete w.__turtleSetTime
+    }
   }, [state, length, anim])
 
   useFrame(({ camera }, delta) => {
@@ -97,8 +128,9 @@ export function Turtle() {
     if (!group) return
     state.clock += simulationDelta(delta)
     const stroke = (state.clock / TURTLE.stroke) * Math.PI * 2
-    const distance = TURTLE.speed * (state.clock + SURGE * (TURTLE.stroke / (Math.PI * 2)) * Math.sin(stroke - SURGE_PEAK))
-    const u = ((distance / length) % 1 + 1) % 1
+    const distance =
+      TURTLE.speed * (state.clock + SURGE * (TURTLE.stroke / (Math.PI * 2)) * Math.sin(stroke - SURGE_PEAK))
+    const u = (((distance / length) % 1) + 1) % 1
     curve.getPointAt(u, state.position)
     curve.getTangentAt(u, state.tangent)
     state.position.y = TURTLE.baseY + Math.cos(stroke - HEAVE_PEAK) * TURTLE.bob
@@ -111,8 +143,14 @@ export function Turtle() {
       for (const mixer of anim.mixers) mixer.update(0)
     }
     group.updateMatrixWorld(true)
-    const casting = Math.hypot(camera.position.x - state.position.x, camera.position.z - state.position.z) < SHADOW_RANGE
-    if (casting !== state.casting) { state.casting = casting; meshes.forEach((mesh) => { mesh.userData.castShadow = casting }) }
+    const casting =
+      Math.hypot(camera.position.x - state.position.x, camera.position.z - state.position.z) < SHADOW_RANGE
+    if (casting !== state.casting) {
+      state.casting = casting
+      meshes.forEach((mesh) => {
+        mesh.userData.castShadow = casting
+      })
+    }
     updateTurtleDeck(state.position, heading)
   }, -2)
 
@@ -120,9 +158,14 @@ export function Turtle() {
     <group ref={root} name="Colossus_turtle">
       <group position={[0, 0, -TURTLE.centerZ * TURTLE.scale]} scale={TURTLE.scale}>
         <Detailed distances={[0, TURTLE.lodDistance]} hysteresis={0.08}>
-          <group name="Colossus_turtle_LOD0"><primitive object={scene} /></group>
-          <group name="Colossus_turtle_LOD1"><primitive object={lodScene} /></group>
+          <group name="Colossus_turtle_LOD0">
+            <primitive object={scene} />
+          </group>
+          <group name="Colossus_turtle_LOD1">
+            <primitive object={lodScene} />
+          </group>
         </Detailed>
+        {mutated && mutationReady && <ColossusMutation creature="turtle" anchors={mutationAnchors} />}
       </group>
     </group>
   )

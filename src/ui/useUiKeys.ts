@@ -5,6 +5,7 @@ import { useWorldStore } from '../world/store'
 import { enterPhoto, exitPhoto, uiBridge } from './bridge'
 import { dismissOverlay, showOverlay, useUiStore } from './uiStore'
 import { hasGameInput, isUiInput } from './gameKeys'
+import { blackMistRuntime, setBlackMistPaused, skipBlackMistCinematic } from '../world/blackMist/runtime'
 
 /**
  * Global game-UI keys: E interact, Tab scroll, P photo mode, H hide HUD, Esc back out of shots/overlays.
@@ -15,19 +16,45 @@ export function useUiKeys() {
     const down = (event: KeyboardEvent) => {
       if (uiBridge.graphicsBlocked || event.repeat || event.metaKey || event.ctrlKey) return
       const key = event.code
-      const world = useWorldStore.getState(), ui = useUiStore.getState()
-      if (key === 'KeyE' && ui.overlay?.kind === 'lore' && !(event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))) { dismissOverlay(); return }
+      const world = useWorldStore.getState(),
+        ui = useUiStore.getState()
+      if (world.started && blackMistRuntime.cinematic && !ui.overlay) {
+        if (key === 'Escape') {
+          event.preventDefault()
+          setBlackMistPaused(!blackMistRuntime.manualPaused)
+          return
+        }
+        if (!isUiInput(event) && key === 'Space' && !blackMistRuntime.paused) {
+          event.preventDefault()
+          skipBlackMistCinematic()
+          return
+        }
+        if (key === 'KeyM' && !isUiInput(event)) world.toggleSound()
+        return
+      }
+      if (
+        key === 'KeyE' &&
+        ui.overlay?.kind === 'lore' &&
+        !(event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))
+      ) {
+        dismissOverlay()
+        return
+      }
       if (isUiInput(event)) return
       const inputOk = hasGameInput()
       const playing = world.started && world.cameraMode === 'player' && inputOk
       if (key === 'Tab' && playing) event.preventDefault()
       if (world.cameraMode === 'photo') {
-        if (key === 'KeyP' || key === 'Escape') { event.preventDefault(); exitPhoto(key === 'Escape') }
-        else if (key === 'KeyH') ui.setHudHidden(!ui.hudHidden)
+        if (key === 'KeyP' || key === 'Escape') {
+          event.preventDefault()
+          exitPhoto(key === 'Escape')
+        } else if (key === 'KeyH') ui.setHudHidden(!ui.hudHidden)
         return
       }
       switch (key) {
-        case 'KeyE': if (playing) interactPressed(); break
+        case 'KeyE':
+          if (playing) interactPressed()
+          break
         case 'Tab':
           if (ui.overlay?.kind === 'scroll') dismissOverlay()
           else if (!ui.overlay && playing) showOverlay({ kind: 'scroll' })
@@ -46,7 +73,9 @@ export function useUiKeys() {
       }
     }
     // A click skips a viewpoint sweep (meditation ends only on E, so a stray click doesn't wake you).
-    const click = (event: MouseEvent) => { if (event.button === 0 && director.shot?.kind === 'viewpoint') endShot() }
+    const click = (event: MouseEvent) => {
+      if (event.button === 0 && director.shot?.kind === 'viewpoint') endShot()
+    }
     window.addEventListener('keydown', down)
     window.addEventListener('mousedown', click)
     return () => {

@@ -1,4 +1,10 @@
 import type { Material, Mesh, Object3D, WebGLProgramParametersWithUniforms, WebGLRenderer } from 'three'
+import {
+  BLACK_MIST_SURFACE_COLOR,
+  BLACK_MIST_SURFACE_EMISSIVE,
+  BLACK_MIST_SURFACE_HEAD,
+  BLACK_MIST_UNIFORMS,
+} from '../blackMist/materials'
 
 /**
  * Wet and snowy surfaces for any MeshStandardMaterial: rain darkens albedo, drops roughness toward a
@@ -46,7 +52,8 @@ float wxRipple(vec2 p, float t) {
 const FRAGMENT_HEAD = /* glsl */ `
 varying vec3 vWxPosition; varying vec3 vWxNormal;
 uniform float uWxWetness; uniform float uWxSnow; uniform float uWxRain; uniform float uWxTime; uniform float uWxDebug;
-${WX_NOISE_GLSL}`
+${WX_NOISE_GLSL}
+${BLACK_MIST_SURFACE_HEAD}`
 const FRAGMENT_COLOR = /* glsl */ `
   vec3 wxN = normalize(vWxNormal);
   float wxFlat = smoothstep(0.82, 0.97, wxN.y);
@@ -60,6 +67,7 @@ const FRAGMENT_COLOR = /* glsl */ `
   diffuseColor.rgb *= mix(1.0, 0.6, wxWet) * mix(1.0, 0.82, wxPuddle);
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.88, 0.91, 0.95) * (0.92 + wxFine * 0.08), wxSnowAmt);
   if (uWxDebug > 0.5) diffuseColor.rgb = vec3(wxPuddle, wxWet * 0.5, wxFlat * 0.3);
+${BLACK_MIST_SURFACE_COLOR}
 `
 const FRAGMENT_ROUGHNESS = /* glsl */ `
   roughnessFactor = mix(roughnessFactor, mix(0.34, 0.05, wxPuddle), wxWet);
@@ -103,16 +111,30 @@ const FRAGMENT_NORMAL = /* glsl */ `
 /** Applies the weather patch to a MeshStandardMaterial shader inside `onBeforeCompile`. */
 export function patchSurfaceWeather(shader: WebGLProgramParametersWithUniforms) {
   Object.assign(shader.uniforms, SURFACE_WEATHER_UNIFORMS)
-  shader.vertexShader = VERTEX_HEAD + shader.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>${VERTEX_BODY}`)
+  Object.assign(shader.uniforms, BLACK_MIST_UNIFORMS)
+  shader.vertexShader =
+    VERTEX_HEAD + shader.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>${VERTEX_BODY}`)
   // Inserted *before* the following chunks so they run after every other patch that appends to
   // color/roughness/normal chunks (e.g. the stylised environment materials).
-  shader.fragmentShader = FRAGMENT_HEAD + shader.fragmentShader
-    .replace('#include <normal_fragment_begin>', `${FRAGMENT_COLOR}${FRAGMENT_ROUGHNESS}${FRAGMENT_METALNESS}
-#include <normal_fragment_begin>`)
-    .replace('#include <emissivemap_fragment>', `${FRAGMENT_NORMAL}
-#include <emissivemap_fragment>`)
-    .replace('#include <lights_fragment_maps>', `#include <lights_fragment_maps>
-${FRAGMENT_SHEEN}`)
+  shader.fragmentShader =
+    FRAGMENT_HEAD +
+    shader.fragmentShader
+      .replace(
+        '#include <normal_fragment_begin>',
+        `${FRAGMENT_COLOR}${FRAGMENT_ROUGHNESS}${FRAGMENT_METALNESS}
+#include <normal_fragment_begin>`,
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        `${FRAGMENT_NORMAL}
+#include <emissivemap_fragment>
+${BLACK_MIST_SURFACE_EMISSIVE}`,
+      )
+      .replace(
+        '#include <lights_fragment_maps>',
+        `#include <lights_fragment_maps>
+${FRAGMENT_SHEEN}`,
+      )
 }
 
 const patched = new WeakSet<Material>()
@@ -131,7 +153,7 @@ export function withSurfaceWeather(material: Material) {
     own?.call(material, shader, renderer)
     patchSurfaceWeather(shader)
   }
-  material.customProgramCacheKey = () => `${key()}|${ownKey}|wx1`
+  material.customProgramCacheKey = () => `${key()}|${ownKey}|wx2`
   material.needsUpdate = true
   return material
 }

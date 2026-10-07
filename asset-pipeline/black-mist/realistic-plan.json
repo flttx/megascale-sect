@@ -1,0 +1,40 @@
+{
+  "purpose": "Replace the rejected procedural eye and tentacles with physically detailed cinematic PBR models.",
+  "model": {
+    "alias": "tripo-v3.1",
+    "wire": "v3.1-20260211"
+  },
+  "textureModel": "v3.5-20260815",
+  "generation": {
+    "face_limit": 80000,
+    "geometry_quality": "detailed",
+    "texture_quality": "detailed",
+    "texture": true,
+    "pbr": true
+  },
+  "steps": [
+    {
+      "step": 1,
+      "endpoint": "POST /v3/generation/text-to-model",
+      "name": "abyss-eye",
+      "input": "Photorealistic cinematic creature prop, a single enormous ancient abyssal eye embedded in asymmetrical heavy organic eyelids and hanging rootlike tendons. Anatomically convincing moist sclera with subtle branching capillaries, deep amber iris with irregular radial fibers, vertical black slit pupil, convex transparent glossy cornea. Thick creased charcoal skin, mottled desaturated brown and olive pigment, leathery folds, pores, micro wrinkles, damp highlights and varied roughness. Real practical movie creature sculpture, ominous and ancient, physically plausible volume and natural irregularity. Isolated complete three dimensional asset, open eye facing forward, neutral studio light, no scene, no base.",
+      "estimatedCredits": 50,
+      "command": "npx --yes tripo-cli@latest make 'Photorealistic cinematic creature prop, a single enormous ancient abyssal eye embedded in asymmetrical heavy organic eyelids and hanging rootlike tendons. Anatomically convincing moist sclera with subtle branching capillaries, deep amber iris with irregular radial fibers, vertical black slit pupil, convex transparent glossy cornea. Thick creased charcoal skin, mottled desaturated brown and olive pigment, leathery folds, pores, micro wrinkles, damp highlights and varied roughness. Real practical movie creature sculpture, ominous and ancient, physically plausible volume and natural irregularity. Isolated complete three dimensional asset, open eye facing forward, neutral studio light, no scene, no base.' -p face_limit=80000 -p geometry_quality=detailed -p texture_quality=detailed -p texture_version=v3.5-20260815 -o asset-pipeline/black-mist --json --name abyss-eye --yes"
+    },
+    {
+      "step": 2,
+      "endpoint": "POST /v3/generation/text-to-model",
+      "name": "abyss-tentacle",
+      "input": "Photorealistic giant octopus tentacle creature prop, one long powerful tapering tentacle curling into an irregular asymmetrical S shape with a hooked tip and a thick organically flared root. Convincing cephalopod anatomy: two staggered rows of deep fleshy suction cups on the inner surface, thick muscular folds, wrinkled damp skin, fine pores and natural irregularities, dark mottled desaturated charcoal olive outside and muted reddish brown soft tissue inside the cups. Highly detailed practical horror film creature sculpture, subtle translucent flesh, wet specular highlights with varied roughness, fully three dimensional volumetric geometry. One isolated tentacle only, upright long axis, neutral studio lighting, no scene, no pedestal.",
+      "estimatedCredits": 50,
+      "command": "npx --yes tripo-cli@latest make 'Photorealistic giant octopus tentacle creature prop, one long powerful tapering tentacle curling into an irregular asymmetrical S shape with a hooked tip and a thick organically flared root. Convincing cephalopod anatomy: two staggered rows of deep fleshy suction cups on the inner surface, thick muscular folds, wrinkled damp skin, fine pores and natural irregularities, dark mottled desaturated charcoal olive outside and muted reddish brown soft tissue inside the cups. Highly detailed practical horror film creature sculpture, subtle translucent flesh, wet specular highlights with varied roughness, fully three dimensional volumetric geometry. One isolated tentacle only, upright long axis, neutral studio lighting, no scene, no pedestal.' -p face_limit=80000 -p geometry_quality=detailed -p texture_quality=detailed -p texture_version=v3.5-20260815 -o asset-pipeline/black-mist --json --name abyss-tentacle --yes"
+    }
+  ],
+  "estimatedTotalCredits": 100,
+  "refundPolicy": "Failed generation steps are refunded. Do not reroll automatically.",
+  "sourceOutputParent": "asset-pipeline/black-mist/tripo-out/",
+  "generatedDeliverables": ["model.glb", "preview.png", "task.json"],
+  "finalAssets": ["public/assets/black-mist/abyss-eye.glb", "public/assets/black-mist/abyss-tentacle.glb"],
+  "localProcessing": "Inspect generated preview and geometry, then optimize locally, preserve detailed PBR maps, set world scale/placement, add subtle rooted deformation and reveal; no paid convert/rig/texture chain.",
+  "approval": "Approved by the user on 2026-10-07: 同意生产. Both approved commands completed successfully."
+}

@@ -1,0 +1,118 @@
+{
+  "eye": {
+    "source": "asset-pipeline/black-mist/tripo-out/abyss-eye-ebe158ba/model.glb",
+    "sha256": "6d6a5905c0f35424fa4eff5c04edff7c54fd37e24368184b802f92dd55b88494",
+    "sourceTriangles": 78032,
+    "bounds": {
+      "min": [-0.38256222009658813, -0.49095553159713745, -0.4835910201072693],
+      "max": [0.383272260427475, 0.49085190892219543, 0.4835427403450012],
+      "size": [0.7658344805240631, 0.9818074405193329, 0.9671337604522705]
+    },
+    "lods": [
+      {
+        "file": "public/assets/black-mist/abyss-eye.glb",
+        "bytes": 3412036,
+        "triangles": 78032,
+        "materials": 1,
+        "textures": [
+          {
+            "name": "Color_ebe158ba-29e4-48fc-a5ad-1eb4d9f2ba26",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_ebe158ba-29e4-48fc-a5ad-1eb4d9f2ba26",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_ebe158ba-29e4-48fc-a5ad-1eb4d9f2ba26",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          }
+        ]
+      },
+      {
+        "file": "public/assets/black-mist/abyss-eye.lod1.glb",
+        "bytes": 692044,
+        "triangles": 23408,
+        "materials": 1,
+        "textures": [
+          {
+            "name": "Color_ebe158ba-29e4-48fc-a5ad-1eb4d9f2ba26",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_ebe158ba-29e4-48fc-a5ad-1eb4d9f2ba26",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_ebe158ba-29e4-48fc-a5ad-1eb4d9f2ba26",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          }
+        ]
+      }
+    ]
+  },
+  "tentacle": {
+    "source": "asset-pipeline/black-mist/tripo-out/abyss-tentacle-2e1ea6a1/model.glb",
+    "sha256": "da067d474e1b985153713e32c589870c57403fa710ff13c79432722c7b55d839",
+    "sourceTriangles": 79750,
+    "bounds": {
+      "min": [-0.23235756158828735, -0.4898548722267151, -0.48984214663505554],
+      "max": [0.23236478865146637, 0.48982253670692444, 0.49008601903915405],
+      "size": [0.4647223502397537, 0.9796774089336395, 0.9799281656742096]
+    },
+    "lods": [
+      {
+        "file": "public/assets/black-mist/abyss-tentacle.glb",
+        "bytes": 3141516,
+        "triangles": 79750,
+        "materials": 1,
+        "textures": [
+          {
+            "name": "Color_2e1ea6a1-5001-43ff-9e51-a9320c50b275",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_2e1ea6a1-5001-43ff-9e51-a9320c50b275",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_2e1ea6a1-5001-43ff-9e51-a9320c50b275",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          }
+        ]
+      },
+      {
+        "file": "public/assets/black-mist/abyss-tentacle.lod1.glb",
+        "bytes": 628412,
+        "triangles": 23924,
+        "materials": 1,
+        "textures": [
+          {
+            "name": "Color_2e1ea6a1-5001-43ff-9e51-a9320c50b275",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_2e1ea6a1-5001-43ff-9e51-a9320c50b275",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_2e1ea6a1-5001-43ff-9e51-a9320c50b275",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          }
+        ]
+      }
+    ]
+  }
+}

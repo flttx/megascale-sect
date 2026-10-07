@@ -1,0 +1,53 @@
+{
+  "approvedOn": "2026-10-07",
+  "userApproval": "同意生产",
+  "modelAlias": "tripo-v3.1",
+  "model": "v3.1-20260211",
+  "textureModel": "v3.5-20260815",
+  "totalCredits": 100,
+  "balanceAfter": 13950,
+  "tasks": [
+    {
+      "asset": "eye",
+      "task_id": "ebe158ba-29e4-48fc-a5ad-1eb4d9f2ba26",
+      "type": "text_to_model",
+      "status": "success",
+      "credits_consumed": 50,
+      "input": {
+        "pbr": true,
+        "prompt": "Photorealistic cinematic creature prop, a single enormous ancient abyssal eye embedded in asymmetrical heavy organic eyelids and hanging rootlike tendons. Anatomically convincing moist sclera with subtle branching capillaries, deep amber iris with irregular radial fibers, vertical black slit pupil, convex transparent glossy cornea. Thick creased charcoal skin, mottled desaturated brown and olive pigment, leathery folds, pores, micro wrinkles, damp highlights and varied roughness. Real practical movie creature sculpture, ominous and ancient, physically plausible volume and natural irregularity. Isolated complete three dimensional asset, open eye facing forward, neutral studio light, no scene, no base.",
+        "texture": true,
+        "export_uv": true,
+        "face_limit": 80000,
+        "model_version": "v3.1-20260211",
+        "texture_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "geometry_quality": "detailed",
+        "texture_alignment": "geometry"
+      },
+      "created_at": "2026-10-07T06:26:58.737218Z",
+      "completed_at": "2026-10-07T06:29:53.100237Z"
+    },
+    {
+      "asset": "tentacle",
+      "task_id": "2e1ea6a1-5001-43ff-9e51-a9320c50b275",
+      "type": "text_to_model",
+      "status": "success",
+      "credits_consumed": 50,
+      "input": {
+        "pbr": true,
+        "prompt": "Photorealistic giant octopus tentacle creature prop, one long powerful tapering tentacle curling into an irregular asymmetrical S shape with a hooked tip and a thick organically flared root. Convincing cephalopod anatomy: two staggered rows of deep fleshy suction cups on the inner surface, thick muscular folds, wrinkled damp skin, fine pores and natural irregularities, dark mottled desaturated charcoal olive outside and muted reddish brown soft tissue inside the cups. Highly detailed practical horror film creature sculpture, subtle translucent flesh, wet specular highlights with varied roughness, fully three dimensional volumetric geometry. One isolated tentacle only, upright long axis, neutral studio lighting, no scene, no pedestal.",
+        "texture": true,
+        "export_uv": true,
+        "face_limit": 80000,
+        "model_version": "v3.1-20260211",
+        "texture_quality": "detailed",
+        "texture_version": "v3.5-20260815",
+        "geometry_quality": "detailed",
+        "texture_alignment": "geometry"
+      },
+      "created_at": "2026-10-07T06:27:14.160209Z",
+      "completed_at": "2026-10-07T06:29:29.34225Z"
+    }
+  ]
+}

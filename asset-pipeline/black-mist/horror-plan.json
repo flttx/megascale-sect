@@ -1,0 +1,44 @@
+{
+  "purpose": "Two distinct realistic Cthulhu environmental creatures for Black Mist, without combat or disciple actors.",
+  "model": {
+    "alias": "tripo-v3.1",
+    "wire": "v3.1-20260211"
+  },
+  "parameters": {
+    "face_limit": 80000,
+    "geometry_quality": "detailed",
+    "texture_quality": "detailed",
+    "texture_version": "v3.5-20260815",
+    "texture": true,
+    "pbr": true
+  },
+  "steps": [
+    {
+      "name": "shroud-watcher",
+      "endpoint": "POST /v3/generation/text-to-model",
+      "input": "Photorealistic cinematic cosmic horror creature, an ancient floating abyssal organism, complete isolated full body. A colossal asymmetrical hooded cephalopod with a broad drooping fleshy mantle, one deep central amber eye and a few much smaller recessed eyes, heavy wrinkled organic tissue hanging into thick muscular tapered tendrils. Coherent living anatomy, fleshy membranes connecting roots to the body, irregular folds, pores, wet mucosal recesses and varied leathery roughness. Desaturated charcoal brown and mottled olive skin with muted burgundy soft tissue. Frightening practical film creature sculpture, ancient incomprehensible intelligence, substantial three dimensional volume. Upright suspended silhouette, neutral studio lighting, no pedestal, no human, no clothing, no scene.",
+      "estimatedCredits": 50,
+      "command": "npx --yes tripo-cli@latest make 'Photorealistic cinematic cosmic horror creature, an ancient floating abyssal organism, complete isolated full body. A colossal asymmetrical hooded cephalopod with a broad drooping fleshy mantle, one deep central amber eye and a few much smaller recessed eyes, heavy wrinkled organic tissue hanging into thick muscular tapered tendrils. Coherent living anatomy, fleshy membranes connecting roots to the body, irregular folds, pores, wet mucosal recesses and varied leathery roughness. Desaturated charcoal brown and mottled olive skin with muted burgundy soft tissue. Frightening practical film creature sculpture, ancient incomprehensible intelligence, substantial three dimensional volume. Upright suspended silhouette, neutral studio lighting, no pedestal, no human, no clothing, no scene.' -p face_limit=80000 -p geometry_quality=detailed -p texture_quality=detailed -p texture_version=v3.5-20260815 -o asset-pipeline/black-mist --json --name shroud-watcher --yes"
+    },
+    {
+      "name": "abyss-behemoth",
+      "endpoint": "POST /v3/generation/text-to-model",
+      "input": "Photorealistic cinematic Cthulhu elder beast, complete isolated full body, massive hunched quadrupedal abyssal organism with a heavy broad ribbed torso, folded membranous fins along its shoulders, a cephalopod head with a cluster of short muscular facial tentacles and deeply recessed small amber eyes. Asymmetrical ancient coral-like growths integrated into leathery flesh, thick jointed limbs supporting believable weight, fused organic roots, stretched wrinkled membranes, pores, tendon detail and mottled charcoal olive skin with dark reddish brown recesses. Terrifying immense primordial creature with an ominous silhouette, practical horror movie sculpture, realistic PBR and varied roughness, full three dimensional volumetric anatomy. Neutral studio lighting, no human, no armor, no clothes, no pedestal, no environment.",
+      "estimatedCredits": 50,
+      "command": "npx --yes tripo-cli@latest make 'Photorealistic cinematic Cthulhu elder beast, complete isolated full body, massive hunched quadrupedal abyssal organism with a heavy broad ribbed torso, folded membranous fins along its shoulders, a cephalopod head with a cluster of short muscular facial tentacles and deeply recessed small amber eyes. Asymmetrical ancient coral-like growths integrated into leathery flesh, thick jointed limbs supporting believable weight, fused organic roots, stretched wrinkled membranes, pores, tendon detail and mottled charcoal olive skin with dark reddish brown recesses. Terrifying immense primordial creature with an ominous silhouette, practical horror movie sculpture, realistic PBR and varied roughness, full three dimensional volumetric anatomy. Neutral studio lighting, no human, no armor, no clothes, no pedestal, no environment.' -p face_limit=80000 -p geometry_quality=detailed -p texture_quality=detailed -p texture_version=v3.5-20260815 -o asset-pipeline/black-mist --json --name abyss-behemoth --yes"
+    }
+  ],
+  "estimatedTotalCredits": 100,
+  "refundPolicy": "Failed steps are refunded. No automatic rerolls or paid rig/convert/texture chain.",
+  "sourceOutputParent": "asset-pipeline/black-mist/tripo-out/",
+  "deliverables": [
+    "model.glb",
+    "preview.png",
+    "task.json",
+    "public/assets/black-mist/shroud-watcher.glb",
+    "public/assets/black-mist/shroud-watcher.lod1.glb",
+    "public/assets/black-mist/abyss-behemoth.glb",
+    "public/assets/black-mist/abyss-behemoth.lod1.glb"
+  ],
+  "approval": "Pending explicit approval for this two-call batch."
+}

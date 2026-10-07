@@ -1,0 +1,248 @@
+{
+  "watcher": {
+    "source": "asset-pipeline/black-mist/tripo-out/shroud-watcher-28f32cbc/model.glb",
+    "sha256": "d9dddbdbe40109b89a110f652fa504907707556ff2f1cf2579b7c687942ba351",
+    "sourceStats": {
+      "triangles": 76456,
+      "meshes": 1,
+      "primitives": 1,
+      "materials": [
+        {
+          "name": "tripo_material_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+          "pbr": {
+            "baseColor": true,
+            "normal": true,
+            "roughness": true
+          }
+        }
+      ],
+      "textures": [
+        {
+          "name": "Color_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+          "size": [4096, 4096],
+          "mimeType": "image/jpeg"
+        },
+        {
+          "name": "ORM_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+          "size": [4096, 4096],
+          "mimeType": "image/jpeg"
+        },
+        {
+          "name": "NormalGL_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+          "size": [4096, 4096],
+          "mimeType": "image/png"
+        }
+      ],
+      "bounds": {
+        "min": [-0.35464808344841003, -0.4896203279495239, -0.3293880820274353],
+        "max": [0.3542676270008087, 0.489635169506073, 0.32983991503715515],
+        "size": [0.7089157104492188, 0.9792554974555969, 0.6592279970645905]
+      }
+    },
+    "lods": [
+      {
+        "file": "public/assets/black-mist/shroud-watcher.glb",
+        "bytes": 4479960,
+        "sha256": "d45eea108b79ab21c56c1bb05c5412e2c98ed11fafefc985307ed9753b159997",
+        "triangles": 76456,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": [
+          {
+            "name": "tripo_material_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "pbr": {
+              "baseColor": true,
+              "normal": true,
+              "roughness": true
+            }
+          }
+        ],
+        "textures": [
+          {
+            "name": "Color_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          }
+        ],
+        "bounds": {
+          "min": [-0.3546462305301487, -0.4896203279495239, -0.3293953032951372],
+          "max": [0.3542657740825474, 0.489635169506073, 0.32984713630485707],
+          "size": [0.7089120046126961, 0.9792554974555969, 0.6592424395999943]
+        }
+      },
+      {
+        "file": "public/assets/black-mist/shroud-watcher.lod1.glb",
+        "bytes": 888448,
+        "sha256": "1097cd02034085aa2f9b0a4a8b3cb322e48a7a54ad05233b9243e7e0b92cdcb1",
+        "triangles": 26312,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": [
+          {
+            "name": "tripo_material_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "pbr": {
+              "baseColor": true,
+              "normal": true,
+              "roughness": true
+            }
+          }
+        ],
+        "textures": [
+          {
+            "name": "Color_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_28f32cbc-7556-4bd5-8a81-ca4805323aa4",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          }
+        ],
+        "bounds": {
+          "min": [-0.3546431167772845, -0.488910436630249, -0.3293952611351332],
+          "max": [0.3542626603296832, 0.489635169506073, 0.329847094144853],
+          "size": [0.7089057771069677, 0.978545606136322, 0.6592423552799862]
+        }
+      }
+    ]
+  },
+  "behemoth": {
+    "source": "asset-pipeline/black-mist/tripo-out/abyss-behemoth-f4630d28/model.glb",
+    "sha256": "c08675ad1cfb70da1fc7043216913581bd333d1dac56b7ab5ed8643557651779",
+    "sourceStats": {
+      "triangles": 77480,
+      "meshes": 1,
+      "primitives": 1,
+      "materials": [
+        {
+          "name": "tripo_material_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+          "pbr": {
+            "baseColor": true,
+            "normal": true,
+            "roughness": true
+          }
+        }
+      ],
+      "textures": [
+        {
+          "name": "Color_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+          "size": [4096, 4096],
+          "mimeType": "image/jpeg"
+        },
+        {
+          "name": "ORM_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+          "size": [4096, 4096],
+          "mimeType": "image/jpeg"
+        },
+        {
+          "name": "NormalGL_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+          "size": [4096, 4096],
+          "mimeType": "image/png"
+        }
+      ],
+      "bounds": {
+        "min": [-0.3883339464664459, -0.41859206557273865, -0.49132344126701355],
+        "max": [0.38917917013168335, 0.4182770848274231, 0.4899808168411255],
+        "size": [0.7775131165981293, 0.8368691504001617, 0.981304258108139]
+      }
+    },
+    "lods": [
+      {
+        "file": "public/assets/black-mist/abyss-behemoth.glb",
+        "bytes": 4067700,
+        "sha256": "28e4e01635cc0a7038593855928f692da5c6d0a0e3eccaf53c3082c756157bf8",
+        "triangles": 77480,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": [
+          {
+            "name": "tripo_material_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "pbr": {
+              "baseColor": true,
+              "normal": true,
+              "roughness": true
+            }
+          }
+        ],
+        "textures": [
+          {
+            "name": "Color_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "size": [4096, 4096],
+            "mimeType": "image/webp"
+          }
+        ],
+        "bounds": {
+          "min": [-0.3883316401435083, -0.4185901541589952, -0.49132344126701355],
+          "max": [0.3891768638087457, 0.41827517341367965, 0.4899808168411255],
+          "size": [0.777508503952254, 0.8368653275726748, 0.981304258108139]
+        }
+      },
+      {
+        "file": "public/assets/black-mist/abyss-behemoth.lod1.glb",
+        "bytes": 900396,
+        "sha256": "d6fa4e8f32df508c82d8b4a0a6076f3fe445ba81df0606cd018772053ca1f38a",
+        "triangles": 34428,
+        "meshes": 1,
+        "primitives": 1,
+        "materials": [
+          {
+            "name": "tripo_material_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "pbr": {
+              "baseColor": true,
+              "normal": true,
+              "roughness": true
+            }
+          }
+        ],
+        "textures": [
+          {
+            "name": "Color_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "ORM_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          },
+          {
+            "name": "NormalGL_f4630d28-21e8-45f0-8031-7e1cbf318bd5",
+            "size": [1024, 1024],
+            "mimeType": "image/webp"
+          }
+        ],
+        "bounds": {
+          "min": [-0.3876679350181477, -0.4185901541589952, -0.49132344126701355],
+          "max": [0.3891817141815083, 0.41827517341367965, 0.4899808168411255],
+          "size": [0.776849649199656, 0.8368653275726748, 0.981304258108139]
+        }
+      }
+    ]
+  }
+}

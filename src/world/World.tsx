@@ -25,16 +25,21 @@ import { Interactables } from './interact/Interactables'
 import { Colossi } from './colossi/Colossi'
 import { WindRibbons } from './wind/WindRibbons'
 import { TrialRings } from './trials/TrialRings'
+import { BlackMist } from './blackMist/BlackMist'
 
 ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
 /** The main hall's flight collider: its roof height field (plus the 1 m clearance) over the footprint, one vertex per 2 m cell centre. */
 function MainColliderHelper() {
-  const [mx, , mz] = LAYOUT.main.position, { halfWidth, halfDepth } = LAYOUT.mainCollider
+  const [mx, , mz] = LAYOUT.main.position,
+    { halfWidth, halfDepth } = LAYOUT.mainCollider
   const geometry = useMemo(() => {
-    const plane = new PlaneGeometry(halfWidth * 2 - 2, halfDepth * 2 - 2, halfWidth - 1, halfDepth - 1).rotateX(-Math.PI / 2)
+    const plane = new PlaneGeometry(halfWidth * 2 - 2, halfDepth * 2 - 2, halfWidth - 1, halfDepth - 1).rotateX(
+      -Math.PI / 2,
+    )
     const position = plane.attributes.position
-    for (let i = 0; i < position.count; i++) position.setY(i, mainHallTop(position.getX(i) + mx, position.getZ(i) + mz) + 1)
+    for (let i = 0; i < position.count; i++)
+      position.setY(i, mainHallTop(position.getX(i) + mx, position.getZ(i) + mz) + 1)
     return plane
   }, [mx, mz, halfWidth, halfDepth])
   useEffect(() => () => geometry.dispose(), [geometry])
@@ -51,13 +56,23 @@ function DebugHelpers() {
   return (
     <group>
       <gridHelper args={[1000, 100, '#e3c479', '#8293a2']} position={[0, 0.08, 0]} />
-      <mesh position={[0, LAYOUT.stairs.height / 2, (LAYOUT.stairs.startZ + LAYOUT.stairs.endZ) / 2]} rotation={[Math.atan2(LAYOUT.stairs.height, LAYOUT.stairs.startZ - LAYOUT.stairs.endZ), 0, 0]}>
-        <boxGeometry args={[LAYOUT.stairs.width, 0.25, Math.hypot(LAYOUT.stairs.startZ - LAYOUT.stairs.endZ, LAYOUT.stairs.height)]} />
+      <mesh
+        position={[0, LAYOUT.stairs.height / 2, (LAYOUT.stairs.startZ + LAYOUT.stairs.endZ) / 2]}
+        rotation={[Math.atan2(LAYOUT.stairs.height, LAYOUT.stairs.startZ - LAYOUT.stairs.endZ), 0, 0]}
+      >
+        <boxGeometry
+          args={[
+            LAYOUT.stairs.width,
+            0.25,
+            Math.hypot(LAYOUT.stairs.startZ - LAYOUT.stairs.endZ, LAYOUT.stairs.height),
+          ]}
+        />
         <meshBasicMaterial color="#46e3d0" wireframe depthTest={false} />
       </mesh>
       <MainColliderHelper />
       {[
-        ['SPAWN', LAYOUT.spawn.position], ['MG02', LAYOUT.gate.position],
+        ['SPAWN', LAYOUT.spawn.position],
+        ['MG02', LAYOUT.gate.position],
         ['MG01', LAYOUT.main.position],
       ].map(([name, position]) => (
         <Html key={name as string} position={position as [number, number, number]} center distanceFactor={30}>
@@ -77,7 +92,10 @@ export function World() {
       <Lighting />
       <CloudSea />
       <group name="ENV_Graybox" visible={new URLSearchParams(window.location.search).get('env') === 'graybox'}>
-        <Cliffs /><MainRoad /><GrandStairs /><MainPlatform />
+        <Cliffs />
+        <MainRoad />
+        <GrandStairs />
+        <MainPlatform />
       </group>
       {new URLSearchParams(window.location.search).get('env') !== 'graybox' && <EnvironmentT02R />}
       <Suspense fallback={null}>
@@ -92,6 +110,7 @@ export function World() {
       <TrialRings />
       <Interactables />
       <Player />
+      <BlackMist />
       <DebugHelpers />
       <EnvironmentReview />
       <PostFX />

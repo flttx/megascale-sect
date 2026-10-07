@@ -1,0 +1,427 @@
+{
+  "version": 1,
+  "title": "Black Mist Invasion enemy assets",
+  "approvedCredits": 250,
+  "actualCredits": 150,
+  "credits": [
+    {
+      "kind": "disciple",
+      "taskType": "text_to_model",
+      "taskId": "19c3757d-be61-4633-bd97-11881a071935",
+      "billedCredits": 50
+    },
+    {
+      "kind": "disciple",
+      "taskType": "animate_rig",
+      "taskId": "fbbb9290-d514-4f50-9029-590fe08c2fc1",
+      "billedCredits": 25
+    },
+    {
+      "kind": "warden",
+      "taskType": "text_to_model",
+      "taskId": "d242a325-6b18-46d1-abc3-7ad58320cf46",
+      "billedCredits": 50
+    },
+    {
+      "kind": "warden",
+      "taskType": "animate_rig",
+      "taskId": "e822b42e-191f-4f16-b542-fdf8f28c2abe",
+      "billedCredits": 25
+    }
+  ],
+  "animationMethod": "Cached existing Tripo locomotion retargeted locally; Blender-authored attacks, four-direction hits, heavy reaction, death and warden break/recover/enrage. Combat polish is local, with no new Tripo charges. Earlier Tripo retarget requests failed 1004 and were refunded.",
+  "nativeForward": "+X",
+  "runtimeRotationY": 1.5707963267948966,
+  "runtimeHeights": {
+    "disciple": 1.8,
+    "warden": 2.8
+  },
+  "lodDistances": {
+    "switchToLow": 45,
+    "switchToHigh": 40
+  },
+  "assets": [
+    {
+      "kind": "disciple",
+      "lod": false,
+      "path": "public/assets/invasion/disciple.glb",
+      "bytes": 1911856,
+      "sha256": "05b3b063f0648c824f469ac897c0f280d30e6336668f4901d6063e6a8c3bbfec",
+      "triangles": 40212,
+      "drawCalls": 4,
+      "joints": 63,
+      "textures": [
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        }
+      ],
+      "clips": [
+        {
+          "name": "Attack01",
+          "channels": 189,
+          "duration": 1.2999999523162842
+        },
+        {
+          "name": "Attack02",
+          "channels": 189,
+          "duration": 1.399999976158142
+        },
+        {
+          "name": "Death",
+          "channels": 189,
+          "duration": 1.5499999523162842
+        },
+        {
+          "name": "HeavyAttack",
+          "channels": 189,
+          "duration": 1.899999976158142
+        },
+        {
+          "name": "HeavyHit",
+          "channels": 189,
+          "duration": 0.5799999833106995
+        },
+        {
+          "name": "Hit",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitBack",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitLeft",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitRight",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "Idle",
+          "channels": 189,
+          "duration": 4
+        },
+        {
+          "name": "Run",
+          "channels": 189,
+          "duration": 0.5
+        },
+        {
+          "name": "Walk",
+          "channels": 189,
+          "duration": 1.8700000047683716
+        }
+      ],
+      "sourceBlend": "character-pipeline/invasion/source/disciple.blend",
+      "preview": "character-pipeline/invasion/previews/disciple-optimized-full.png"
+    },
+    {
+      "kind": "disciple",
+      "lod": true,
+      "path": "public/assets/invasion/disciple.lod.glb",
+      "bytes": 1627300,
+      "sha256": "d975b8b2ef62af6f49b7ae0c3e6ed33eefa485c460b7180177a24edb4a5b730f",
+      "triangles": 15986,
+      "drawCalls": 4,
+      "joints": 63,
+      "textures": [
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        }
+      ],
+      "clips": [
+        {
+          "name": "Attack01",
+          "channels": 189,
+          "duration": 1.2999999523162842
+        },
+        {
+          "name": "Attack02",
+          "channels": 189,
+          "duration": 1.399999976158142
+        },
+        {
+          "name": "Death",
+          "channels": 189,
+          "duration": 1.5499999523162842
+        },
+        {
+          "name": "HeavyAttack",
+          "channels": 189,
+          "duration": 1.899999976158142
+        },
+        {
+          "name": "HeavyHit",
+          "channels": 189,
+          "duration": 0.5799999833106995
+        },
+        {
+          "name": "Hit",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitBack",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitLeft",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitRight",
+          "channels": 189,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "Idle",
+          "channels": 189,
+          "duration": 4
+        },
+        {
+          "name": "Run",
+          "channels": 189,
+          "duration": 0.5
+        },
+        {
+          "name": "Walk",
+          "channels": 189,
+          "duration": 1.8700000047683716
+        }
+      ],
+      "sourceBlend": "character-pipeline/invasion/source/disciple.blend",
+      "preview": "character-pipeline/invasion/previews/disciple-optimized-full.png"
+    },
+    {
+      "kind": "warden",
+      "lod": false,
+      "path": "public/assets/invasion/warden.glb",
+      "bytes": 2487448,
+      "sha256": "5510d551e2861b135906b54c45de7e1d741a4d5d3a829c03a1a385313ba2e7a4",
+      "triangles": 62697,
+      "drawCalls": 8,
+      "joints": 38,
+      "textures": [
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        }
+      ],
+      "clips": [
+        {
+          "name": "Attack01",
+          "channels": 114,
+          "duration": 1.4500000476837158
+        },
+        {
+          "name": "Attack02",
+          "channels": 114,
+          "duration": 1.5
+        },
+        {
+          "name": "Break",
+          "channels": 114,
+          "duration": 1
+        },
+        {
+          "name": "Death",
+          "channels": 114,
+          "duration": 1.5499999523162842
+        },
+        {
+          "name": "Enrage",
+          "channels": 114,
+          "duration": 0.6499999761581421
+        },
+        {
+          "name": "HeavyAttack",
+          "channels": 114,
+          "duration": 1.899999976158142
+        },
+        {
+          "name": "HeavyHit",
+          "channels": 114,
+          "duration": 0.5799999833106995
+        },
+        {
+          "name": "Hit",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitBack",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitLeft",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitRight",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "Idle",
+          "channels": 114,
+          "duration": 4
+        },
+        {
+          "name": "Recover",
+          "channels": 114,
+          "duration": 0.6499999761581421
+        },
+        {
+          "name": "Run",
+          "channels": 114,
+          "duration": 0.5
+        },
+        {
+          "name": "Walk",
+          "channels": 114,
+          "duration": 1.8700000047683716
+        }
+      ],
+      "sourceBlend": "character-pipeline/invasion/source/warden.blend",
+      "preview": "character-pipeline/invasion/previews/warden-optimized-full.png"
+    },
+    {
+      "kind": "warden",
+      "lod": true,
+      "path": "public/assets/invasion/warden.lod.glb",
+      "bytes": 2121192,
+      "sha256": "9e7ceb12baceaa265e17fd6e8872e856f0ddce3d32b5c50d5b0a9d06fd814b5a",
+      "triangles": 30571,
+      "drawCalls": 8,
+      "joints": 38,
+      "textures": [
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        },
+        {
+          "size": [2048, 2048],
+          "mime": "image/webp"
+        }
+      ],
+      "clips": [
+        {
+          "name": "Attack01",
+          "channels": 114,
+          "duration": 1.4500000476837158
+        },
+        {
+          "name": "Attack02",
+          "channels": 114,
+          "duration": 1.5
+        },
+        {
+          "name": "Break",
+          "channels": 114,
+          "duration": 1
+        },
+        {
+          "name": "Death",
+          "channels": 114,
+          "duration": 1.5499999523162842
+        },
+        {
+          "name": "Enrage",
+          "channels": 114,
+          "duration": 0.6499999761581421
+        },
+        {
+          "name": "HeavyAttack",
+          "channels": 114,
+          "duration": 1.899999976158142
+        },
+        {
+          "name": "HeavyHit",
+          "channels": 114,
+          "duration": 0.5799999833106995
+        },
+        {
+          "name": "Hit",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitBack",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitLeft",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "HitRight",
+          "channels": 114,
+          "duration": 0.41999998688697815
+        },
+        {
+          "name": "Idle",
+          "channels": 114,
+          "duration": 4
+        },
+        {
+          "name": "Recover",
+          "channels": 114,
+          "duration": 0.6499999761581421
+        },
+        {
+          "name": "Run",
+          "channels": 114,
+          "duration": 0.5
+        },
+        {
+          "name": "Walk",
+          "channels": 114,
+          "duration": 1.8700000047683716
+        }
+      ],
+      "sourceBlend": "character-pipeline/invasion/source/warden.blend",
+      "preview": "character-pipeline/invasion/previews/warden-optimized-full.png"
+    }
+  ]
+}

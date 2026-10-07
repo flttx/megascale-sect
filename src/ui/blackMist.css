@@ -1,0 +1,459 @@
+/* The mist's movement and world lighting live in WebGL. DOM motion only reveals text at chapter boundaries. */
+.black-mist-asset-status {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(430px, calc(100% - 48px));
+  padding: 24px;
+  box-sizing: border-box;
+  background: #10161fed;
+  border: 1px solid #9e938066;
+  color: #e9dfce;
+  text-align: center;
+  pointer-events: auto;
+}
+.black-mist-asset-status strong {
+  font-size: 18px;
+  font-weight: 400;
+}
+.black-mist-asset-status p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #b2bcc4;
+}
+.black-mist-asset-status button {
+  padding: 10px 16px;
+  border: 1px solid #bcaa8977;
+  background: #302b26;
+  color: #f0e0c3;
+  cursor: pointer;
+}
+.black-mist-asset-status button:focus-visible {
+  outline: 2px solid #e7ce9d;
+  outline-offset: 4px;
+}
+.black-mist-skip:disabled {
+  opacity: 0.4;
+  cursor: wait;
+}
+.intro-screen .intro-panel {
+  max-height: calc(100dvh - 56px);
+  overflow-y: auto;
+  padding: 6px 6px 6px 0;
+  overscroll-behavior: contain;
+}
+.app-shell:has(.intro-screen) .topbar-right {
+  margin-right: 160px;
+}
+.intro-experiences {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+}
+.intro-experiences legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: #bbc8cb;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+}
+.intro-experience {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  background: #111d25a6;
+  border: 1px solid #a9b9c440;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.intro-experience input {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  accent-color: #deccad;
+  cursor: pointer;
+}
+.intro-experience span {
+  min-width: 0;
+}
+.intro-experience strong {
+  display: block;
+  color: #d9e1e2;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.intro-experience small {
+  display: block;
+  margin-top: 4px;
+  color: #a9b9c2;
+  font-size: 9px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+}
+.intro-experience[data-selected='true'] {
+  border-color: #deccadad;
+  background: #35363db3;
+}
+.intro-experience[data-selected='true'] strong {
+  color: #f1dfbb;
+}
+.intro-experience:hover {
+  border-color: #deccad;
+}
+.intro-experience:focus-within {
+  outline: 2px solid #f0d4a1;
+  outline-offset: 3px;
+}
+.intro-screen[data-experience='black-mist']::after {
+  background: linear-gradient(90deg, #10141bf5 0%, #172130df 38%, #1a223373 72%, #11152140 100%);
+}
+.intro-screen[data-experience='black-mist'] .intro-art {
+  filter: blur(2px) brightness(0.45) saturate(0.38);
+}
+.intro-screen[data-experience='black-mist'] h1 {
+  font-size: clamp(38px, 3.7vw, 54px);
+  letter-spacing: 0.05em;
+}
+.intro-screen[data-experience='black-mist'] h1 em {
+  color: #d0c2df;
+}
+html[lang='en'] .intro-screen[data-experience='black-mist'] h1 {
+  font-size: clamp(36px, 3.2vw, 46px);
+  letter-spacing: 0.025em;
+}
+.intro-panel .enter-button {
+  width: fit-content;
+  min-width: 225px;
+  gap: 20px;
+}
+
+.black-mist-cinema,
+.black-mist-aftermath {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+.black-mist-cinema::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10.5%;
+  height: 28%;
+  background: linear-gradient(transparent, #0305088c);
+}
+.black-mist-matte {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10.5%;
+  background: #050609;
+}
+.black-mist-matte-top {
+  top: 0;
+}
+.black-mist-matte-bottom {
+  bottom: 0;
+}
+.black-mist-cinema-heading {
+  position: absolute;
+  top: 4%;
+  left: clamp(20px, 3vw, 48px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #c6c0bc;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+.black-mist-cinema-heading i {
+  width: 23px;
+  height: 1px;
+  background: #736e76;
+}
+.black-mist-cinema-heading strong {
+  color: #e1d1b0;
+  font-weight: 400;
+}
+.black-mist-cinema-actions {
+  position: absolute;
+  right: clamp(20px, 3vw, 48px);
+  bottom: 3%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+}
+.black-mist-cinema-actions button,
+.black-mist-world-state button,
+.black-mist-dismiss {
+  padding: 7px 10px;
+  background: #050609b3;
+  color: #b6b2b7;
+  border: 1px solid #b6b2b733;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.black-mist-cinema-actions .black-mist-skip {
+  color: #ebdbbe;
+  border-color: #d1c09973;
+}
+.black-mist-cinema-actions kbd {
+  margin-left: 9px;
+  color: #827e87;
+  font:
+    9px Consolas,
+    monospace;
+}
+.black-mist-cinema-actions button:hover,
+.black-mist-world-state button:hover,
+.black-mist-dismiss:hover {
+  color: #f2e4c9;
+  border-color: #d1c099;
+}
+.black-mist-cinema button:focus-visible,
+.black-mist-aftermath button:focus-visible {
+  outline: 2px solid #e7ce9d;
+  outline-offset: 4px;
+}
+.black-mist-caption {
+  position: absolute;
+  bottom: calc(10.5% + 34px);
+  left: 50%;
+  width: min(760px, calc(100% - 48px));
+  transform: translateX(-50%);
+  text-align: center;
+  color: #fff2df;
+  text-shadow:
+    0 2px 8px #050609,
+    0 0 5px #050609;
+  animation: black-mist-caption-reveal 1.7s ease-out both;
+}
+.black-mist-caption small {
+  color: #d9c8a9;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+}
+.black-mist-caption small span {
+  color: #a89aac;
+}
+.black-mist-caption p {
+  margin: 12px 0 0;
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  font-size: clamp(18px, 2.1vw, 28px);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  line-height: 1.75;
+}
+html[lang='en'] .black-mist-caption p {
+  font-size: clamp(18px, 1.8vw, 24px);
+  letter-spacing: 0.035em;
+}
+.black-mist-cinema[data-paused='true'] .black-mist-caption {
+  animation-play-state: paused;
+}
+.black-mist-world-state {
+  position: absolute;
+  top: 134px;
+  left: 34px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 68px);
+  color: #c0b8cc;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-shadow: 0 1px 5px #050609;
+}
+.black-mist-world-state i {
+  width: 4px;
+  height: 4px;
+  background: #baa5cf;
+  transform: rotate(45deg);
+  box-shadow: 0 0 9px #aa84c9;
+}
+.black-mist-world-state button {
+  margin-left: 4px;
+  padding: 5px 8px;
+  background: #14141fc4;
+  pointer-events: auto;
+}
+.black-mist-world-state button:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+.black-mist-handoff {
+  position: absolute;
+  bottom: 170px;
+  left: 50%;
+  width: min(560px, calc(100% - 40px));
+  padding: 22px 28px;
+  transform: translateX(-50%);
+  background: #0c111ae6;
+  border-top: 1px solid #b8a4c978;
+  border-bottom: 1px solid #b8a4c929;
+  text-align: center;
+  box-shadow: 0 20px 70px #05060955;
+  pointer-events: auto;
+  animation: black-mist-caption-reveal 1.2s ease-out both;
+}
+.black-mist-handoff > small {
+  color: #b4a1c8;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+}
+.black-mist-handoff h2 {
+  margin: 9px 0;
+  color: #eadfd1;
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  font-size: clamp(19px, 2.1vw, 25px);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+}
+.black-mist-handoff p {
+  margin: 0;
+  color: #abb8c3;
+  font-size: 11px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+}
+.black-mist-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 18px;
+  padding: 11px 16px;
+  color: #f3e4c9;
+  border: 1px solid #ccb48c9c;
+  background: #302933;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.black-mist-explore:hover {
+  background: #45404b;
+}
+.black-mist-dismiss {
+  margin-top: 14px;
+}
+@keyframes black-mist-caption-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 700px) {
+  .intro-screen .intro-panel {
+    max-height: calc(100dvh - 96px);
+  }
+  .intro-experiences {
+    margin-top: 12px;
+  }
+  .intro-experience {
+    gap: 8px;
+    padding: 9px;
+  }
+  .intro-experience strong {
+    font-size: 11px;
+  }
+  .intro-experience small {
+    font-size: 8px;
+  }
+  .intro-screen[data-experience='black-mist'] h1 {
+    font-size: 39px;
+  }
+  .black-mist-cinema-heading {
+    top: 3.4%;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+  .black-mist-cinema-actions {
+    left: 20px;
+    right: 20px;
+    bottom: 2.5%;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .black-mist-cinema-actions button {
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+  .black-mist-cinema-actions kbd {
+    margin-left: 5px;
+    font-size: 8px;
+  }
+  .black-mist-caption {
+    bottom: calc(10.5% + 20px);
+  }
+  .black-mist-caption p {
+    letter-spacing: 0.04em;
+  }
+  .black-mist-world-state {
+    top: 156px;
+    left: 16px;
+    max-width: calc(100% - 32px);
+    font-size: 9px;
+  }
+  .black-mist-handoff {
+    bottom: 140px;
+    padding: 18px;
+  }
+}
+@media (min-width: 701px) and (max-width: 1000px) {
+  .black-mist-world-state {
+    top: 156px;
+    left: 16px;
+  }
+}
+@media (max-height: 760px) and (min-width: 701px) {
+  .intro-screen .intro-panel {
+    max-height: calc(100dvh - 40px);
+    padding: 10px 6px 10px 0;
+  }
+  .intro-screen .intro-panel h1 {
+    margin-top: 15px;
+    margin-bottom: 12px;
+    font-size: clamp(40px, 4vw, 56px);
+  }
+  .intro-screen .intro-panel p {
+    line-height: 1.8;
+  }
+  .intro-screen .intro-panel .character-picker,
+  .intro-screen .intro-load {
+    margin-top: 14px;
+  }
+  .intro-screen .intro-guide,
+  .intro-screen .intro-panel .intro-meta {
+    margin-top: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .black-mist-caption,
+  .black-mist-handoff {
+    animation: none;
+  }
+  .intro-experience,
+  .black-mist-cinema button,
+  .black-mist-aftermath button {
+    transition: none;
+  }
+}

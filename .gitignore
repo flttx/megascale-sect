@@ -4,6 +4,9 @@ artifacts/
 *.tsbuildinfo
 .env
 .env.*
+.tripo/
+__pycache__/
+*.pyc
 .omc/*
 !.omc/skills/
 # Tripo raw downloads (~15 MB each) are reproducible from manifest.lock.json task ids.
@@ -22,9 +25,13 @@ environment-pipeline/T02R-environment.blend*
 asset-pipeline/*/tmp/
 asset-pipeline/*/out/
 asset-pipeline/*/cache/
-asset-pipeline/**/__pycache__/
 asset-pipeline/**/*.log
 asset-pipeline/**/*.npz
 asset-pipeline/anim/**/*.glb
 asset-pipeline/kun/*.glb
 asset-pipeline/kun/*.png
+asset-pipeline/black-mist/tripo-out/
+# Retired combat generations are kept locally; only provenance and archive notes belong in Git.
+character-pipeline/invasion/*
+!character-pipeline/invasion/README.md
+!character-pipeline/invasion/manifest.json
