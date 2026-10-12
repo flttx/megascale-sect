@@ -605,3 +605,7 @@ R17构建通过，主包785.73kB/gzip271.74kB；天空35项、运动157项和14�
 ## 2026-10-13 R21j 收尾
 
 在最终代码上重跑：构建（主包 890.41 kB / gzip 304.74 kB）、`verify:perf` 最高 328/400、`verify:visual` 21/21、`verify:air-walls`、`verify:model-collision` 36 项、`verify:quality-switch`、`verify:save`、smoke，以及生产预览下的 `verify:loading`，全部通过。README 与 REMAINING_ISSUES 已更新。
+
+## 2026-10-13 撤除檐角灯笼
+
+用户反馈主殿与侧塔挂灯笼的观感不协调，删除 `landmarks/EaveLanterns.tsx` 及其挂载，README 与遗留问题同步更新。
