@@ -90,40 +90,43 @@ Photo mode and the scroll load on first use. The current main bundle with Black 
 
 Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright Chromium. Set `CHROME_PATH` to override discovery. Most scripts expect the dev server at `BASE_URL` (default `http://127.0.0.1:5173/`). `verify:loading` uses the production preview at `PREVIEW_URL` (default `http://127.0.0.1:4174/`). Reports and screenshots go under the ignored `artifacts/` directory.
 
-| Command                                 | Coverage                                                                                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vp run verify:smoke`                   | Load, pointer lock, real input, flight, and rendered output                                                                                 |
-| `vp run verify:ui`                      | Language switching, accessibility targets, settings, saves, photo mode, React commits, and audio-node cleanup                               |
-| `vp run verify:black-mist`              | Mode entry, cinematic timeline/pause/skip, altered-world landmarks, audio lifecycle, and exploration handoff                                |
-| `vp run verify:black-mist-perf`         | Cinematic shots and altered-world views on all three quality tiers; draw calls ≤400                                                         |
-| `vp run verify:black-mist-sky`          | Actual sky-material direction probes across the former longitude seam and varied times/quality tiers                                        |
-| `vp run verify:black-mist-hazards`      | Real posed limb contacts, anticipation/evasion, nearest-waygate respawn, safe footing/grace, mode and pause gates                           |
-| `vp run verify:black-mist-attack-poses` | CPU real-source anticipation/strike/recovery, indexed strain, rooted attachment, capsule anatomy and render culling                         |
-| `vp run verify:eldritch-assets`         | Tripo provenance, actual GLB anatomy/PBR maps, loading behavior, near/far LODs and detailed screenshots                                     |
-| `vp run verify:black-mist-mutations`    | Building flesh coverage, animated beast attachments, mode isolation, LODs and retained carrier decks                                        |
-| `vp run verify:eldritch-motion`         | Actual rooted tentacle skinning, ocular rotation, skin fusion, life-clock pause gates and a WebM motion capture                             |
-| `vp run verify:horror-assets`           | Approved horror-generation receipts, geometry/PBR maps, LODs, and creature apparition/detail views                                          |
-| `vp run verify:horror-clearance`        | Both continuous carrier loops/native skins and 91 body pairs, with coherent real triangle interaction envelopes and explicit sample margins |
-| `vp run verify:horror-terrain`          | All six actors' 22 normal poses plus 768 attack poses each; actual high/low source vertices against terrain/pillar cylinders                |
-| `vp run verify:horror-motion`           | Actual articulated vertices, patrol/stop/roar behavior, synchronized audio, pauses and LODs                                                 |
-| `vp run verify:interact`                | Interactions, exact spirit-light count, scroll, focus, photo, save/restore, draw-call deltas, and page errors                               |
-| `vp run verify:perf`                    | Three quality levels across 45 scenes plus the Kun deck; draw calls ≤400; supports `MIN_FPS`                                                |
-| `vp run verify:visual`                  | Time-of-day and weather views with brightness/contrast checks                                                                               |
-| `vp run verify:characters`              | Both characters, sword summon/flight, switching, and pause/resume                                                                           |
-| `vp run verify:navigation`              | Gate, stairs, hall collision, and high-altitude traversal                                                                                   |
-| `vp run verify:optimization`            | Asset size, foot constraints, switching, braking, camera, and audio                                                                         |
-| `vp run verify:riding-pose`             | Flight pose, foot contact, and non-black screenshots                                                                                        |
-| `vp run verify:controls`                | 60/144 fps jumps, repeated keys, blur/lock loss, and photo input                                                                            |
-| `vp run verify:save`                    | v1 migration, malformed/unknown saves, storage failures, and safe positions                                                                 |
-| `vp run verify:motion`                  | Sword summon/landing avoidance and cliff paths at 20/60/144 fps                                                                             |
-| `vp run verify:jumps`                   | Both characters jumping onto a 1.2 m ledge at 60/144 fps                                                                                    |
-| `vp run verify:kun`                     | Boarding, movement, jumps, edge cases, rescue, collection, map, and docking window                                                          |
-| `vp run verify:turtle`                  | Turtle spirit lights over open deck, collected on foot around the pavilion                                                                  |
-| `vp run verify:stability`               | Audio lifecycle and WebGL context-loss recovery                                                                                             |
-| `vp run verify:framerate`               | Jump and trail behavior at 20/60/144 fps                                                                                                    |
-| `vp run verify:environment`             | Graybox/review views, geometry, and source-building hashes                                                                                  |
-| `vp run verify:profile`                 | CPU throttle, Kun index/anchor timing, static queries, and GPU passes                                                                       |
-| `vp run verify:loading`                 | Production lazy loading, first use, quality/character changes, and WebGL recovery                                                           |
+| Command                                 | Coverage                                                                                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vp run verify:smoke`                   | Load, pointer lock, real input, flight, and rendered output                                                                                   |
+| `vp run verify:ui`                      | Language switching, accessibility targets, settings, saves, photo mode, React commits, and audio-node cleanup                                 |
+| `vp run verify:black-mist`              | Mode entry, cinematic timeline/pause/skip, altered-world landmarks, audio lifecycle, and exploration handoff                                  |
+| `vp run verify:black-mist-perf`         | Cinematic shots and altered-world views on all three quality tiers; draw calls ≤400                                                           |
+| `vp run verify:black-mist-sky`          | Actual sky-material direction probes across the former longitude seam and varied times/quality tiers                                          |
+| `vp run verify:black-mist-hazards`      | Real posed limb contacts, anticipation/evasion, nearest-waygate respawn, safe footing/grace, mode and pause gates                             |
+| `vp run verify:black-mist-attack-poses` | CPU real-source anticipation/strike/recovery, indexed strain, rooted attachment, capsule anatomy and render culling                           |
+| `vp run verify:eldritch-assets`         | Tripo provenance, actual GLB anatomy/PBR maps, loading behavior, near/far LODs and detailed screenshots                                       |
+| `vp run verify:black-mist-mutations`    | Building flesh coverage, animated beast attachments, mode isolation, LODs and retained carrier decks                                          |
+| `vp run verify:eldritch-motion`         | Actual rooted tentacle skinning, ocular rotation, skin fusion, life-clock pause gates and a WebM motion capture                               |
+| `vp run verify:horror-assets`           | Approved horror-generation receipts, geometry/PBR maps, LODs, and creature apparition/detail views                                            |
+| `vp run verify:horror-clearance`        | Both continuous carrier loops/native skins and 91 body pairs, with coherent real triangle interaction envelopes and explicit sample margins   |
+| `vp run verify:horror-terrain`          | All six actors' 22 normal poses plus 768 attack poses each; actual high/low source vertices against terrain/pillar cylinders                  |
+| `vp run verify:horror-motion`           | Actual articulated vertices, patrol/stop/roar behavior, synchronized audio, pauses and LODs                                                   |
+| `vp run verify:interact`                | Interactions, exact spirit-light count, scroll, focus, photo, save/restore, draw-call deltas, and page errors                                 |
+| `vp run verify:perf`                    | 45 scene/tier/weather samples including the Kun deck; draw calls ≤400; supports `MIN_FPS`                                                     |
+| `vp run verify:quality-switch`          | First/repeated/rapid switches, deferred warm-up, shadow tiers, nonblank frames and WebGL recovery; `MAX_SWITCH_FRAME_MS` defaults to 2500 ms  |
+| `vp run verify:prop-collision`          | All prop types: quality density and registration cleanup; rocks/pines at 20/60/144 fps, boosted flight, old-save escape and keyboard movement |
+| `vp run verify:model-collision`         | Rendered solid surface probes, gate/bridge access, balustrades, animated Kun belly and live crane collision                                   |
+| `vp run verify:visual`                  | Time-of-day and weather views with brightness/contrast checks                                                                                 |
+| `vp run verify:characters`              | Both characters, sword summon/flight, switching, and pause/resume                                                                             |
+| `vp run verify:navigation`              | Gate, stairs, hall collision, and high-altitude traversal                                                                                     |
+| `vp run verify:optimization`            | Asset size, foot constraints, switching, braking, camera, and audio                                                                           |
+| `vp run verify:riding-pose`             | Flight pose, foot contact, and non-black screenshots                                                                                          |
+| `vp run verify:controls`                | 60/144 fps jumps, repeated keys, blur/lock loss, and photo input                                                                              |
+| `vp run verify:save`                    | v1 migration, malformed/unknown saves, storage failures, and safe positions                                                                   |
+| `vp run verify:motion`                  | Sword summon/landing avoidance and cliff paths at 20/60/144 fps                                                                               |
+| `vp run verify:jumps`                   | Both characters jumping onto a 1.2 m ledge at 60/144 fps                                                                                      |
+| `vp run verify:kun`                     | Boarding, movement, jumps, edge cases, rescue, collection, map, and docking window                                                            |
+| `vp run verify:turtle`                  | Turtle spirit lights over open deck, collected on foot around the pavilion                                                                    |
+| `vp run verify:stability`               | Audio lifecycle and WebGL context-loss recovery                                                                                               |
+| `vp run verify:framerate`               | Jump and trail behavior at 20/60/144 fps                                                                                                      |
+| `vp run verify:environment`             | Graybox/review views, geometry, and source-building hashes                                                                                    |
+| `vp run verify:profile`                 | CPU throttle, Kun index/anchor timing, static queries, and GPU passes                                                                         |
+| `vp run verify:loading`                 | Production lazy loading, first use, quality/character changes, and WebGL recovery                                                             |
 
 The clearance check runs without a dev server or GPU and writes `artifacts/horror-clearance/report.json`, including exact shared layouts and source hashes. It analytically bounds both carriers' native skins, keyed translations/scales, complete continuous routes, and the turtle's heave. Interaction checks clip the actual high/low source triangles into their current height bands: 64 tentacle gesture poses across all eight slots with a 0.05-height margin, and 384 creature poses across eight target octants, four target heights and both leading hands with a 0.03-height margin. Cinematic emergence and fully revealed attacks are checked as distinct phase sets. These interaction envelopes are dense samples with declared margins, not all-time analytic proofs. The earlier natural-muscle bound and production culling evidence remain separately recorded. Horror idle reserves of 0.09/0.18 height are also sampling cushions, checked over two full cycles.
 

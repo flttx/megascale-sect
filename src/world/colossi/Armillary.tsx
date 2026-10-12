@@ -18,7 +18,7 @@ import {
 } from 'three'
 import type { BufferGeometry, Group } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
-import { registerColliders } from '../surfaces'
+import { registerMovingObjectColliders } from '../meshColliders'
 import { withSurfaceWeather } from '../weather/surfaceWeather'
 import { ARMILLARY } from './layout'
 import { blackMistRuntime } from '../blackMist/runtime'
@@ -33,17 +33,6 @@ const POLE = new Vector3(0, Math.sin(LATITUDE), -Math.cos(LATITUDE))
 const TURN = 400,
   MIDDLE_TURN = 180,
   INNER_TURN = 75
-const registerCore = () =>
-  registerColliders([
-    {
-      kind: 'cylinder',
-      x: ARMILLARY.position[0],
-      z: ARMILLARY.position[2],
-      radius: CORE + 2,
-      minY: ARMILLARY.position[1] - CORE - 2,
-      maxY: ARMILLARY.position[1] + CORE + 2,
-    },
-  ])
 
 /**
  * Texture atlas, by v: polished gold (0 … 0.08) for the beads, engraved bronze graduations (0.1 … 0.5) run once
@@ -259,17 +248,10 @@ function buildArmillary() {
 export function Armillary() {
   const parts = useMemo(buildArmillary, [])
   useEffect(() => parts.dispose, [parts])
-  const removeCollider = useRef<(() => void) | null>(null)
-  useEffect(() => {
-    removeCollider.current = registerCore()
-    return () => {
-      removeCollider.current?.()
-      removeCollider.current = null
-    }
-  }, [])
   const root = useRef<Group>(null),
     middle = useRef<Group>(null),
     inner = useRef<Group>(null)
+  useEffect(() => (root.current ? registerMovingObjectColliders(root.current) : undefined), [parts])
   const time = useRef(0)
   useFrame((_, delta) => {
     const t = (time.current += Math.min(delta, 0.1))
@@ -277,10 +259,6 @@ export function Armillary() {
     // The mist consumes the old celestial instrument as its place is taken by the living eye.
     const consumed = blackMistRuntime.active ? MathUtils.smoothstep(blackMistRuntime.elapsed, 34, 43) : 0
     root.current.visible = consumed < 0.99
-    if (consumed >= 0.99 && removeCollider.current) {
-      removeCollider.current()
-      removeCollider.current = null
-    } else if (consumed < 0.99 && !removeCollider.current) removeCollider.current = registerCore()
     root.current.scale.setScalar(1 - consumed * 0.98)
     root.current.rotation.y = 0.5 + (t / TURN) * Math.PI * 2
     root.current.position.y = ARMILLARY.position[1] + Math.sin((t / 14) * Math.PI * 2) * 1.5

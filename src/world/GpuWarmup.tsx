@@ -190,10 +190,8 @@ export function GpuWarmup() {
     }
   }, [ready, loading, quality, eldritch, gl, scene, camera])
 
-  // A quality change swaps the shadow cascades (or drops them), so every lit material needs a new program. Left to
-  // the render, three creates each program and waits for its link before the next (one ~5 s frame for ~150 programs).
-  // Issue them all first, after Lighting has re-hooked the materials (priority 0) and before the composer draws (1),
-  // so the GPU process compiles them in parallel and the render only waits for the slowest.
+  // Late meshes need their CSM hooks installed before compiling. Submit their programs after Lighting (0) and
+  // before the composer (1); quality switches keep the same light slots and no longer invalidate existing hooks.
   const applied = useRef(lightingChanges.serial)
   useFrame(({ gl, scene, camera }) => {
     if (applied.current === lightingChanges.serial) return

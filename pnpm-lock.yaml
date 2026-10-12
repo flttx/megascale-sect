@@ -41,6 +41,9 @@ importers:
       three:
         specifier: ^0.186.0
         version: 0.186.0
+      three-mesh-bvh:
+        specifier: 0.8.3
+        version: 0.8.3(three@0.186.0)
       zustand:
         specifier: ^5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))

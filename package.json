@@ -14,6 +14,9 @@
     "verify:riding-pose": "node scripts/verify-riding-pose.mjs",
     "verify:interact": "node scripts/verify-interact.mjs",
     "verify:perf": "node scripts/verify-perf.mjs",
+    "verify:quality-switch": "node scripts/verify-quality-switch.mjs",
+    "verify:prop-collision": "node scripts/verify-prop-collision.mjs",
+    "verify:model-collision": "node scripts/verify-model-collision.mjs",
     "verify:visual": "node scripts/verify-visual.mjs",
     "verify:controls": "node scripts/verify-controls.mjs",
     "verify:save": "node scripts/verify-save.mjs",
@@ -53,6 +56,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "three": "^0.186.0",
+    "three-mesh-bvh": "0.8.3",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

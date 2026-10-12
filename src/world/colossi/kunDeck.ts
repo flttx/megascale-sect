@@ -1,4 +1,5 @@
-import { Matrix4, Ray, Vector3, Vector4 } from 'three'
+import { BufferAttribute, BufferGeometry, DoubleSide, Matrix4, Ray, Vector3, Vector4 } from 'three'
+import { MeshBVH } from 'three-mesh-bvh'
 import type { Object3D, SkinnedMesh } from 'three'
 import type { SurfaceAddress, SurfaceHit } from '../surfaces'
 import { KUN_DECK } from './kunDeckMeta'
@@ -8,14 +9,31 @@ export type DeckAnchor = SurfaceAddress & { surfaceId: 'kun' | 'turtle'; point: 
 export const kunState = { ready: false, time: 0, heading: 0, headY: -Infinity, frame: 0, center: new Vector3() }
 export const kunDockable = () => kunState.ready && kunState.time >= 30 && kunState.time < 150
 type SkinPalette = { mesh: SkinnedMesh; matrices: Matrix4[]; world: Matrix4; frame: number }
-type Vertex = { mesh: SkinnedMesh; index: number; point: Vector3; frame: number; palette: SkinPalette; rest: Vector4; influences: { matrix: Matrix4; weight: number }[] }
+type Vertex = {
+  mesh: SkinnedMesh
+  index: number
+  point: Vector3
+  frame: number
+  palette: SkinPalette
+  rest: Vector4
+  influences: { matrix: Matrix4; weight: number }[]
+}
 type Triangle = { a: Vertex; b: Vertex; c: Vertex; normal: Vector3 }
-let triangles: Triangle[] = [], owner: Object3D | null = null, indexedFrame = -1
+let triangles: Triangle[] = [],
+  owner: Object3D | null = null,
+  indexedFrame = -1
 let validationVertices: Vertex[] = []
-const grid = new Map<number, number[]>(), CELL = 4
+let hulls: { vertices: Vertex[]; geometry: BufferGeometry; tree: MeshBVH | null }[] = [],
+  hullFrame = -1
+const grid = new Map<number, number[]>(),
+  CELL = 4
 const key = (i: number, j: number) => (i + 32768) * 65536 + j + 32768
-const ab = new Vector3(), ac = new Vector3(), ray = new Ray(), hitPoint = new Vector3()
-const normal = new Vector3(), rayDirection = new Vector3()
+const ab = new Vector3(),
+  ac = new Vector3(),
+  ray = new Ray(),
+  hitPoint = new Vector3()
+const normal = new Vector3(),
+  rayDirection = new Vector3()
 const packed = new Uint32Array(Uint8Array.from(atob(KUN_DECK.triangles), (c) => c.charCodeAt(0)).buffer)
 const obstacles = new Set<number>(KUN_DECK.obstacles)
 /** Opt-in DEV timings. Disabled outside explicit performance capture. */
@@ -24,53 +42,146 @@ export const kunProfile = { enabled: false, indexes: 0, indexMs: 0, maxIndexMs: 
 /** Registration owns no GLTF resources; StrictMode cleanup only releases references. */
 export function bindKunDeck(scene: Object3D) {
   const meshes: SkinnedMesh[] = []
-  scene.traverse((object) => { if ((object as SkinnedMesh).isSkinnedMesh) meshes.push(object as SkinnedMesh) })
+  scene.traverse((object) => {
+    if ((object as SkinnedMesh).isSkinnedMesh) meshes.push(object as SkinnedMesh)
+  })
   if (meshes.length !== KUN_DECK.meshes) throw new Error('Kun deck metadata does not match the loaded mesh')
   const vertices = new Map<string, Vertex>()
-  const palettes = meshes.map((mesh): SkinPalette => ({ mesh, matrices: mesh.skeleton.bones.map(() => new Matrix4()), world: new Matrix4(), frame: -1 }))
+  const palettes = meshes.map((mesh): SkinPalette => ({
+    mesh,
+    matrices: mesh.skeleton.bones.map(() => new Matrix4()),
+    world: new Matrix4(),
+    frame: -1,
+  }))
   const vertex = (mesh: number, index: number) => {
     const id = `${mesh}/${index}`
     let value = vertices.get(id)
     if (!value) {
-      const palette = palettes[mesh], geometry = palette.mesh.geometry
+      const palette = palettes[mesh],
+        geometry = palette.mesh.geometry
       const { position, skinWeight, skinIndex } = geometry.attributes
-      const rest = new Vector4(position.getX(index), position.getY(index), position.getZ(index), 1).applyMatrix4(palette.mesh.bindMatrix)
+      const rest = new Vector4(position.getX(index), position.getY(index), position.getZ(index), 1).applyMatrix4(
+        palette.mesh.bindMatrix,
+      )
       const weights = [skinWeight.getX(index), skinWeight.getY(index), skinWeight.getZ(index), skinWeight.getW(index)]
       const indices = [skinIndex.getX(index), skinIndex.getY(index), skinIndex.getZ(index), skinIndex.getW(index)]
-      const influences = weights.map((weight, i) => ({ matrix: palette.matrices[indices[i]], weight })).filter((i) => i.weight !== 0)
-      value = { mesh: palette.mesh, index, point: new Vector3(), frame: -1, palette, rest, influences }; vertices.set(id, value)
+      const influences = weights
+        .map((weight, i) => ({ matrix: palette.matrices[indices[i]], weight }))
+        .filter((i) => i.weight !== 0)
+      value = { mesh: palette.mesh, index, point: new Vector3(), frame: -1, palette, rest, influences }
+      vertices.set(id, value)
     }
     return value
   }
   triangles = []
   for (let i = 0; i < packed.length; i += 2) {
-    const m = packed[i], offset = packed[i + 1] * 3, index = meshes[m].geometry.index
+    const m = packed[i],
+      offset = packed[i + 1] * 3,
+      index = meshes[m].geometry.index
     if (!index || offset + 2 >= index.count) throw new Error('Kun deck triangle is outside the loaded mesh')
-    triangles.push({ a: vertex(m, index.getX(offset)), b: vertex(m, index.getX(offset + 1)), c: vertex(m, index.getX(offset + 2)), normal: new Vector3() })
+    triangles.push({
+      a: vertex(m, index.getX(offset)),
+      b: vertex(m, index.getX(offset + 1)),
+      c: vertex(m, index.getX(offset + 2)),
+      normal: new Vector3(),
+    })
   }
-  owner = scene; kunState.ready = false; indexedFrame = -1
+  // Full hull queries serve flight/camera; deck walking keeps its existing reduced triangle index.
+  hulls = meshes.map((mesh, m) => {
+    const count = mesh.geometry.getAttribute('position').count,
+      geometry = new BufferGeometry()
+    geometry.setAttribute('position', new BufferAttribute(new Float32Array(count * 3), 3))
+    if (mesh.geometry.index) geometry.setIndex(mesh.geometry.index.clone())
+    return { geometry, vertices: Array.from({ length: count }, (_, i) => vertex(m, i)), tree: null }
+  })
+  owner = scene
+  kunState.ready = false
+  indexedFrame = -1
+  hullFrame = -1
   if (import.meta.env.DEV) validationVertices = [...vertices.values()]
-  return () => { if (owner === scene) { owner = null; triangles = []; validationVertices = []; grid.clear(); kunState.ready = false } }
+  return () => {
+    if (owner === scene) {
+      owner = null
+      triangles = []
+      validationVertices = []
+      grid.clear()
+      hulls.forEach((h) => h.geometry.dispose())
+      hulls = []
+      kunState.ready = false
+    }
+  }
+}
+
+function indexHull() {
+  if (hullFrame === kunState.frame) return
+  hullFrame = kunState.frame
+  for (const hull of hulls) {
+    const position = hull.geometry.getAttribute('position')
+    hull.vertices.forEach((v, i) => {
+      const p = skin(v)
+      position.setXYZ(i, p.x, p.y, p.z)
+    })
+    if (hull.tree) hull.tree.refit()
+    else hull.tree = new MeshBVH(hull.geometry)
+  }
+}
+
+/** Exact animated body, belly, fins and deck. Evaluated at most once per nearby simulation frame. */
+export function kunHullClearance(from: Vector3, direction: Vector3, length: number) {
+  if (!kunState.ready || from.distanceTo(kunState.center) > 280 + length) return length
+  indexHull()
+  ray.set(from, direction)
+  let free = length
+  for (const hull of hulls) {
+    const hit = hull.tree!.raycastFirst(ray, DoubleSide, 1e-4, free)
+    if (hit) free = Math.min(free, hit.distance)
+  }
+  return free
+}
+
+export function kunDepth(x: number, y: number, z: number) {
+  if (!kunState.ready || Math.hypot(x - kunState.center.x, y - kunState.center.y, z - kunState.center.z) > 280) return 0
+  indexHull()
+  ray.origin.set(x, y, z)
+  ray.direction.set(0, 1, 0)
+  let nearest = Infinity,
+    facing = 0
+  for (const hull of hulls) {
+    const hit = hull.tree!.raycastFirst(ray, DoubleSide, 0, nearest)
+    if (hit && hit.distance < nearest) {
+      nearest = hit.distance
+      facing = hit.face?.normal.y ?? 0
+    }
+  }
+  return facing > 0 ? nearest : 0
 }
 
 export function updateKunDeck(center: Vector3, time: number, heading: number, headY: number) {
-  kunState.center.copy(center); kunState.time = time; kunState.heading = heading; kunState.headY = headY
-  kunState.frame++; kunState.ready = owner !== null
+  kunState.center.copy(center)
+  kunState.time = time
+  kunState.heading = heading
+  kunState.headY = headY
+  kunState.frame++
+  kunState.ready = owner !== null
 }
 function skin(v: Vertex) {
   if (v.frame !== kunState.frame) {
     // Three's reference path multiplies bone world/inverse matrices for every influence of every
     // vertex. Cache that palette once per animated frame, retaining the exact bind/world transforms.
     const p = v.palette
-    if (v.mesh.geometry.morphAttributes.position?.length) v.mesh.getVertexPosition(v.index, v.point).applyMatrix4(v.mesh.matrixWorld)
+    if (v.mesh.geometry.morphAttributes.position?.length)
+      v.mesh.getVertexPosition(v.index, v.point).applyMatrix4(v.mesh.matrixWorld)
     else {
       if (p.frame !== kunState.frame) {
         const skeleton = p.mesh.skeleton
         p.matrices.forEach((m, i) => m.multiplyMatrices(skeleton.bones[i].matrixWorld, skeleton.boneInverses[i]))
-        p.world.multiplyMatrices(p.mesh.matrixWorld, p.mesh.bindMatrixInverse); p.frame = kunState.frame
+        p.world.multiplyMatrices(p.mesh.matrixWorld, p.mesh.bindMatrixInverse)
+        p.frame = kunState.frame
       }
       const { x, y, z, w } = v.rest
-      let px = 0, py = 0, pz = 0
+      let px = 0,
+        py = 0,
+        pz = 0
       for (const { matrix, weight } of v.influences) {
         const e = matrix.elements
         px += (e[0] * x + e[4] * y + e[8] * z + e[12] * w) * weight
@@ -97,20 +208,30 @@ export function kunSkinError() {
 function indexFrame() {
   if (indexedFrame === kunState.frame) return
   const start = import.meta.env.DEV && kunProfile.enabled ? performance.now() : -1
-  grid.clear(); indexedFrame = kunState.frame
+  grid.clear()
+  indexedFrame = kunState.frame
   triangles.forEach((t, i) => {
-    const a = skin(t.a), b = skin(t.b), c = skin(t.c)
+    const a = skin(t.a),
+      b = skin(t.b),
+      c = skin(t.c)
     t.normal.crossVectors(ab.subVectors(b, a), ac.subVectors(c, a)).normalize()
-    const x0 = Math.floor(Math.min(a.x, b.x, c.x) / CELL), x1 = Math.floor(Math.max(a.x, b.x, c.x) / CELL)
-    const z0 = Math.floor(Math.min(a.z, b.z, c.z) / CELL), z1 = Math.floor(Math.max(a.z, b.z, c.z) / CELL)
-    for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) {
-      const k = key(x, z), bucket = grid.get(k)
-      if (bucket) bucket.push(i); else grid.set(k, [i])
-    }
+    const x0 = Math.floor(Math.min(a.x, b.x, c.x) / CELL),
+      x1 = Math.floor(Math.max(a.x, b.x, c.x) / CELL)
+    const z0 = Math.floor(Math.min(a.z, b.z, c.z) / CELL),
+      z1 = Math.floor(Math.max(a.z, b.z, c.z) / CELL)
+    for (let x = x0; x <= x1; x++)
+      for (let z = z0; z <= z1; z++) {
+        const k = key(x, z),
+          bucket = grid.get(k)
+        if (bucket) bucket.push(i)
+        else grid.set(k, [i])
+      }
   })
   if (start >= 0) {
     const ms = performance.now() - start
-    kunProfile.indexes++; kunProfile.indexMs += ms; kunProfile.maxIndexMs = Math.max(kunProfile.maxIndexMs, ms)
+    kunProfile.indexes++
+    kunProfile.indexMs += ms
+    kunProfile.maxIndexMs = Math.max(kunProfile.maxIndexMs, ms)
   }
 }
 export function kunDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit | null {
@@ -119,7 +240,10 @@ export function kunDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit |
   let best: SurfaceHit | null = null
   for (const triangle of grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? []) {
     if (obstacles.has(triangle)) continue
-    const t = triangles[triangle], a = t.a.point, b = t.b.point, c = t.c.point
+    const t = triangles[triangle],
+      a = t.a.point,
+      b = t.b.point,
+      c = t.c.point
     if (t.normal.y <= 0.05) continue
     const d = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
     if (Math.abs(d) < 1e-9) continue
@@ -128,7 +252,13 @@ export function kunDeckHit(x: number, z: number, fromY = Infinity): SurfaceHit |
     if (u < -1e-6 || v < -1e-6 || u + v > 1.000001) continue
     const y = a.y * u + b.y * v + c.y * (1 - u - v)
     if (y > fromY + 1 || (best && y <= best.y)) continue
-    best = { y, normal: [t.normal.x, t.normal.y, t.normal.z], normalY: t.normal.y, surfaceId: 'kun', anchor: { triangle, u, v } }
+    best = {
+      y,
+      normal: [t.normal.x, t.normal.y, t.normal.z],
+      normalY: t.normal.y,
+      surfaceId: 'kun',
+      anchor: { triangle, u, v },
+    }
   }
   return best
 }
@@ -136,8 +266,15 @@ export function evaluateDeckAnchor(address: SurfaceAddress, out: Vector3): Vecto
   const start = import.meta.env.DEV && kunProfile.enabled ? performance.now() : -1
   const t = triangles[address.triangle]
   if (!kunState.ready || !t) return null
-  out.copy(skin(t.a)).multiplyScalar(address.u).addScaledVector(skin(t.b), address.v).addScaledVector(skin(t.c), 1 - address.u - address.v)
-  if (start >= 0) { kunProfile.anchors++; kunProfile.anchorMs += performance.now() - start }
+  out
+    .copy(skin(t.a))
+    .multiplyScalar(address.u)
+    .addScaledVector(skin(t.b), address.v)
+    .addScaledVector(skin(t.c), 1 - address.u - address.v)
+  if (start >= 0) {
+    kunProfile.anchors++
+    kunProfile.anchorMs += performance.now() - start
+  }
   return out
 }
 export function deckAnchor(hit: SurfaceHit): DeckAnchor | null {
@@ -154,10 +291,12 @@ export function kunOrbPosition(index: number, out: Vector3) {
 
 /** Exact segment clearance through the skinned deck, including pavilion walls and tree trunks. */
 export function kunClearance(from: Vector3, direction: Vector3, length: number): number {
-  if (!kunState.ready || Math.hypot(from.x - kunState.center.x, from.z - kunState.center.z) > 220 + length) return length
+  if (!kunState.ready || Math.hypot(from.x - kunState.center.x, from.z - kunState.center.z) > 220 + length)
+    return length
   indexFrame()
   ray.set(from, direction)
-  const endX = from.x + direction.x * length, endZ = from.z + direction.z * length
+  const endX = from.x + direction.x * length,
+    endZ = from.z + direction.z * length
   let free = length
   const seen = new Set<number>()
   for (let x = Math.floor(Math.min(from.x, endX) / CELL); x <= Math.floor(Math.max(from.x, endX) / CELL); x++) {
@@ -180,9 +319,10 @@ export function kunBodyBlocked(x: number, y: number, z: number, nx: number, nz: 
   if (distance < 1e-7) return false
   rayDirection.set((nx - x) / distance, 0, (nz - z) / distance)
   normal.set(-rayDirection.z, 0, rayDirection.x)
-  for (const h of [0.5, 1.2, 1.7]) for (const side of [-0.35, 0, 0.35]) {
-    bodyFrom.set(x, y + h, z).addScaledVector(normal, side)
-    if (kunClearance(bodyFrom, rayDirection, distance + 0.35) < distance + 0.35 - 1e-5) return true
-  }
+  for (const h of [0.5, 1.2, 1.7])
+    for (const side of [-0.35, 0, 0.35]) {
+      bodyFrom.set(x, y + h, z).addScaledVector(normal, side)
+      if (kunClearance(bodyFrom, rayDirection, distance + 0.35) < distance + 0.35 - 1e-5) return true
+    }
   return false
 }

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CSM } from 'three/examples/jsm/csm/CSM.js'
 import {
-  DirectionalLight,
   HemisphereLight,
   Mesh,
   ShaderChunk,
@@ -19,10 +18,9 @@ import { QUALITY_PRESETS } from '../quality'
 const SHADOW_FAR = 1500
 const SPLITS: Record<number, number[]> = { 3: [0.035, 0.18, 1], 4: [0.02, 0.07, 0.25, 1] }
 /**
- * Every shadowed tier compiles the same four cascade slots, so switching between them (by hand or by auto quality)
- * reuses the lit programs instead of recompiling ~120 of them on the GPU process (a 12 s freeze on D3D). A tier with
- * fewer cascades leaves its leading slots empty: a (0, 0) range has no fade margin, so the shader never selects it,
- * and its 1×1 map is drawn once and then frozen. The real cascades keep their splits and the last one still fades.
+ * Keep the light and shadow slot counts identical across tiers to reuse compiled programs. Empty leading ranges
+ * are never selected. Low uses only the last light range, with shadow reception off and frozen 1×1 maps: changing
+ * castShadow or removing the lights would change the shader key and bring back the multi-second switch stall.
  */
 const CASCADE_SLOTS = 4
 /** How far toward the sun a caster may sit outside a cascade (the main hall is ~420 m tall). */
@@ -35,7 +33,7 @@ const isLit = (material: Material) =>
   )
 const keyDirection = new Vector3()
 
-/** Bumped whenever lit materials need new programs (re-hooked to new cascades, or the light set changed). */
+/** Bumped when newly mounted lit materials receive their CSM shader hooks. */
 export const lightingChanges = { serial: 0 }
 
 /**
@@ -64,7 +62,7 @@ function restoreStandardDfg() {
 /**
  * Sun/moon key light with cascaded shadows, plus hemisphere fill. Image-based fill comes from SkyDome.
  *
- * Every lit mesh casts and receives shadows unless `userData.castShadow === false`. CSM needs each lit
+ * Shadowed tiers enable reception; `userData.castShadow === false` excludes a mesh from casting. CSM needs each lit
  * material flagged before its first compile (otherwise the cascades add up as separate lights), so new
  * meshes are picked up every frame; existing `onBeforeCompile` hooks (T02R terrain shaders) are chained.
  */
@@ -74,38 +72,34 @@ export function Lighting() {
   const quality = useWorldStore((state) => state.quality)
   const { shadowCascades, shadowMapSize } = QUALITY_PRESETS[quality]
   const hemi = useMemo(() => new HemisphereLight(), [])
-  const plain = useRef<DirectionalLight>(null)
   const hooked = useRef(new Map<Material, Hook | null>())
   const lens = useRef({ fov: 0, aspect: 0 })
-  const cascadesSeen = useRef(shadowCascades)
+  const tier = useRef({ cascades: 4, mapSize: 0 })
 
   // CSM adds its lights to the scene on construction, so it must be created in an effect (not during render).
   const csmRef = useRef<CSM | null>(null)
   useEffect(() => {
-    if (!shadowCascades) return
-    const empty = CASCADE_SLOTS - shadowCascades
-    const splits = [...Array<number>(empty).fill(0), ...SPLITS[shadowCascades]]
     const instance = new CSM({
       camera,
       parent: scene,
       cascades: CASCADE_SLOTS,
       maxFar: SHADOW_FAR,
-      shadowMapSize,
+      shadowMapSize: 1,
       mode: 'custom',
-      customSplitsCallback: (_count: number, _near: number, _far: number, target: number[]) => target.push(...splits),
+      customSplitsCallback: (_count: number, _near: number, _far: number, target: number[]) => {
+        const count = tier.current.cascades
+        target.push(...Array<number>(CASCADE_SLOTS - Math.max(1, count)).fill(0), ...(SPLITS[count] ?? [1]))
+      },
       lightMargin: LIGHT_MARGIN,
       lightFar: LIGHT_MARGIN + SHADOW_FAR * 2,
       shadowBias: -0.00015,
     })
     restoreStandardDfg()
     instance.fade = true
-    instance.lights.forEach((light, i) => {
+    instance.lights.forEach((light) => {
       light.shadow.radius = 2
-      if (i >= empty) return
-      light.shadow.mapSize.set(1, 1)
-      light.shadow.autoUpdate = false
-      light.shadow.needsUpdate = true
     })
+    tier.current.mapSize = 0
     lens.current = { fov: 0, aspect: 0 }
     csmRef.current = instance
     const originals = hooked.current
@@ -113,7 +107,10 @@ export function Lighting() {
     if (import.meta.env.DEV)
       hooks.__lightingStats = () => ({
         cascades: instance.lights.length,
+        activeCascades: tier.current.cascades,
         shadowMaps: instance.lights.filter((light) => light.shadow.map).length,
+        updatingMaps: instance.lights.filter((light) => light.shadow.autoUpdate).length,
+        mapSizes: instance.lights.map((light) => light.shadow.mapSize.x),
         hookedMaterials: originals.size,
         frustums: instance.lights.map((light) => Math.round(light.shadow.camera.right - light.shadow.camera.left)),
       })
@@ -129,7 +126,7 @@ export function Lighting() {
       })
       originals.clear()
     }
-  }, [camera, scene, shadowCascades, shadowMapSize])
+  }, [camera, scene])
 
   useFrame(() => {
     const csm = csmRef.current
@@ -138,21 +135,26 @@ export function Lighting() {
     hemi.color.copy(atmosphere.hemiSky)
     hemi.groundColor.copy(atmosphere.hemiGround)
     hemi.intensity = atmosphere.hemiIntensity
-    if (cascadesSeen.current !== shadowCascades) {
-      cascadesSeen.current = shadowCascades
-      lightingChanges.serial++
-    }
-
-    if (!csm) {
-      const light = plain.current
-      if (light) {
-        light.position.copy(camera.position).addScaledVector(dir, 500)
-        light.target.position.copy(camera.position)
-        light.target.updateMatrixWorld()
-        light.color.copy(color)
-        light.intensity = intensity
-      }
-      return
+    if (!csm) return
+    // Quality only changes uniforms and render targets. Rebuilding CSM would invalidate every material hook.
+    if (tier.current.cascades !== shadowCascades || tier.current.mapSize !== shadowMapSize) {
+      tier.current = { cascades: shadowCascades, mapSize: shadowMapSize }
+      // CSM also uses this size to snap its moving light cameras to shadow texels.
+      csm.shadowMapSize = shadowMapSize
+      csm.lights.forEach((light, i) => {
+        const active = i >= CASCADE_SLOTS - shadowCascades
+        const size = active ? shadowMapSize : 1
+        if (light.shadow.mapSize.x !== size) {
+          light.shadow.map?.dispose()
+          light.shadow.map = null
+          light.shadow.mapSize.set(size, size)
+        }
+        light.shadow.autoUpdate = active
+        light.shadow.needsUpdate = true
+        // Allocate/clear inactive maps once without submitting scene geometry.
+        light.shadow.camera.layers.mask = active ? 1 : 0
+      })
+      lens.current = { fov: 0, aspect: 0 }
     }
     let rehooked = false
     scene.traverse((object: Object3D) => {
@@ -177,7 +179,7 @@ export function Lighting() {
         rehooked = true
       }
       if (lit) {
-        mesh.receiveShadow = true
+        mesh.receiveShadow = shadowCascades > 0
         mesh.castShadow = mesh.userData.castShadow !== false
       }
     })
@@ -196,10 +198,5 @@ export function Lighting() {
     csm.update()
   })
 
-  return (
-    <>
-      <primitive object={hemi} />
-      {!shadowCascades && <directionalLight ref={plain} />}
-    </>
-  )
+  return <primitive object={hemi} />
 }

@@ -3,6 +3,7 @@ import { Suspense, useEffect, useMemo } from 'react'
 import { environmentMaterial } from '../environment/t02r/materials'
 import { BRIDGES } from '../sites'
 import { registerColliders, registerWalkables } from '../surfaces'
+import { registerObjectColliders, registerObjectWalkables } from '../meshColliders'
 import type { Collider, WalkableSurface } from '../surfaces'
 import { LAYOUT } from '../worldLayout'
 import { Balustrades } from './Balustrades'
@@ -16,15 +17,18 @@ import { Waterfalls } from './Waterfalls'
 /** Walkable ledges, pads and decks and flight colliders for everything the landmarks build. */
 function landmarkSurfaces() {
   const rock = rockSurfaces()
-  const walkables: WalkableSurface[] = [...rock.walkables], colliders: Collider[] = [...rock.colliders]
-  for (const [x, z] of BANNER_POLES) colliders.push({ kind: 'cylinder', x, z, radius: 0.6, minY: LAYOUT.platform.height, maxY: BANNER_TOP })
+  const walkables: WalkableSurface[] = [...rock.walkables],
+    colliders: Collider[] = [...rock.colliders]
+  for (const [x, z] of BANNER_POLES)
+    colliders.push({ kind: 'cylinder', x, z, radius: 0.6, minY: LAYOUT.platform.height, maxY: BANNER_TOP })
   colliders.push(...chainColliders())
   for (const b of BRIDGES) walkables.push({ kind: 'span', from: b.from, to: b.to, halfWidth: b.halfWidth, sag: b.sag })
   return { walkables, colliders }
 }
 
-const ROCK_URLS = ['pillars.glb', 'pillars.lod1.glb', 'islands.glb', 'islands.lod1.glb']
-  .map((file) => `${import.meta.env.BASE_URL}assets/environment/rocks/${file}`.replace(/\/{2,}/g, '/'))
+const ROCK_URLS = ['pillars.glb', 'pillars.lod1.glb', 'islands.glb', 'islands.lod1.glb'].map((file) =>
+  `${import.meta.env.BASE_URL}assets/environment/rocks/${file}`.replace(/\/{2,}/g, '/'),
+)
 // Preload the exact list RockField reads: the loader cache is keyed by the whole URL list, not per file.
 useGLTF.preload(ROCK_URLS)
 
@@ -35,9 +39,32 @@ useGLTF.preload(ROCK_URLS)
 function RockField() {
   const gltfs = useGLTF(ROCK_URLS)
   const material = useMemo(() => environmentMaterial('karst'), [])
-  const field = useMemo(() => buildRockField(gltfs.map((gltf) => gltf.scene), material), [gltfs, material])
-  useEffect(() => () => { field.dispose(); material.dispose() }, [field, material])
-  return <>{field.root.map((object) => <primitive key={object.uuid} object={object} />)}</>
+  const field = useMemo(
+    () =>
+      buildRockField(
+        gltfs.map((gltf) => gltf.scene),
+        material,
+      ),
+    [gltfs, material],
+  )
+  useEffect(() => {
+    const off = field.collidable.flatMap((object) => [registerObjectColliders(object), registerObjectWalkables(object)])
+    return () => off.forEach((unregister) => unregister())
+  }, [field])
+  useEffect(
+    () => () => {
+      field.dispose()
+      material.dispose()
+    },
+    [field, material],
+  )
+  return (
+    <>
+      {field.root.map((object) => (
+        <primitive key={object.uuid} object={object} />
+      ))}
+    </>
+  )
 }
 
 /** Dev-only: `?nolandmarks` drops the whole layer, `?norocks` just the rock field, to measure their draw-call delta. */
@@ -49,9 +76,26 @@ export function Landmarks() {
   useEffect(() => {
     if (DISABLED) return
     const { walkables, colliders } = landmarkSurfaces()
-    const offWalk = registerWalkables(walkables), offCollide = registerColliders(colliders)
-    return () => { offWalk(); offCollide() }
+    const offWalk = registerWalkables(walkables),
+      offCollide = registerColliders(colliders)
+    return () => {
+      offWalk()
+      offCollide()
+    }
   }, [])
   if (DISABLED) return null
-  return <>{!NO_ROCKS && <Suspense fallback={null}><RockField /></Suspense>}<Bridges /><Chains /><Balustrades /><Waterfalls /><Banners /></>
+  return (
+    <>
+      {!NO_ROCKS && (
+        <Suspense fallback={null}>
+          <RockField />
+        </Suspense>
+      )}
+      <Bridges />
+      <Chains />
+      <Balustrades />
+      <Waterfalls />
+      <Banners />
+    </>
+  )
 }

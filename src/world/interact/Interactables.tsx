@@ -36,6 +36,7 @@ import type { InteractKind } from '../sites'
 import { yawToward } from '../sites'
 import { useWorldStore } from '../store'
 import { registerColliders, registerWalkables } from '../surfaces'
+import { registerObjectColliders } from '../meshColliders'
 import type { Collider, WalkableDisc } from '../surfaces'
 import { withSceneWeather } from '../weather/surfaceWeather'
 import {
@@ -154,6 +155,7 @@ function SiteModel({ spec }: { spec: ModelSpec }) {
     return instanced
   }, [gltf.scene, spec])
   useEffect(() => () => mesh?.dispose(), [mesh])
+  useEffect(() => (mesh ? registerObjectColliders(mesh) : undefined), [mesh])
   return mesh ? <primitive object={mesh} /> : null
 }
 
@@ -179,6 +181,7 @@ function Plinths() {
     instanced.userData.castShadow = false
     return instanced
   }, [])
+  useEffect(() => (mesh ? registerObjectColliders(mesh) : undefined), [mesh])
   useEffect(
     () => () => {
       mesh?.geometry.dispose()
