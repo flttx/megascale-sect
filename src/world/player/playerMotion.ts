@@ -47,6 +47,11 @@ export const smooth = (t: number) => {
   return v * v * (3 - 2 * v)
 }
 
+/** Body actions at interaction sites: bow to a stele, strike the bell, attune at an array or altar, sit to meditate. */
+export type Gesture = 'bow' | 'strike' | 'attune' | 'sit'
+/** How long each lasts (s); sitting holds until the meditation ends. */
+export const GESTURE_TIME: Record<Gesture, number> = { bow: 1.6, strike: 0.9, attune: 1.4, sit: Infinity }
+
 export type PlayerRuntime = {
   position: Vector3
   velocity: Vector3
@@ -66,6 +71,9 @@ export type PlayerRuntime = {
   impact: number
   braking: boolean
   boostMix: number
+  /** The interaction gesture under way, and how long it has run. */
+  gesture: Gesture | null
+  gestureTime: number
   /** Jump press still waiting for footing (s); off the ground on foot; its smoothed weight; landing crouch 0…1. */
   jumpBuffer: number
   inAir: boolean
@@ -113,6 +121,8 @@ export function createPlayerRuntime(): PlayerRuntime {
     takeoff: 0,
     takeoffTime: 0,
     launch: 0,
+    gesture: null,
+    gestureTime: 0,
     aboard: null,
     carrierDelta: new Vector3(),
     carrierVelocity: new Vector3(),
@@ -326,10 +336,23 @@ export function requestFlightToggle(runtime: PlayerRuntime): string | null {
 const gust = new Vector3()
 let windNoticed = false
 
+/**
+ * Runs the interaction gesture's clock. Also called while the player is held (a lore card or panel has released the
+ * pointer), so a bow plays out behind the card instead of waiting for it to close.
+ */
+export function advanceGesture(runtime: PlayerRuntime, moving: boolean, delta: number) {
+  if (!runtime.gesture) return
+  runtime.gestureTime += delta
+  // Moving off (or leaving the ground) ends a gesture; sitting is ended by the meditation itself.
+  const interrupted = runtime.gesture !== 'sit' && (moving || runtime.phase !== 'GROUND')
+  if (interrupted || runtime.gestureTime >= GESTURE_TIME[runtime.gesture]) runtime.gesture = null
+}
+
 /** `windy` lets the wind streams carry a flier; a photo camera holds the player still, so it passes false. */
 export function stepPlayer(runtime: PlayerRuntime, input: Vector3, boosting: boolean, delta: number, windy = true) {
   runtime.time += delta
   runtime.elapsed += delta
+  advanceGesture(runtime, input.lengthSq() > 0, delta)
   runtime.impact *= Math.exp(-8 * delta)
   runtime.landing *= Math.exp(-6 * delta)
   runtime.rideMix +=

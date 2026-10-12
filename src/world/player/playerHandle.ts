@@ -1,6 +1,6 @@
 import { groundHeight } from '../worldLayout'
 import { resetCameraRig } from './CameraRig'
-import { changePhase, updatePlayerSupport, type PlayerRuntime } from './playerMotion'
+import { changePhase, updatePlayerSupport, type Gesture, type PlayerRuntime } from './playerMotion'
 
 /** Imperative access to the live player for systems outside the Player component (interactables, UI, save). */
 let bound: PlayerRuntime | null = null
@@ -14,6 +14,19 @@ export function bindPlayerRuntime(runtime: PlayerRuntime) {
 
 export function getPlayerRuntime(): Readonly<PlayerRuntime> | null {
   return bound
+}
+
+/**
+ * Plays an interaction gesture on foot (`null` ends one, e.g. standing up from meditation). `toward` turns the body to
+ * face the site; the view keeps its own heading.
+ */
+export function playGesture(gesture: Gesture | null, toward?: readonly [number, number, number]) {
+  const runtime = bound
+  if (!runtime || runtime.phase !== 'GROUND') return false
+  runtime.gesture = gesture
+  runtime.gestureTime = 0
+  if (gesture && toward) runtime.facing = Math.atan2(toward[0] - runtime.position.x, -(toward[2] - runtime.position.z))
+  return true
 }
 
 /**

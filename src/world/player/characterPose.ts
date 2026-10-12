@@ -1,7 +1,7 @@
 import { Bone, Object3D, Quaternion, Vector3 } from 'three'
 import type { AnimationClip } from 'three'
 import { ClipLayer, type ClipTarget, type Gaits } from './characterClips'
-import { FLIGHT_SEQUENCE, smooth, type PlayerRuntime } from './playerMotion'
+import { FLIGHT_SEQUENCE, GESTURE_TIME, smooth, type PlayerRuntime } from './playerMotion'
 import { FootPlant } from './footPlant'
 import { RidingPose, ridingPoseWeight } from './ridingPose'
 
@@ -113,25 +113,51 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
   m.facing = runtime.facing
   const surge = Math.max(-0.12, Math.min(0.14, m.accel * 0.012)),
     carve = Math.max(-0.26, Math.min(0.26, m.turn * speed * 0.012))
+  // Interaction gestures, each faded in over 0.25 s and out over its last 0.35 s; sitting holds until it is ended.
+  const g = runtime.gesture,
+    gt = runtime.gestureTime,
+    span = g ? GESTURE_TIME[g] : 0
+  const env = g ? smooth(gt / 0.25) * (Number.isFinite(span) ? 1 - smooth((gt - span + 0.35) / 0.35) : 1) : 0
+  const bow = g === 'bow' ? env : 0,
+    attune = g === 'attune' ? env : 0,
+    sit = g === 'sit' ? env : 0
+  // The bell: draw the arm back and up, then swing through and let it fall.
+  const swingT = g === 'strike' ? gt / span : 0
+  const strike =
+    g === 'strike' ? env * (swingT < 0.45 ? smooth(swingT / 0.45) : 1 - smooth((swingT - 0.45) / 0.15) * 0.8) : 0
+  const follow = g === 'strike' ? env * smooth((swingT - 0.45) / 0.15) : 0
   const pose: Record<string, [number, number, number]> = {
     Spine: [
       carve * 0.4,
       0,
-      (-0.02 - breathe * 0.008) * still - riding * (0.01 + speed * 0.00015) - rig.clips.leap * 0.12 - surge,
+      (-0.02 - breathe * 0.008) * still -
+        riding * (0.01 + speed * 0.00015) -
+        rig.clips.leap * 0.12 -
+        surge -
+        bow * 0.32 +
+        sit * 0.06,
     ],
-    Spine1: [riding * runtime.bank * -0.18 + carve * 0.6, 0, -summon * 0.035],
-    Spine2: [0, summon * -0.13, breathe * 0.009 * still],
-    Neck: [0, 0, riding * 0.045],
+    Spine1: [riding * runtime.bank * -0.18 + carve * 0.6, strike * 0.12 - follow * 0.22, -summon * 0.035 - bow * 0.14],
+    Spine2: [0, summon * -0.13 + strike * 0.16 - follow * 0.2, breathe * 0.009 * still],
+    Neck: [0, 0, riding * 0.045 - bow * 0.16 + attune * 0.12],
     Head: [0, Math.sin(runtime.time * 0.6) * 0.015 * still, 0],
-    RightArm: [riding * (-0.14 + breathe * 0.025), 0, summon * 1.12 + riding * 0.1],
-    RightForeArm: [0, 0, summon * 0.85],
+    RightArm: [
+      riding * (-0.14 + breathe * 0.025),
+      0,
+      summon * 1.12 + riding * 0.1 + bow * 0.55 + attune * 1.05 + strike * 1.5 - follow * 0.7 + sit * 0.25,
+    ],
+    RightForeArm: [0, 0, summon * 0.85 + bow * 1.25 + attune * 0.25 + strike * 0.6 + sit * 0.55],
     RightHand: [summon * -0.25, 0, summon * -0.1],
-    LeftArm: [riding * (0.17 - breathe * 0.025) + summon * -0.12, 0, summon * 0.4 + riding * 0.15],
-    LeftForeArm: [0, summon * -0.3, summon * 0.7],
-    LeftUpLeg: [0, 0, riding * 0.11 + landing * 0.18 + leadL * 0.55 - leadR * 0.4],
-    RightUpLeg: [0, 0, riding * 0.04 + landing * 0.18 + leadR * 0.55 - leadL * 0.4],
-    LeftLeg: [0, 0, -riding * 0.14 - landing * 0.36 - leadL * 0.35 - leadR * 0.6],
-    RightLeg: [0, 0, -riding * 0.12 - landing * 0.36 - leadR * 0.35 - leadL * 0.6],
+    LeftArm: [
+      riding * (0.17 - breathe * 0.025) + summon * -0.12,
+      0,
+      summon * 0.4 + riding * 0.15 + bow * 0.55 + attune * 1.05 + sit * 0.25,
+    ],
+    LeftForeArm: [0, summon * -0.3, summon * 0.7 + bow * 1.25 + attune * 0.25 + sit * 0.55],
+    LeftUpLeg: [0, 0, riding * 0.11 + landing * 0.18 + leadL * 0.55 - leadR * 0.4 + sit * 1.45],
+    RightUpLeg: [0, 0, riding * 0.04 + landing * 0.18 + leadR * 0.55 - leadL * 0.4 + sit * 1.45],
+    LeftLeg: [0, 0, -riding * 0.14 - landing * 0.36 - leadL * 0.35 - leadR * 0.6 - sit * 2.2],
+    RightLeg: [0, 0, -riding * 0.12 - landing * 0.36 - leadR * 0.35 - leadL * 0.6 - sit * 2.2],
     LeftFoot: [0, 0, riding * 0.04],
     RightFoot: [0, 0, riding * 0.06],
   }
@@ -157,7 +183,9 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
   }
   rig.scene.updateMatrixWorld(true)
   const foot = rig.restFootY + rig.clips.weight * Math.max(0, clipFoot - rig.restFootY)
-  const correction = Math.max(-0.18, Math.min(0.18, foot - lowestFoot(rig)))
+  // Sitting folds the legs up under the body, so it may drop the whole figure much further onto the cushion.
+  const reach = 0.18 + sit * 1.1
+  const correction = Math.max(-reach, Math.min(0.18, foot - lowestFoot(rig)))
   const base =
     runtime.phase === 'BOARDING' && jumpTime > 0.16
       ? correction * smooth((jumpTime - 0.68) / 0.14)

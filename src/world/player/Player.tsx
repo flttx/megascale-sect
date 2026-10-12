@@ -7,6 +7,7 @@ import { CameraRig, resetCameraRig, updateCameraRig } from './CameraRig'
 import { SpeedLines } from './SpeedLines'
 import { CharacterVisual } from './CharacterVisual'
 import {
+  advanceGesture,
   carryPlayer,
   createPlayerRuntime,
   isAirborne,
@@ -216,6 +217,7 @@ export function Player() {
       )
     else {
       state.time += delta
+      advanceGesture(state, false, delta)
       if (state.phase === 'GROUND') state.velocity.set(0, 0, 0)
     }
     updatePlayerSupport(state)
