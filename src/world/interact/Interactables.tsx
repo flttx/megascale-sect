@@ -35,9 +35,9 @@ import { withGlazeTamed } from '../props/glaze'
 import type { InteractKind } from '../sites'
 import { yawToward } from '../sites'
 import { useWorldStore } from '../store'
-import { registerColliders, registerWalkables } from '../surfaces'
+import { registerWalkables } from '../surfaces'
 import { registerObjectColliders } from '../meshColliders'
-import type { Collider, WalkableDisc } from '../surfaces'
+import type { WalkableDisc } from '../surfaces'
 import { withSceneWeather } from '../weather/surfaceWeather'
 import {
   compendiumView,
@@ -686,25 +686,8 @@ function SiteSurfaces() {
       ...sitesOf('teleport').map((site) => disc(site, ARRAY_TOP, TELEPORT_PAD_RADIUS)),
       ...sitesOf('meditation').map((site) => disc(site, CUSHION_TOP, 1.05)),
     ]
-    const cylinder = (site: SiteSpec, radius: number, height: number): Collider => ({
-      kind: 'cylinder',
-      x: site.position[0],
-      z: site.position[2],
-      radius,
-      minY: site.position[1] - 1,
-      maxY: site.position[1] + height,
-    })
-    const colliders = [
-      ...sitesOf('stele').map((site) => cylinder(site, 1.6, 4.6)),
-      ...sitesOf('bell').map((site) => cylinder(site, 2.6, 6.2)),
-      ...sitesOf('altar').map((site) => cylinder(site, 3.3, 4.1)),
-    ]
-    const offWalkables = registerWalkables(walkables),
-      offColliders = registerColliders(colliders)
-    return () => {
-      offWalkables()
-      offColliders()
-    }
+    // Steles, bells and altars collide with their rendered mesh (InteractMesh); a wrapping cylinder was an air wall.
+    return registerWalkables(walkables)
   }, [])
   return null
 }

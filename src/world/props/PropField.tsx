@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3 } from 'three'
-import type { Group, Material, MeshStandardMaterial, Object3D, ShaderMaterial } from 'three'
+import type { BufferGeometry, Group, Material, MeshStandardMaterial, Object3D, ShaderMaterial } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { environmentMaterial } from '../environment/t02r/materials'
 import { atmosphere } from '../sky/atmosphere'
@@ -12,7 +12,7 @@ import type { Collider } from '../surfaces'
 import { meshCollider, registerObjectColliders } from '../meshColliders'
 import { withSurfaceWeather } from '../weather/surfaceWeather'
 import { Cranes } from './Cranes'
-import { pineBarkGeometry, placePropColliders, propCollisionShapes } from './colliders'
+import { pineBarkGeometry } from './colliders'
 import { withGlazeTamed } from './glaze'
 import { glowQuad, makeGlowSpriteMaterial, syncGlowFog, withGlowMask } from './glow'
 import { buildPropLayout } from './placement'
@@ -20,7 +20,7 @@ import { advancePines, extractPine } from './pineSource'
 import { extractSource } from './propSource'
 import type { Source } from './propSource'
 import type { Placement } from './placement'
-import { extractBoulders, extractStone } from './stoneSource'
+import { boulderShape, boulderShapeGeometries, extractBoulders, extractStone } from './stoneSource'
 import { isPine, PROP_IDS, PROPS, propUrl } from './propCatalog'
 import type { PropId, PropSpec } from './propCatalog'
 
@@ -44,8 +44,9 @@ useGLTF.preload(URLS)
 
 /** One prop type: a near LOD0 and a far LOD1 InstancedMesh sharing a precomputed matrix pool. */
 class PropBucket {
-  readonly colliders: ReturnType<typeof propCollisionShapes>
   readonly bark: ReturnType<typeof pineBarkGeometry> | null
+  /** Boulder shapes apart: each instance draws, and so collides with, only the one its position picks. */
+  readonly boulders: BufferGeometry[] | null
   readonly near: InstancedMesh
   readonly far: InstancedMesh | null
   readonly matrices: Float32Array
@@ -59,8 +60,8 @@ class PropBucket {
     lod1: Source | null,
     readonly glowMaterials: MeshStandardMaterial[],
   ) {
-    this.colliders = propCollisionShapes(spec.id, lod0.geometry)
     this.bark = isPine(spec.id) ? pineBarkGeometry(lod0.geometry) : null
+    this.boulders = STONE[spec.id] === extractBoulders ? boulderShapeGeometries(lod0.geometry) : null
     const n = placements.length
     this.matrices = new Float32Array(n * 16)
     this.positions = new Float32Array(n * 3)
@@ -194,19 +195,17 @@ function PropFieldContent() {
     for (const bucket of buckets)
       bucket.placements.forEach((placement, i) => {
         if (placement.rank >= DENSITY[quality]) return
-        if (bucket.colliders.length) list.push(...placePropColliders(bucket.colliders, placement))
-        else
-          list.push(
-            meshCollider(
-              bucket.near.geometry,
-              matrix.fromArray(bucket.matrices, i * 16),
-              `Prop_${bucket.spec.id}/${i}`,
-            ),
-          )
-        if (bucket.bark)
-          list.push(
-            meshCollider(bucket.bark, matrix.fromArray(bucket.matrices, i * 16), `Prop_${bucket.spec.id}_bark/${i}`),
-          )
+        const { bark, boulders } = bucket
+        matrix.fromArray(bucket.matrices, i * 16)
+        list.push(
+          bark
+            ? meshCollider(bark, matrix, `Prop_${bucket.spec.id}_bark/${i}`)
+            : meshCollider(
+                boulders?.[boulderShape(placement.x, placement.z, boulders.length)] ?? bucket.near.geometry,
+                matrix,
+                `Prop_${bucket.spec.id}/${i}`,
+              ),
+        )
       })
     return registerColliders(list)
   }, [buckets, quality])
@@ -216,7 +215,8 @@ function PropFieldContent() {
   // the cached GLTFs stay intact for a remount.
   useEffect(
     () => () => {
-      for (const bucket of buckets) bucket.bark?.dispose()
+      for (const bucket of buckets)
+        for (const geometry of [bucket.bark, ...(bucket.boulders ?? [])]) geometry?.dispose()
       for (const bucket of buckets)
         for (const mesh of [bucket.near, bucket.far]) {
           if (!mesh) continue

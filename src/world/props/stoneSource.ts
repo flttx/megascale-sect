@@ -17,6 +17,34 @@ const PICK = /* glsl */ `#include <begin_vertex>
   }
   #endif`
 
+/** The shape PICK draws for an instance at (x, z), in the shader's float32 arithmetic. */
+export function boulderShape(x: number, z: number, shapes: number) {
+  const f = Math.fround,
+    fract = (v: number) => f(v - Math.floor(v))
+  const a = fract(f(f(x) * f(0.1031))),
+    b = fract(f(f(z) * f(0.1031))),
+    c = a
+  const d = f(f(f(a * f(b + f(33.33))) + f(b * f(c + f(33.33)))) + f(c * f(a + f(33.33))))
+  return Math.floor(f(fract(f(f(f(a + d) + f(b + d)) * f(c + d))) * shapes))
+}
+
+/** Each boulder shape alone (its aBoulder triangles), so collision matches the one shape PICK draws. */
+export function boulderShapeGeometries(source: BufferGeometry): BufferGeometry[] {
+  const shape = source.getAttribute('aBoulder'),
+    index = source.index!
+  const lists: number[][] = []
+  for (let i = 0; i < index.count; i += 3) {
+    const list = (lists[shape.getX(index.getX(i))] ??= [])
+    list.push(index.getX(i), index.getX(i + 1), index.getX(i + 2))
+  }
+  return lists.map((indices) => {
+    const geometry = new BufferGeometry()
+    geometry.setAttribute('position', source.getAttribute('position'))
+    geometry.setIndex(indices)
+    return geometry
+  })
+}
+
 /**
  * The Blender boulders (asset-pipeline/rocks) in the karst stone the pillars wear, their baked AO / moss /
  * bedding colour as its mask. Every shape is scaled to a unit footprint (x and z within ±0.5), ground at y 0.
@@ -24,14 +52,18 @@ const PICK = /* glsl */ `#include <begin_vertex>
 export function extractBoulders(scene: Object3D): Source {
   scene.updateMatrixWorld(true)
   const meshes: Mesh[] = []
-  scene.traverse((object) => { if ((object as Mesh).isMesh) meshes.push(object as Mesh) })
+  scene.traverse((object) => {
+    if ((object as Mesh).isMesh) meshes.push(object as Mesh)
+  })
   meshes.sort((a, b) => a.name.localeCompare(b.name))
   const box = new Box3()
   const parts = meshes.map((mesh, shape) => {
-    const src = mesh.geometry, geometry = new BufferGeometry()
+    const src = mesh.geometry,
+      geometry = new BufferGeometry()
     // Dequantised copies: the GLB stores normalised int16 positions and normals.
     for (const name of ['position', 'normal'] as const) {
-      const a = src.getAttribute(name), out = new Float32Array(a.count * 3)
+      const a = src.getAttribute(name),
+        out = new Float32Array(a.count * 3)
       for (let i = 0; i < a.count; i++) for (let k = 0; k < 3; k++) out[i * 3 + k] = a.getComponent(i, k)
       geometry.setAttribute(name, new BufferAttribute(out, 3))
     }
@@ -40,9 +72,13 @@ export function extractBoulders(scene: Object3D): Source {
     box.setFromBufferAttribute(geometry.getAttribute('position') as BufferAttribute)
     const s = 1 / Math.max(box.max.x - box.min.x, box.max.z - box.min.z)
     geometry.translate(-(box.min.x + box.max.x) / 2, 0, -(box.min.z + box.max.z) / 2).scale(s, s, s)
-    const color = src.getAttribute('color'), count = geometry.getAttribute('position').count
+    const color = src.getAttribute('color'),
+      count = geometry.getAttribute('position').count
     const mask = new Uint8Array(count * 4).fill(255)
-    if (color) for (let i = 0; i < count; i++) for (let k = 0; k < Math.min(4, color.itemSize); k++) mask[i * 4 + k] = Math.round(color.getComponent(i, k) * 255)
+    if (color)
+      for (let i = 0; i < count; i++)
+        for (let k = 0; k < Math.min(4, color.itemSize); k++)
+          mask[i * 4 + k] = Math.round(color.getComponent(i, k) * 255)
     geometry.setAttribute('rockMask', new BufferAttribute(mask, 4, true))
     geometry.setAttribute('aBoulder', new BufferAttribute(new Float32Array(count).fill(shape), 1))
     return geometry
@@ -65,7 +101,9 @@ export function extractBoulders(scene: Object3D): Source {
 export function extractStone(scene: Object3D): Source {
   scene.updateMatrixWorld(true)
   let mesh: Mesh | undefined
-  scene.traverse((object) => { if (!mesh && (object as Mesh).isMesh) mesh = object as Mesh })
+  scene.traverse((object) => {
+    if (!mesh && (object as Mesh).isMesh) mesh = object as Mesh
+  })
   if (!mesh) throw new Error('stone GLB has no mesh')
   const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld)
   geometry.computeBoundingSphere()

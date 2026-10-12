@@ -168,6 +168,37 @@ try {
     for (let i = 0; i < 20; i++) stepFlight(flier, flightVelocity, up, 0, 0, true, 1 / 20)
     checks.push(['boosted flight cannot cross kun belly', flier.y <= belly.y + 0.31 && flier.y > belly.y - 3])
 
+    // Chain bollards (Chains.tsx: post 2.66 m at the foot flaring to 1.9 m over 7 m, cap, knob) are solid to their
+    // rendered surface, with no ring of empty collision 0.3 m outside the post.
+    const { chainRuns } = await window.__liveImport('/src/world/landmarks/Chains.tsx')
+    let bollardMisses = 0,
+      bollardRings = 0
+    const runs = chainRuns()
+    for (const { bollard, from } of runs) {
+      for (let h = 0.5; h < 7; h += 0.5)
+        for (let k = 0; k < 8; k++) {
+          const r = 2.66 - (0.76 * h) / 7,
+            a = (k * Math.PI) / 4,
+            y = bollard.y + h
+          if (!insideAnyCollider(bollard.x + Math.cos(a) * (r - 0.02), y, bollard.z + Math.sin(a) * (r - 0.02), 0.08))
+            bollardMisses++
+          if (
+            h >= 1.5 &&
+            Math.abs(y - from.y) > 1 &&
+            // Above the isle's rock: where its lip rises round the foot, the post is buried in solid stone.
+            y >
+              (groundHeight(bollard.x + Math.cos(a) * (r + 0.3), bollard.z + Math.sin(a) * (r + 0.3), y + 5) ??
+                -Infinity) &&
+            insideAnyCollider(bollard.x + Math.cos(a) * (r + 0.3), y, bollard.z + Math.sin(a) * (r + 0.3), 0)
+          )
+            bollardRings++
+        }
+      if (!insideAnyCollider(bollard.x, bollard.y + 7 + 1.1 + 1.33 - 0.05, bollard.z, 0.08)) bollardMisses++
+      if (!insideAnyCollider(bollard.x + 2.4, bollard.y + 7.35, bollard.z, 0.08)) bollardMisses++
+    }
+    checks.push(['chain bollards: rendered surface solid', runs.length > 0 && bollardMisses === 0])
+    checks.push(['chain bollards: no invisible ring', bollardRings === 0])
+
     // Crane body vertices around the shoulder axis are unaffected by the wing shader.
     let craneSamples = 0,
       craneHits = 0
@@ -195,6 +226,7 @@ try {
       rail: rail.toArray(),
       kun: { clearance, belly: belly.toArray(), stopped: flier.toArray() },
       cranes: { samples: craneSamples, hits: craneHits },
+      bollards: { runs: runs.length, misses: bollardMisses, rings: bollardRings },
       registered: surfaceStats().colliders.length,
       moving: surfaceStats().movingColliders,
     }

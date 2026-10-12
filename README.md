@@ -110,8 +110,9 @@ Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright 
 | `vp run verify:viewpoints`              | All ten viewpoint paths at three qualities and frame rates, approach variants, live playback, canopy clearance, skips and camera hand-back    |
 | `vp run verify:perf`                    | 45 scene/tier/weather samples including the Kun deck; draw calls ≤400; supports `MIN_FPS`                                                     |
 | `vp run verify:quality-switch`          | First/repeated/rapid switches, deferred warm-up, shadow tiers, nonblank frames and WebGL recovery; `MAX_SWITCH_FRAME_MS` defaults to 2500 ms  |
-| `vp run verify:prop-collision`          | All prop types: quality density and registration cleanup; rocks/pines at 20/60/144 fps, boosted flight, old-save escape and keyboard movement |
+| `vp run verify:prop-collision`          | All prop types: quality density and registration cleanup; rocks/pines stop at contact at 20/60/144 fps, boosted flight, old-save escape, keys |
 | `vp run verify:model-collision`         | Rendered solid surface probes, gate/bridge access, balustrades, animated Kun belly and live crane collision                                   |
+| `vp run verify:air-walls`               | Standable ground across the core area and every island top: any walking block must come from a rendered surface, never an invisible wall      |
 | `vp run verify:visual`                  | Time-of-day and weather views with brightness/contrast checks                                                                                 |
 | `vp run verify:characters`              | Both characters, sword summon/flight, switching, and pause/resume                                                                             |
 | `vp run verify:navigation`              | Gate, stairs, hall collision, and high-altitude traversal                                                                                     |
