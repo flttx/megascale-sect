@@ -1,11 +1,24 @@
 import { useEffect, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { DoubleSide, InstancedBufferAttribute, InstancedMesh, Matrix4, Mesh, PlaneGeometry, Quaternion, ShaderMaterial, Uniform, Vector3 } from 'three'
+import {
+  DoubleSide,
+  InstancedBufferAttribute,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  PlaneGeometry,
+  Quaternion,
+  ShaderMaterial,
+  Uniform,
+  Vector3,
+} from 'three'
 import { atmosphere } from './atmosphere'
 import { fogUniforms } from './fog'
 import { FOG_GLSL, NOISE_GLSL } from './glsl'
 import { hash, terrainHeight } from '../environment/t02r/terrain'
+import { worldTerrainHeight } from '../regions/regions'
 import { useWorldStore } from '../store'
+import { BLACK_MIST_UNIFORMS, STORM_SHADE_GLSL } from '../blackMist/materials'
 import { QUALITY_PRESETS } from '../quality'
 
 /** Top of the cloud sea; P3 landmarks rise out of it and P4 weather can raise or thin it. */
@@ -13,9 +26,15 @@ export const CLOUD_SEA_Y = -84
 const LAYER_Y = [CLOUD_SEA_Y - 34, CLOUD_SEA_Y - 17, CLOUD_SEA_Y]
 
 const sharedUniforms = () => ({
-  uTime: new Uniform(0), uCover: new Uniform(0.5), uWind: new Uniform(atmosphere.wind),
-  uLit: new Uniform(atmosphere.cloudLit), uShade: new Uniform(atmosphere.cloudShade),
+  uTime: new Uniform(0),
+  uCover: new Uniform(0.5),
+  uWind: new Uniform(atmosphere.wind),
+  uLit: new Uniform(atmosphere.cloudLit),
+  uShade: new Uniform(atmosphere.cloudShade),
   ...fogUniforms,
+  uMistFront: BLACK_MIST_UNIFORMS.uMistFront,
+  uMistAmount: BLACK_MIST_UNIFORMS.uMistAmount,
+  uMistCorruption: BLACK_MIST_UNIFORMS.uMistCorruption,
 })
 
 const seaVertex = /* glsl */ `
@@ -29,8 +48,10 @@ const seaFragment = /* glsl */ `
 varying vec3 vWorld;
 uniform float uTime; uniform float uCover; uniform vec2 uWind; uniform float uLayer;
 uniform vec3 uLit; uniform vec3 uShade;
+uniform float uMistFront; uniform float uMistAmount; uniform float uMistCorruption;
 ${NOISE_GLSL}
 ${FOG_GLSL}
+${STORM_SHADE_GLSL}
 void main() {
   vec3 toFrag = vWorld - cameraPosition;
   float dist = length(toFrag);
@@ -47,7 +68,10 @@ void main() {
   // Toward the horizon the deck closes into a continuous sea and melts into the fog.
   alpha = mix(alpha, 1.0, smoothstep(700.0, 2000.0, dist) * (0.55 + uLayer * 0.4));
   alpha *= smoothstep(18.0, 90.0, dist) * (1.0 - smoothstep(5600.0, 5900.0, dist));
-  col = mix(col, fogColorFor(dir), heightFog(cameraPosition, dir, dist) * 0.85);
+  // Under the Black Mist deck the sea loses its sunlight, as the volumetric sea does.
+  col *= 0.4 + 0.6 * stormShade(vWorld.x);
+  float fog = heightFog(cameraPosition, dir, dist);
+  col = mix(col, fogColorFor(dir) * stormShadeAlong(cameraPosition, dir, dist), fog * 0.85);
   gl_FragColor = vec4(col, alpha * (0.72 + uLayer * 0.28));
 }`
 
@@ -66,8 +90,10 @@ void main() {
 const puffFragment = /* glsl */ `
 varying vec2 vUv; varying float vSeed; varying vec3 vWorld;
 uniform float uTime; uniform vec3 uLit; uniform vec3 uShade;
+uniform float uMistFront; uniform float uMistAmount; uniform float uMistCorruption;
 ${NOISE_GLSL}
 ${FOG_GLSL}
+${STORM_SHADE_GLSL}
 void main() {
   vec2 q = vUv - 0.5;
   q.y *= 1.35;
@@ -82,11 +108,16 @@ void main() {
   float shade = clamp(vUv.y * 0.75 + n * 0.55 - 0.1, 0.0, 1.0);
   vec3 col = mix(uShade, uLit, shade);
   col += fogSunColor * pow(max(dot(dir, fogSunDir), 0.0), 6.0) * (1.0 - shape) * 1.2;
-  col = mix(col, fogColorFor(dir), heightFog(cameraPosition, dir, dist) * 0.9);
+  col *= 0.4 + 0.6 * stormShade(vWorld.x);
+  float fog = heightFog(cameraPosition, dir, dist);
+  col = mix(col, fogColorFor(dir) * stormShadeAlong(cameraPosition, dir, dist), fog * 0.9);
   gl_FragColor = vec4(col, shape * 0.94 * smoothstep(25.0, 140.0, dist));
 }`
 
-interface Puff { position: [number, number, number]; size: [number, number] }
+interface Puff {
+  position: [number, number, number]
+  size: [number, number]
+}
 /** `banks` false (volumetric sea active) keeps only the far backdrop cumulus. */
 function puffs(count: number, banks: boolean): Puff[] {
   const out: Puff[] = []
@@ -94,18 +125,55 @@ function puffs(count: number, banks: boolean): Puff[] {
   // Candidates whose footprint would cut into the slope are rejected: billboards have no soft depth edge.
   const low = Math.round(count * 0.65)
   for (let i = 0; banks && out.length < low && i < low * 12; i++) {
-    const angle = hash(i, 3, 91) * Math.PI * 2, radius = 360 + hash(i, 7, 92) * 560
-    const w = 150 + hash(i, 11, 93) * 190, h = w * (0.42 + hash(i, 17, 95) * 0.2)
-    const x = Math.cos(angle) * radius * 1.1, z = -290 + Math.sin(angle) * radius, y = CLOUD_SEA_Y - 5 + hash(i, 13, 94) * 60
-    const ground = Math.max(...[[0, 0], [-0.5, 0], [0.5, 0], [0, -0.5], [0, 0.5]].map(([u, v]) => terrainHeight(x + u * w, z + v * w)))
+    const angle = hash(i, 3, 91) * Math.PI * 2,
+      radius = 360 + hash(i, 7, 92) * 560
+    const w = 150 + hash(i, 11, 93) * 190,
+      h = w * (0.42 + hash(i, 17, 95) * 0.2)
+    const x = Math.cos(angle) * radius * 1.1,
+      z = -290 + Math.sin(angle) * radius,
+      y = CLOUD_SEA_Y - 5 + hash(i, 13, 94) * 60
+    const ground = Math.max(
+      ...[
+        [0, 0],
+        [-0.5, 0],
+        [0.5, 0],
+        [0, -0.5],
+        [0, 0.5],
+      ].map(([u, v]) => terrainHeight(x + u * w, z + v * w)),
+    )
     if (ground < y - h * 0.3) out.push({ position: [x, y, z], size: [w, h] })
   }
-  // Towering backdrop cumulus beyond the outer regions, in front of the horizon ring; densest behind the main hall.
+  // Mid-air cumulus wreathing the pillars and the near outer ridges, densest behind the main hall. They sit above the
+  // mist where they stay visible; candidates that would cut into a region's slopes are rejected like the low banks.
   const total = banks ? count : count - low
+  for (let i = 0; out.length < total && i < total * 12; i++) {
+    const angle = -Math.PI / 2 + (hash(i, 19, 96) - 0.5) * Math.PI * 1.5,
+      radius = 1250 + hash(i, 23, 97) * 700
+    const w = 420 + hash(i, 29, 98) * 480,
+      h = w * (0.5 + hash(i, 37, 100) * 0.25)
+    const x = Math.cos(angle) * radius,
+      z = -300 + Math.sin(angle) * radius,
+      y = 120 + hash(i, 31, 99) * 420
+    const ground = Math.max(
+      ...[
+        [0, 0],
+        [-0.5, 0],
+        [0.5, 0],
+        [0, -0.5],
+        [0, 0.5],
+      ].map(([u, v]) => worldTerrainHeight(x + u * w, z + v * w)),
+    )
+    if (ground < y - h * 0.3) out.push({ position: [x, y, z], size: [w, h] })
+  }
+  // Any remaining slots: towering backdrop cumulus beyond the outer regions, in front of the horizon ring.
   for (let i = 0; out.length < total; i++) {
-    const angle = -Math.PI / 2 + (hash(i, 19, 96) - 0.5) * Math.PI * 1.9, radius = 3900 + hash(i, 23, 97) * 1200
+    const angle = -Math.PI / 2 + (hash(i, 19, 96) - 0.5) * Math.PI * 1.9,
+      radius = 3900 + hash(i, 23, 97) * 1200
     const w = 900 + hash(i, 29, 98) * 1000
-    out.push({ position: [Math.cos(angle) * radius, 260 + hash(i, 31, 99) * 900, -300 + Math.sin(angle) * radius], size: [w, w * (0.5 + hash(i, 37, 100) * 0.25)] })
+    out.push({
+      position: [Math.cos(angle) * radius, 260 + hash(i, 31, 99) * 900, -300 + Math.sin(angle) * radius],
+      size: [w, w * (0.5 + hash(i, 37, 100) * 0.25)],
+    })
   }
   return out
 }
@@ -122,35 +190,83 @@ export function CloudSea() {
   // The post-process volumetric sea replaces the planes and flank banks where the preset affords it.
   const cloudLayers = volumetricClouds > 0 ? 0 : presetLayers
   const banks = volumetricClouds === 0
-  const layers = useMemo(() => LAYER_Y.slice(LAYER_Y.length - cloudLayers).map((y, i, all) => {
-    const material = new ShaderMaterial({
-      name: `CloudSea_${i}`, vertexShader: seaVertex, fragmentShader: seaFragment,
-      uniforms: { ...sharedUniforms(), uLayer: new Uniform(all.length === 1 ? 1 : i / (all.length - 1)) },
-      transparent: true, depthWrite: false, side: DoubleSide, fog: false,
-    })
-    const mesh = new Mesh(new PlaneGeometry(12000, 12000, 1, 1), material)
-    mesh.name = `CloudSeaLayer_${i}`; mesh.rotation.x = -Math.PI / 2; mesh.position.y = y
-    mesh.frustumCulled = false; mesh.renderOrder = 10 + i
-    mesh.onBeforeRender = (_r, _s, camera) => { mesh.position.x = camera.position.x; mesh.position.z = camera.position.z; mesh.updateMatrixWorld() }
-    return mesh
-  }), [cloudLayers])
+  const layers = useMemo(
+    () =>
+      LAYER_Y.slice(LAYER_Y.length - cloudLayers).map((y, i, all) => {
+        const material = new ShaderMaterial({
+          name: `CloudSea_${i}`,
+          vertexShader: seaVertex,
+          fragmentShader: seaFragment,
+          uniforms: { ...sharedUniforms(), uLayer: new Uniform(all.length === 1 ? 1 : i / (all.length - 1)) },
+          transparent: true,
+          depthWrite: false,
+          side: DoubleSide,
+          fog: false,
+        })
+        const mesh = new Mesh(new PlaneGeometry(12000, 12000, 1, 1), material)
+        mesh.name = `CloudSeaLayer_${i}`
+        mesh.rotation.x = -Math.PI / 2
+        mesh.position.y = y
+        mesh.frustumCulled = false
+        mesh.renderOrder = 10 + i
+        mesh.onBeforeRender = (_r, _s, camera) => {
+          mesh.position.x = camera.position.x
+          mesh.position.z = camera.position.z
+          mesh.updateMatrixWorld()
+        }
+        return mesh
+      }),
+    [cloudLayers],
+  )
 
   const bank = useMemo(() => {
     const items = puffs(cloudPuffs, banks)
     const material = new ShaderMaterial({
-      name: 'CloudPuffs', vertexShader: puffVertex, fragmentShader: puffFragment, uniforms: sharedUniforms(),
-      transparent: true, depthWrite: false, fog: false,
+      name: 'CloudPuffs',
+      vertexShader: puffVertex,
+      fragmentShader: puffFragment,
+      uniforms: sharedUniforms(),
+      transparent: true,
+      depthWrite: false,
+      fog: false,
     })
     const mesh = new InstancedMesh(new PlaneGeometry(1, 1), material, items.length)
-    const matrix = new Matrix4(), identity = new Quaternion()
-    items.forEach((item, i) => mesh.setMatrixAt(i, matrix.compose(new Vector3(...item.position), identity, new Vector3(item.size[0], item.size[1], 1))))
-    mesh.geometry.setAttribute('aSeed', new InstancedBufferAttribute(Float32Array.from(items, (_, i) => hash(i, 41, 101)), 1))
-    mesh.name = 'CloudPuffs'; mesh.frustumCulled = false; mesh.renderOrder = 20
+    const matrix = new Matrix4(),
+      identity = new Quaternion()
+    items.forEach((item, i) =>
+      mesh.setMatrixAt(
+        i,
+        matrix.compose(new Vector3(...item.position), identity, new Vector3(item.size[0], item.size[1], 1)),
+      ),
+    )
+    mesh.geometry.setAttribute(
+      'aSeed',
+      new InstancedBufferAttribute(
+        Float32Array.from(items, (_, i) => hash(i, 41, 101)),
+        1,
+      ),
+    )
+    mesh.name = 'CloudPuffs'
+    mesh.frustumCulled = false
+    mesh.renderOrder = 20
     return mesh
   }, [cloudPuffs, banks])
 
-  useEffect(() => () => layers.forEach((mesh) => { mesh.geometry.dispose(); (mesh.material as ShaderMaterial).dispose() }), [layers])
-  useEffect(() => () => { bank.geometry.dispose(); (bank.material as ShaderMaterial).dispose() }, [bank])
+  useEffect(
+    () => () =>
+      layers.forEach((mesh) => {
+        mesh.geometry.dispose()
+        ;(mesh.material as ShaderMaterial).dispose()
+      }),
+    [layers],
+  )
+  useEffect(
+    () => () => {
+      bank.geometry.dispose()
+      ;(bank.material as ShaderMaterial).dispose()
+    },
+    [bank],
+  )
 
   useFrame((_, delta) => {
     layers.forEach((mesh) => syncFog(mesh.material as ShaderMaterial, delta))
@@ -159,7 +275,9 @@ export function CloudSea() {
 
   return (
     <group name="CloudSea">
-      {layers.map((mesh) => <primitive key={mesh.uuid} object={mesh} />)}
+      {layers.map((mesh) => (
+        <primitive key={mesh.uuid} object={mesh} />
+      ))}
       <primitive object={bank} />
     </group>
   )

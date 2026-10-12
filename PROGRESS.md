@@ -489,3 +489,19 @@ R17构建通过，主包785.73kB/gzip271.74kB；天空35项、运动157项和14�
 正式旧需求原稿移至docs/archive/taixu-v0.1-brief.md，保留历史设计；旧abandoned-prototype目录已移除，原历史记录中的该路径现在仅指清理前的归档。CLI本机.Tripo任务游标取消Git跟踪并ignore，不删除本机文件；密钥与raw原件均不进入提交。提交前按仓库钩子执行Vite+暂存检查，并复核构建。
 
 清理与Vite+格式统一后再次验证：vp staged/vp check --fix、vp run build、vp run verify:black-mist-attack-poses及vp run verify:black-mist（57项、errors=[]）均通过。正式GLB未改动，工作区源码与收据已通过暂存检查，历史规格保留原稿内容及合法Markdown硬换行。
+
+## 2026-10-12 R19 云层回退、飞行卡顿与黑雾入口隐藏
+
+用户反馈普通模式和黑雾模式的云层变假、飞行太卡，最后因黑雾模式多次内存崩溃要求先隐藏入口。本轮恢复中景积云、重写黑雾天幕并加入随黑雾推进的风暴阴影（体积云海、平面云海、积云与远景雾一致），新增 GPU 预热消除首次看到物体时的单帧卡顿，并把黑雾模式从标题页隐藏（代码与资源保留，DEV 加 `?blackMist` 可打开）。细节与根因见 [findings.md](findings.md) R19。
+
+| 场景（RTX 3050，高档，>50 ms 帧数 / 最差） | 改前（HEAD）  | 改后           |
+| ------------------------------------------ | ------------- | -------------- |
+| 首次飞行：召剑 → 起飞 → 加速 → 绕区域      | 9 / 321 ms    | 4 / 63 ms      |
+| 首次飞行：复核相机穿越四区                 | 18 / 740 ms   | 1 / 159 ms     |
+| 进入世界后 6 s                             | 16 / 4720 ms  | 13 / 484 ms    |
+| 同一路线第二次飞行                         | 0             | 0              |
+| 画质切到中 / 低档                          | 约 5 s 不出帧 | 相同（未处理） |
+
+- 剩余尖峰：进入世界时约 230 ms 是点击 Enter 时同步生成混响冲激与噪声床（`mixer.reverbSend` / `ambientAudio.noiseBuffer`，CPU）；其余是无应用代码栈的驱动阻塞，留待下一轮。画质切换卡顿 HEAD 同样存在。
+- 验证：`vp run build`、lint、`verify:ui`、`verify:smoke`、`verify:perf`（最差 318 / 400，高档雷暴道路，与改前相同）通过。隐藏入口前 `verify:black-mist`、`verify:black-mist-sky`、`verify:black-mist-perf`（最差 319 / 400）均通过。
+- 黑雾遗留：观察者近景首次编译 1 个程序（327 ms）、34.6–38.9 s 近景持续 GPU 满载，以及加载巨兽时的内存崩溃，与下一阶段巨兽骨骼动画一起处理。

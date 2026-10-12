@@ -1,11 +1,21 @@
 import { Effect, EffectAttribute } from 'postprocessing'
-import { Color, Matrix4, Uniform, Vector3, type PerspectiveCamera, type Texture, type WebGLRenderer, type WebGLRenderTarget } from 'three'
+import {
+  Color,
+  Matrix4,
+  Uniform,
+  Vector3,
+  type PerspectiveCamera,
+  type Texture,
+  type WebGLRenderer,
+  type WebGLRenderTarget,
+} from 'three'
 import { atmosphere, keyLight } from './atmosphere'
 import { CLOUD_SEA_Y } from './CloudSea'
 import { createCloudNoise2D, createCloudNoise3D } from './cloudNoise'
 import { cloudSwell } from './cloudSwell'
 import { fogUniforms } from './fog'
 import { FOG_GLSL } from './glsl'
+import { BLACK_MIST_UNIFORMS, STORM_SHADE_GLSL } from '../blackMist/materials'
 
 /**
  * Full-screen aerial perspective + volumetric cloud sea, reconstructed from scene depth.
@@ -18,7 +28,9 @@ import { FOG_GLSL } from './glsl'
  */
 const fragment = /* glsl */ `
 uniform mat4 uProjectionInverse; uniform mat4 uCameraWorld; uniform vec3 uCameraPos;
+uniform float uMistFront; uniform float uMistAmount; uniform float uMistCorruption;
 ${FOG_GLSL}
+${STORM_SHADE_GLSL}
 #ifdef CLOUD_STEPS
 uniform sampler2D uNoise; uniform sampler3D uErosion;
 uniform vec3 uLightDir; uniform vec3 uLightColor;
@@ -135,8 +147,9 @@ vec4 marchClouds(vec3 ro, vec3 rd, float tScene, bool sky, float jitter, out flo
       float od = lightDepth(p);
       float sun = exp(-od) * ph0 + 0.5 * exp(-od * 0.35) * ph1 + 0.25 * exp(-od * 0.12) * ph2;
       float powder = 1.0 - 0.55 * exp(-dens * 45.0);
-      vec3 amb = mix(ambBottom, ambTop, exp(-(top - p.y) / 35.0));
-      vec3 S = uLightColor * (sun * uGain * powder) + amb;
+      float shade = stormShade(p.x);
+      vec3 amb = mix(ambBottom, ambTop, exp(-(top - p.y) / 35.0)) * (0.45 + 0.55 * shade);
+      vec3 S = uLightColor * (sun * uGain * powder * shade) + amb;
       float st = exp(-dens * dt);
       L += T * S * (1.0 - st);
       float w = T * (1.0 - st);
@@ -149,7 +162,8 @@ vec4 marchClouds(vec3 ro, vec3 rd, float tScene, bool sky, float jitter, out flo
   if (sky && T > 0.02 && rd.y < 0.0) {
     float tp = max((SEA_Y - ro.y) / rd.y, t);
     float sun = exp(-2.0) * ph0 + 0.5 * exp(-0.7) * ph1 + 0.25 * exp(-0.24) * ph2;
-    L += T * (uLightColor * sun * uGain * 0.8 + ambTop);
+    float farShade = stormShade(ro.x + rd.x * tp);
+    L += T * (uLightColor * sun * uGain * 0.8 * farShade + ambTop * (0.45 + 0.55 * farShade));
     wSum += T; tSum += T * tp;
     T = 0.0;
   }
@@ -169,7 +183,9 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   vec3 col = inputColor.rgb;
   if (!sky) {
     float f = heightFog(uCameraPos, dir, dist);
-    col = mix(col, fogColorFor(dir), f);
+    // Surfaces under the storm lose their direct light; the haze in front of them is shaded along the ray.
+    col *= 0.4 + 0.6 * stormShade(world.x);
+    col = mix(col, fogColorFor(dir) * stormShadeAlong(uCameraPos, dir, dist), f);
   }
 #ifdef CLOUD_STEPS
   float jitter = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
@@ -177,7 +193,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
   vec4 c = marchClouds(uCameraPos, dir, sky ? 1e9 : dist, sky, jitter, tMean);
   if (c.a < 0.999) {
     float f = heightFog(uCameraPos, dir, tMean);
-    vec3 lit = c.rgb * (1.0 - f) + fogColorFor(dir) * f * (1.0 - c.a);
+    vec3 lit = c.rgb * (1.0 - f) + fogColorFor(dir) * stormShadeAlong(uCameraPos, dir, tMean) * f * (1.0 - c.a);
     col = col * c.a + lit;
   }
 #endif
@@ -199,17 +215,27 @@ export class AtmosphereEffect extends Effect {
 
   constructor(camera: PerspectiveCamera, cloudSteps: number) {
     const uniforms = new Map<string, Uniform>([
-      ['uProjectionInverse', new Uniform(new Matrix4())], ['uCameraWorld', new Uniform(new Matrix4())], ['uCameraPos', new Uniform(new Vector3())],
+      ['uProjectionInverse', new Uniform(new Matrix4())],
+      ['uCameraWorld', new Uniform(new Matrix4())],
+      ['uCameraPos', new Uniform(new Vector3())],
       ...Object.entries(fogUniforms),
+      ['uMistFront', BLACK_MIST_UNIFORMS.uMistFront],
+      ['uMistAmount', BLACK_MIST_UNIFORMS.uMistAmount],
+      ['uMistCorruption', BLACK_MIST_UNIFORMS.uMistCorruption],
     ])
     const textures: Texture[] = []
     if (cloudSteps > 0) {
       const [noise, erosion] = cloudNoise()
       textures.push(noise, erosion)
-      uniforms.set('uNoise', new Uniform(noise)); uniforms.set('uErosion', new Uniform(erosion))
-      uniforms.set('uLightDir', new Uniform(new Vector3(0, 1, 0))); uniforms.set('uLightColor', new Uniform(new Color()))
-      uniforms.set('uTime', new Uniform(0)); uniforms.set('uWind', new Uniform(atmosphere.wind)); uniforms.set('uCover', new Uniform(0.5))
-      uniforms.set('uPixelAngle', new Uniform(0.001)); uniforms.set('uGain', new Uniform(CLOUD_GAIN))
+      uniforms.set('uNoise', new Uniform(noise))
+      uniforms.set('uErosion', new Uniform(erosion))
+      uniforms.set('uLightDir', new Uniform(new Vector3(0, 1, 0)))
+      uniforms.set('uLightColor', new Uniform(new Color()))
+      uniforms.set('uTime', new Uniform(0))
+      uniforms.set('uWind', new Uniform(atmosphere.wind))
+      uniforms.set('uCover', new Uniform(0.5))
+      uniforms.set('uPixelAngle', new Uniform(0.001))
+      uniforms.set('uGain', new Uniform(CLOUD_GAIN))
       uniforms.set('uSwell', new Uniform(cloudSwell))
     }
     super('AtmosphereEffect', fragment, {
@@ -226,7 +252,8 @@ export class AtmosphereEffect extends Effect {
   }
 
   override update(_renderer: WebGLRenderer, _input: WebGLRenderTarget, delta = 0) {
-    const u = this.uniforms, camera = this.camera
+    const u = this.uniforms,
+      camera = this.camera
     u.get('uProjectionInverse')!.value.copy(camera.projectionMatrixInverse)
     u.get('uCameraWorld')!.value.copy(camera.matrixWorld)
     u.get('uCameraPos')!.value.setFromMatrixPosition(camera.matrixWorld)
@@ -237,7 +264,7 @@ export class AtmosphereEffect extends Effect {
     u.get('uLightDir')!.value.copy(this.lightDir)
     u.get('uLightColor')!.value.copy(color).multiplyScalar(intensity)
     u.get('uCover')!.value = atmosphere.cloudCover
-    u.get('uPixelAngle')!.value = 2 * Math.tan((camera.fov * Math.PI) / 360) / this.height
+    u.get('uPixelAngle')!.value = (2 * Math.tan((camera.fov * Math.PI) / 360)) / this.height
   }
 
   override dispose() {

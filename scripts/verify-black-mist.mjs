@@ -8,7 +8,7 @@ import { openWorld, installLiveImports, review, VIEWS } from './lib/world-sessio
 const OUT = 'artifacts/black-mist'
 const viewport = { width: 1600, height: 900 }
 await fs.mkdir(OUT, { recursive: true })
-const { browser, page, errors } = await openWorld('?quality=mid&hours=15&weather=clear', viewport)
+const { browser, page, errors } = await openWorld('?quality=mid&hours=15&weather=clear&blackMist', viewport)
 const report = { checks: [], frames: [], errors, failure: null }
 const snapshot = () => page.evaluate(() => window.__blackMist.snapshot())
 const check = (name, value) => {

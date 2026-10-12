@@ -21,6 +21,7 @@ import { BlackMistEffects } from './BlackMistEffects'
 import { EldritchLandmarks, eldritchMotionSnapshot } from './EldritchLandmarks'
 import { EldritchAssetBoundary } from './EldritchAssetBoundary'
 import { useEldritchLoadingStore } from './eldritchLoading'
+import { blackMistWarm } from '../GpuWarmup'
 import { eldritchAssetsSnapshot } from './eldritchAssets'
 import { BuildingCorruption, buildingMutationSnapshot } from './BuildingCorruption'
 import { colossusMutationSnapshot } from './ColossusMutation'
@@ -48,7 +49,8 @@ export function BlackMist() {
       uiBridge.graphicsBlocked ||
       document.hidden ||
       !world.characterReady[world.character] ||
-      useEldritchLoadingStore.getState().status !== 'ready'
+      // Loaded is not enough: hold the clock until the creatures' first-sight GPU work is paid, off screen.
+      !blackMistWarm()
     const ui = useUiStore.getState()
     if (r.cinematic && !uiBridge.graphicsBlocked && world.cameraMode !== 'cinematic') world.setCameraMode('cinematic')
     r.paused =
@@ -175,7 +177,16 @@ export function BlackMist() {
           creatures: horrorCreaturesSnapshot(),
           hazards: blackMistHazardsSnapshot(),
           tissue: livingTissueSnapshot(),
-          assets: { ...eldritchAssetsSnapshot(), ...useEldritchLoadingStore.getState() },
+          assets: (() => {
+            const loaded = eldritchAssetsSnapshot()
+            // `ready` is what the cinematic waits for: loaded and warmed.
+            return {
+              ...loaded,
+              ...useEldritchLoadingStore.getState(),
+              loaded: loaded.ready,
+              ready: loaded.ready && blackMistWarm(),
+            }
+          })(),
           landmarks: ['eldritch-eye', 'eldritch-tentacles'].map((name) => {
             const object = scene.getObjectByName(name)
             return { name, visible: object?.visible ?? false, scale: object?.scale.toArray() }

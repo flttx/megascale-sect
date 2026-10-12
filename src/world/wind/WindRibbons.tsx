@@ -3,9 +3,11 @@ import { useFrame } from '@react-three/fiber'
 import { BufferAttribute, BufferGeometry, Mesh, Vector3 } from 'three'
 import { glowMaterial, syncGlow } from '../interact/glow'
 import { STREAMS, streamEnds } from './windStreams'
+import { BLACK_MIST_UNIFORMS } from '../blackMist/materials'
 
 /** Strands per stream (their share of the radius) and the length (m) of one turn of their spiral. */
-const STRANDS = [0.3, 0.5, 0.62, 0.42], TURN = 260
+const STRANDS = [0.3, 0.5, 0.62, 0.42],
+  TURN = 260
 
 const VERTEX = /* glsl */ `
 attribute vec3 aTangent; attribute float aSide; attribute vec3 aFlow;
@@ -26,7 +28,7 @@ void main() {
 `
 // vFlow: arc length along the stream (m, offset per strand), air speed (m/s) and the open ends' fade.
 const FRAGMENT = /* glsl */ `
-uniform float uTime; uniform float uNight;
+uniform float uTime; uniform float uNight; uniform float uMistCorruption;
 varying float vSide; varying vec3 vFlow; varying vec3 vWorld; varying float vFar;
 void main() {
   float across = 1.0 - vSide * vSide;
@@ -35,19 +37,43 @@ void main() {
   float dash = u * u * u * (1.0 - smoothstep(0.94, 1.0, u));
   float glow = across * (0.12 + dash) * vFlow.z * vFar;
   vec3 col = vec3(0.7, 0.92, 1.0) * glow * mix(0.3, 0.55, uNight);
+  // Under the Black Mist's dark deck the untonemapped strands would glare; keep them a faint, ashen guide.
+  col = mix(col, vec3(dot(col, vec3(0.3, 0.5, 0.2))), uMistCorruption * 0.6) * (1.0 - uMistCorruption * 0.72);
   gl_FragColor = vec4(col * glowFade(vWorld), 1.0);
 }
 `
 
 /** One merged ribbon geometry: spiralling strands of flowing light inside every wind stream (a single draw). */
 function buildGeometry() {
-  const positions: number[] = [], tangents: number[] = [], sides: number[] = [], flows: number[] = [], index: number[] = []
-  const t = new Vector3(), n = new Vector3(), b = new Vector3(), up = new Vector3(0, 1, 0), q = new Vector3(), prev = new Vector3(), next = new Vector3()
-  const strand = (stream: typeof STREAMS[number], i: number, share: number, phase: number, twist: number, out: Vector3) => {
+  const positions: number[] = [],
+    tangents: number[] = [],
+    sides: number[] = [],
+    flows: number[] = [],
+    index: number[] = []
+  const t = new Vector3(),
+    n = new Vector3(),
+    b = new Vector3(),
+    up = new Vector3(0, 1, 0),
+    q = new Vector3(),
+    prev = new Vector3(),
+    next = new Vector3()
+  const strand = (
+    stream: (typeof STREAMS)[number],
+    i: number,
+    share: number,
+    phase: number,
+    twist: number,
+    out: Vector3,
+  ) => {
     t.fromArray(stream.tangent, i * 3)
-    n.crossVectors(t, up).normalize(); b.crossVectors(n, t)
-    const a = phase + stream.arc[i] * twist, r = stream.radius * share
-    return out.fromArray(stream.position, i * 3).addScaledVector(n, Math.cos(a) * r).addScaledVector(b, Math.sin(a) * r)
+    n.crossVectors(t, up).normalize()
+    b.crossVectors(n, t)
+    const a = phase + stream.arc[i] * twist,
+      r = stream.radius * share
+    return out
+      .fromArray(stream.position, i * 3)
+      .addScaledVector(n, Math.cos(a) * r)
+      .addScaledVector(b, Math.sin(a) * r)
   }
   for (const stream of STREAMS) {
     const count = stream.arc.length
@@ -63,10 +89,15 @@ function buildGeometry() {
         next.sub(prev).normalize()
         const fade = streamEnds(stream, stream.arc[i])
         for (const side of [-1, 1]) {
-          positions.push(q.x, q.y, q.z); tangents.push(next.x, next.y, next.z); sides.push(side)
+          positions.push(q.x, q.y, q.z)
+          tangents.push(next.x, next.y, next.z)
+          sides.push(side)
           flows.push(stream.arc[i] + k * 23, stream.speed, fade)
         }
-        if (i > 0) { const a = base + (i - 1) * 2; index.push(a, a + 1, a + 2, a + 1, a + 3, a + 2) }
+        if (i > 0) {
+          const a = base + (i - 1) * 2
+          index.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
+        }
       }
     })
   }
@@ -82,14 +113,23 @@ function buildGeometry() {
 /** 灵风 (R10c): the wind streams drawn as faint flowing light, so a flier can find and follow them. */
 export function WindRibbons() {
   const mesh = useMemo(() => {
-    const ribbons = new Mesh(buildGeometry(), glowMaterial('WindStreams', VERTEX, FRAGMENT))
+    const ribbons = new Mesh(
+      buildGeometry(),
+      glowMaterial('WindStreams', VERTEX, FRAGMENT, { uMistCorruption: BLACK_MIST_UNIFORMS.uMistCorruption }),
+    )
     ribbons.name = 'WindStreams'
     ribbons.frustumCulled = false
     ribbons.userData.castShadow = false
     ribbons.renderOrder = 3
     return ribbons
   }, [])
-  useEffect(() => () => { mesh.geometry.dispose(); mesh.material.dispose() }, [mesh])
+  useEffect(
+    () => () => {
+      mesh.geometry.dispose()
+      mesh.material.dispose()
+    },
+    [mesh],
+  )
   useFrame((state) => syncGlow(mesh.material, state.clock.elapsedTime))
   return <primitive object={mesh} />
 }

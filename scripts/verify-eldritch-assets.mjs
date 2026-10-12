@@ -236,7 +236,7 @@ function assertModelDraws(snapshot, quality, view) {
 }
 
 async function verifyBrowser() {
-  const { browser, page, errors } = await openWorld('?quality=high&hours=15&weather=clear', viewport)
+  const { browser, page, errors } = await openWorld('?quality=high&hours=15&weather=clear&blackMist', viewport)
   report.browser.errors = errors
   const snapshot = () => page.evaluate(() => window.__blackMist.snapshot())
   const modelRequests = new Set()

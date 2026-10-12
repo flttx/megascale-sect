@@ -11,6 +11,7 @@ import { useTranslation } from './i18n'
 import { useUiStore } from './uiStore'
 import './blackMist.css'
 import { retryEldritchAssets, useEldritchLoadingStore } from '../world/blackMist/eldritchLoading'
+import { useGpuWarmupStore } from '../world/GpuWarmup'
 
 const CAPTIONS = {
   horizon: { title: '天边异象', text: '天边，出现了第二片云海。', chapter: 'I' },
@@ -34,7 +35,10 @@ export function BlackMistHud() {
   const cinematic = useBlackMistStore((state) => state.cinematic)
   const manualPaused = useBlackMistStore((state) => state.manualPaused)
   const awaitingExplore = useBlackMistStore((state) => state.awaitingExplore)
-  const assetStatus = useEldritchLoadingStore((state) => state.status)
+  const loadStatus = useEldritchLoadingStore((state) => state.status)
+  const warmed = useGpuWarmupStore((state) => !state.pending && state.eldritch === 'ready')
+  // Loaded creatures still pay their first-sight GPU work before the film may run; it reads as the same preparation.
+  const assetStatus = loadStatus === 'ready' && !warmed ? 'loading' : loadStatus
   const [showGuide, setShowGuide] = useState(true)
   const skipButton = useRef<HTMLButtonElement>(null)
   const exploreButton = useRef<HTMLButtonElement>(null)

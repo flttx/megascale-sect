@@ -1,5 +1,6 @@
 import { AdditiveBlending, BackSide, DoubleSide, ShaderMaterial, Uniform } from 'three'
-import { NOISE_GLSL } from '../sky/glsl'
+import { fogUniforms } from '../sky/fog'
+import { FOG_GLSL, NOISE_GLSL } from '../sky/glsl'
 
 /** One mutable set feeds the storm, its debris and all existing weather-patched surfaces. */
 export const BLACK_MIST_UNIFORMS = {
@@ -11,6 +12,26 @@ export const BLACK_MIST_UNIFORMS = {
   uMistAmount: new Uniform(0),
   uMistShock: new Uniform(-1),
 }
+
+/**
+ * Share of daylight left under the Black Mist deck at world x (1 = open sky); needs uMistFront, uMistAmount and
+ * uMistCorruption declared. The storm rolls in from the east and its high deck runs ~1.2 km ahead of the wall, so its
+ * shadow sweeps over the sea and ranges before the mist reaches them. Once the deck closes over the whole realm the
+ * atmosphere palette carries the darkness and the extra shade eases off.
+ */
+export const STORM_SHADE_GLSL = /* glsl */ `
+float stormShade(float x) {
+  if (uMistAmount <= 0.0) return 1.0;
+  float under = smoothstep(uMistFront - 1400.0, uMistFront + 200.0, x);
+  return 1.0 - uMistAmount * under * mix(0.8, 0.4, uMistCorruption);
+}
+/** Mean shade over the first 4 km of a ray: the haze along it is lit only where the deck lets light through. */
+float stormShadeAlong(vec3 ro, vec3 rd, float dist) {
+  if (uMistAmount <= 0.0) return 1.0;
+  float d = min(dist, 4000.0);
+  return (stormShade(ro.x + rd.x * d * 0.15) + stormShade(ro.x + rd.x * d * 0.5) + stormShade(ro.x + rd.x * d * 0.85)) / 3.0;
+}
+`
 
 export const BLACK_MIST_SURFACE_HEAD = /* glsl */ `
 uniform float uMistCorruption; uniform float uMistFront; uniform float uMistTime; uniform float uMistFlash;
@@ -64,7 +85,7 @@ void main() {
   float fine = skyFbm(p * 2.5 + warp, 3);
   float crest = 0.68 + skyFbm(vec2(vUv.x * 10.0, uMistTime * 0.015 + uLayer * 3.7), 3) * 0.3;
   float shape = 1.0 - smoothstep(crest - 0.21, crest + 0.035, vUv.y + (body - 0.5) * 0.2);
-  shape *= smoothstep(0.0, 0.04, vUv.y) * smoothstep(0.0, 0.075, vUv.x) * (1.0 - smoothstep(0.925, 1.0, vUv.x));
+  shape *= smoothstep(0.0, 0.04, vUv.y) * smoothstep(0.0, 0.2, vUv.x) * (1.0 - smoothstep(0.8, 1.0, vUv.x));
   float alpha = shape * smoothstep(0.14, 0.67, body + (1.0 - vUv.y) * 0.25);
   if (alpha < 0.004) discard;
   // Finite-difference illumination makes the noisy crests read as rolling cloud volumes.
@@ -76,7 +97,9 @@ void main() {
   color += vec3(0.32, 0.27, 0.38) * uMistFlash * (0.3 + edge);
   // A near eye sees wisps, instead of the hard plane cutting across it as the front passes.
   float nearFade = smoothstep(18.0, 105.0, distance(vWorld, cameraPosition));
-  gl_FragColor = vec4(color, alpha * uMistAmount * nearFade * (0.84 - uLayer * 0.09));
+  // The wall is a plane facing the x axis: seen edge-on it would collapse into a hard, streaked slab, so it thins away.
+  float facing = smoothstep(0.12, 0.45, abs(normalize(cameraPosition - vWorld).x));
+  gl_FragColor = vec4(color, alpha * uMistAmount * nearFade * facing * (0.84 - uLayer * 0.09));
 }`
 
 export function createStormMaterial(layer: number) {
@@ -102,33 +125,50 @@ void main() {
 const SKY_FRAGMENT = /* glsl */ `
 varying vec3 vDir;
 uniform float uMistTime; uniform float uMistAmount; uniform float uMistCorruption; uniform float uMistApproach; uniform float uMistFlash;
+uniform float uMistFront;
 ${NOISE_GLSL}
+${FOG_GLSL}
+${STORM_SHADE_GLSL}
 void main() {
   vec3 d = normalize(vDir);
-  // The invading sky starts in the east. At impact it unfurls into a world-sized vortex overhead.
+  // The invading sky starts in the east. At impact it closes into a low storm deck turning slowly overhead.
+  // Project onto a cloud plane (continuous in direction, no atan branch, so no meridian seam).
   vec2 p = d.xz / max(0.23, d.y + 0.3);
   float radius = length(p);
-  // Warp the continuous direction field. Unwrapped longitude feeds unrelated noise on the
-  // two sides of atan's ±PI branch, producing a visible meridian from horizon to zenith.
-  float twist = radius * 3.4 - uMistTime * 0.03;
+  // A rigid turn plus a gentle spiral. A steep radius-dependent twist smears the noise into concentric grooves.
+  float twist = radius * 0.22 - uMistTime * 0.004;
   float c = cos(twist), s = sin(twist);
-  vec2 spiral = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
-  float n = skyFbm(spiral * 1.8 + vec2(0.0, -uMistTime * 0.025), 4);
-  float streakTwist = radius * 8.0 - uMistTime * 0.06;
-  float sc = cos(streakTwist), ss = sin(streakTwist);
-  vec2 streakField = vec2(sc * p.x - ss * p.y, ss * p.x + sc * p.y);
-  float streak = skyFbm(streakField * 4.0 + vec2(radius * 1.15, 0.0), 3);
+  vec2 q = vec2(c * p.x - s * p.y, s * p.x + c * p.y) * 1.25 + vec2(uMistTime * 0.006, -uMistTime * 0.004);
+  // Domain-warped billows over broad masses; the offset sample gives each lobe a lit crest and a shadowed base.
+  vec2 warp = vec2(skyFbm(q * 0.7 + 3.1, 3), skyFbm(q * 0.7 - 4.7, 3));
+  float n = skyFbm(q + warp * 1.4, 5);
+  float mass = skyFbm(q * 0.35 - 7.3, 3);
+  float lit = skyFbm(q + warp * 1.4 + vec2(0.045, 0.06), 4);
+  float relief = clamp((n - lit) * 4.2 + 0.5, 0.0, 1.0);
   float incoming = smoothstep(-0.15 + uMistApproach * 0.25, 0.85 - uMistApproach * 0.4, d.x);
   float spread = max(incoming * uMistApproach, uMistCorruption * 0.93);
-  float upper = smoothstep(-0.22, 0.18, d.y);
-  float density = smoothstep(0.16, 0.77, n + spread * 0.2);
-  float eye = 1.0 - smoothstep(0.04, 0.28, radius);
-  float emberRing = exp(-pow((radius - 0.3 - (n - 0.5) * 0.07) * 18.0, 2.0));
-  vec3 color = mix(vec3(0.011, 0.01, 0.021), vec3(0.067, 0.052, 0.082), n);
-  color = mix(color, vec3(0.0015, 0.001, 0.003), eye * uMistCorruption);
-  color += vec3(0.33, 0.045, 0.013) * (emberRing * 0.8 + streak * streak * 0.25) * uMistCorruption;
-  color += vec3(0.25, 0.18, 0.29) * uMistFlash * density;
-  float alpha = upper * spread * mix(density, 0.9, uMistCorruption * 0.72) * uMistAmount;
+  float density = smoothstep(0.32, 0.78, n * 0.75 + mass * 0.45 + spread * 0.12);
+  // Hand the low sky back to the dome's fogged horizon, so distant ridges dissolve into it instead of reading as cutouts.
+  float upper = smoothstep(-0.1, 0.04, d.y);
+  vec3 base = vec3(0.016, 0.016, 0.024), crest = vec3(0.105, 0.098, 0.122);
+  vec3 color = mix(base, crest, relief * (0.35 + 0.65 * density));
+  // A darker eye overhead; a sullen ember glow leaks only through thin cloud around it, never as a drawn ring.
+  float eye = 1.0 - smoothstep(0.05, 0.45, radius + (n - 0.5) * 0.25);
+  color *= 1.0 - eye * 0.7 * uMistCorruption;
+  float rim = smoothstep(0.12, 0.42, radius) * (1.0 - smoothstep(0.55, 1.3, radius));
+  float gap = (1.0 - smoothstep(0.25, 0.85, density)) * smoothstep(0.42, 0.78, skyFbm(q * 2.3 + 9.1, 3));
+  color += vec3(0.3, 0.05, 0.016) * gap * (rim * 0.4 + 0.05) * (1.0 - eye) * uMistCorruption;
+  color += vec3(0.25, 0.18, 0.29) * uMistFlash * (0.3 + density * relief);
+  // The veil sits in front of the distant ranges and tentacles, which the post pass then fogs. Haze the low sky by
+  // the same (storm-shaded) height fog, so fogged silhouettes, the far sea and the sky beside them meet at one
+  // brightness instead of reading as cutouts against a seam at the horizon.
+  float haze = heightFog(cameraPosition, d, 12000.0) * (1.0 - smoothstep(0.12, 0.6, d.y));
+  // Where the storm has closed in, the low haze is the mist itself (as the far sea below the horizon reads it),
+  // not clear-air scatter from the sky.
+  vec3 hazeColor = mix(fogColorFor(d), fogTint, spread) * stormShadeAlong(cameraPosition, d, 12000.0);
+  color = mix(color, hazeColor, haze);
+  // Thin cloud would let the unshaded dome show through at the horizon; there the veil is haze and is opaque as haze.
+  float alpha = upper * spread * max(mix(density, 0.95, uMistCorruption * 0.65), haze) * uMistAmount;
   gl_FragColor = vec4(color, clamp(alpha, 0.0, 0.97));
 }`
 
@@ -137,7 +177,7 @@ export function createMistSkyMaterial() {
     name: 'BlackMistSkyVeil',
     vertexShader: SKY_VERTEX,
     fragmentShader: SKY_FRAGMENT,
-    uniforms: { ...BLACK_MIST_UNIFORMS },
+    uniforms: { ...BLACK_MIST_UNIFORMS, ...fogUniforms },
     side: BackSide,
     transparent: true,
     depthWrite: false,

@@ -26,6 +26,7 @@ import { Colossi } from './colossi/Colossi'
 import { WindRibbons } from './wind/WindRibbons'
 import { TrialRings } from './trials/TrialRings'
 import { BlackMist } from './blackMist/BlackMist'
+import { GpuWarmup } from './GpuWarmup'
 
 ASSETS.forEach((asset) => useGLTF.preload([asset.url, asset.lodUrl]))
 
@@ -111,6 +112,7 @@ export function World() {
       <Interactables />
       <Player />
       <BlackMist />
+      <GpuWarmup />
       <DebugHelpers />
       <EnvironmentReview />
       <PostFX />

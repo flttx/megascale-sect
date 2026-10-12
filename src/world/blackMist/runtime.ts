@@ -7,7 +7,8 @@ import { teleportPlayer } from '../player/playerHandle'
 import { useWorldStore } from '../store'
 import { BLACK_MIST_UNIFORMS } from './materials'
 import { blackMistAudio } from './audio'
-import { preloadEldritchAssets, useEldritchLoadingStore } from './eldritchLoading'
+import { preloadEldritchAssets } from './eldritchLoading'
+import { blackMistWarm } from '../GpuWarmup'
 
 export type BlackMistPhase = 'horizon' | 'approach' | 'impact' | 'transformation' | 'aftermath'
 export const BLACK_MIST_DURATION = 68
@@ -162,8 +163,7 @@ function finishCinematic() {
   publishBlackMist(true)
 }
 export function skipBlackMistCinematic() {
-  if (!blackMistRuntime.active || !blackMistRuntime.cinematic || useEldritchLoadingStore.getState().status !== 'ready')
-    return
+  if (!blackMistRuntime.active || !blackMistRuntime.cinematic || !blackMistWarm()) return
   finishCinematic()
 }
 export function beginBlackMistExploration() {

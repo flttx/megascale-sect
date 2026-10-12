@@ -25,6 +25,9 @@ import { useUiKeys } from '../ui/useUiKeys'
 import { usePhotoInput } from '../ui/usePhotoInput'
 import { RecoveryOverlay, RecoveryProbe, useGraphicsRecovery } from './GraphicsRecovery'
 import { BlackMistHud } from '../ui/BlackMistHud'
+import { useGpuWarmupStore } from '../world/GpuWarmup'
+import { BLACK_MIST_AVAILABLE } from '../world/blackMist/availability'
+import { useEldritchLoadingStore } from '../world/blackMist/eldritchLoading'
 import {
   blackMistRuntime,
   beginBlackMistExploration,
@@ -105,7 +108,11 @@ function Interface() {
             ? 2
             : 3,
   )
-  const ready = useWorldStore((state) => worldAssetsReady(state.assets))
+  const assetsReady = useWorldStore((state) => worldAssetsReady(state.assets))
+  // Matches the intro's Enter: the first GPU warm-up is part of getting ready.
+  const warmed = useGpuWarmupStore((state) => state.runs > 0)
+  const eldritchLoading = useEldritchLoadingStore((state) => state.status === 'loading')
+  const ready = assetsReady && (warmed || eldritchLoading)
   const character = useWorldStore((state) => state.character)
   const characterReady = useWorldStore((state) => state.characterReady[state.character])
   const phase = useWorldStore((state) => state.phase)
@@ -314,7 +321,7 @@ export default function App() {
     playerAudio.unlock()
     const first = !useWorldStore.getState().started
     setStarted(true)
-    if (first && mode === 'black-mist') {
+    if (first && mode === 'black-mist' && BLACK_MIST_AVAILABLE) {
       resetBlackMist()
       return
     }

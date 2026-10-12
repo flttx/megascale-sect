@@ -9,7 +9,9 @@ import { worldAssetsReady } from '../world/worldAssets'
 import { useTranslation } from './i18n'
 import { LanguagePicker } from './LanguagePicker'
 import './blackMist.css'
-import { preloadEldritchAssets } from '../world/blackMist/eldritchLoading'
+import { preloadEldritchAssets, useEldritchLoadingStore } from '../world/blackMist/eldritchLoading'
+import { useGpuWarmupStore } from '../world/GpuWarmup'
+import { BLACK_MIST_AVAILABLE } from '../world/blackMist/availability'
 
 // WebP of the 2.7 MB reference PNG (sharp, quality 80); index.html preloads the same URL.
 const ART = `/assets/references/${encodeURIComponent('主概念图')}.webp`
@@ -55,13 +57,19 @@ export function IntroScreen({
   const characterReady = useWorldStore((state) => state.characterReady[state.character])
   const [resume, setResume] = useState(saved !== null)
   const [mode, setMode] = useState<'exploration' | 'black-mist'>(() =>
-    new URLSearchParams(window.location.search).get('experience') === 'black-mist' ? 'black-mist' : 'exploration',
+    BLACK_MIST_AVAILABLE && new URLSearchParams(window.location.search).get('experience') === 'black-mist'
+      ? 'black-mist'
+      : 'exploration',
   )
   const blackMist = mode === 'black-mist'
   useEffect(() => {
     if (blackMist) preloadEldritchAssets()
   }, [blackMist])
-  const loaded = ready && characterReady
+  // The first GPU warm-up must finish before play. While the Black Mist creatures still download it waits for them,
+  // and that mode's cinematic holds its own clock until both are done.
+  const warmed = useGpuWarmupStore((state) => state.runs > 0)
+  const eldritchLoading = useEldritchLoadingStore((state) => state.status === 'loading')
+  const loaded = ready && characterReady && (warmed || eldritchLoading)
   const enterButton = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (loaded) enterButton.current?.focus()
@@ -87,35 +95,38 @@ export function IntroScreen({
             ? t('见证黑雾自天边逼近，吞没云海，改写千年宗门。过场结束后，步行或御剑探索异变后的天地。')
             : t('登临四百二十米云阙，步行或御剑探索，寻访碑文与云海，收集 {count} 道灵光。', { count: ORB_COUNT })}
         </p>
-        <fieldset className="intro-experiences">
-          <legend>{t('选择世界')}</legend>
-          <label className="intro-experience" data-selected={mode === 'exploration'}>
-            <input
-              type="radio"
-              name="world-experience"
-              value="exploration"
-              checked={mode === 'exploration'}
-              onChange={() => setMode('exploration')}
-            />
-            <span>
-              <strong>{t('云海漫游')}</strong>
-              <small>{t('晴空 · 自由探索')}</small>
-            </span>
-          </label>
-          <label className="intro-experience" data-selected={blackMist}>
-            <input
-              type="radio"
-              name="world-experience"
-              value="black-mist"
-              checked={blackMist}
-              onChange={() => setMode('black-mist')}
-            />
-            <span>
-              <strong>{t('黑雾入侵')}</strong>
-              <small>{t('过场影像 · 异变世界')}</small>
-            </span>
-          </label>
-        </fieldset>
+        {/* With Black Mist withheld only one world remains, so there is nothing to choose. */}
+        {BLACK_MIST_AVAILABLE && (
+          <fieldset className="intro-experiences">
+            <legend>{t('选择世界')}</legend>
+            <label className="intro-experience" data-selected={mode === 'exploration'}>
+              <input
+                type="radio"
+                name="world-experience"
+                value="exploration"
+                checked={mode === 'exploration'}
+                onChange={() => setMode('exploration')}
+              />
+              <span>
+                <strong>{t('云海漫游')}</strong>
+                <small>{t('晴空 · 自由探索')}</small>
+              </span>
+            </label>
+            <label className="intro-experience" data-selected={blackMist}>
+              <input
+                type="radio"
+                name="world-experience"
+                value="black-mist"
+                checked={blackMist}
+                onChange={() => setMode('black-mist')}
+              />
+              <span>
+                <strong>{t('黑雾入侵')}</strong>
+                <small>{t('过场影像 · 异变世界')}</small>
+              </span>
+            </label>
+          </fieldset>
+        )}
         <CharacterPicker />
         <div className="intro-load" aria-busy={!loaded}>
           <div

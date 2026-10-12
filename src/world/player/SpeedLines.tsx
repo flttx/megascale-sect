@@ -1,13 +1,23 @@
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
 import {
-  AdditiveBlending, Color, Float32BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, Quaternion,
-  Scene, ShaderMaterial, Uniform, Vector3,
+  AdditiveBlending,
+  Color,
+  Float32BufferAttribute,
+  InstancedBufferAttribute,
+  InstancedBufferGeometry,
+  Mesh,
+  Quaternion,
+  Scene,
+  ShaderMaterial,
+  Uniform,
+  Vector3,
 } from 'three'
 import { atmosphere } from '../sky/atmosphere'
 import { useWorldStore } from '../store'
 import { getPlayerRuntime } from './playerHandle'
 import { smooth } from './playerMotion'
+import { registerWarmupOverlay } from '../GpuWarmup'
 
 const COUNT = 180
 /** Camera-local box the streaks wrap in (m); it starts a metre in front of the lens. */
@@ -50,7 +60,8 @@ function makeStreaks() {
   return geometry
 }
 
-const local = new Vector3(), inverse = new Quaternion()
+const local = new Vector3(),
+  inverse = new Quaternion()
 
 /**
  * Wind streaks rushing past the lens at high flight speed (R5). Drawn in their own pass after the post stack, so
@@ -59,17 +70,38 @@ const local = new Vector3(), inverse = new Quaternion()
 export function SpeedLines() {
   const { scene, mesh, uniforms } = useMemo(() => {
     const uniforms = {
-      uOffset: new Uniform(new Vector3()), uBox: new Uniform(BOX), uDir: new Uniform(new Vector3(0, 0, -1)),
-      uLength: new Uniform(0), uOpacity: new Uniform(0), uColor: new Uniform(new Color()),
+      uOffset: new Uniform(new Vector3()),
+      uBox: new Uniform(BOX),
+      uDir: new Uniform(new Vector3(0, 0, -1)),
+      uLength: new Uniform(0),
+      uOpacity: new Uniform(0),
+      uColor: new Uniform(new Color()),
     }
-    const material = new ShaderMaterial({ vertexShader, fragmentShader, uniforms, transparent: true, depthTest: false, depthWrite: false, blending: AdditiveBlending })
+    const material = new ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    })
     const mesh = new Mesh(makeStreaks(), material)
-    mesh.name = 'SpeedLines'; mesh.frustumCulled = false
+    mesh.name = 'SpeedLines'
+    mesh.frustumCulled = false
     const scene = new Scene()
     scene.add(mesh)
     return { scene, mesh, uniforms }
   }, [])
-  useEffect(() => () => { mesh.geometry.dispose(); (mesh.material as ShaderMaterial).dispose() }, [mesh])
+  useEffect(
+    () => () => {
+      mesh.geometry.dispose()
+      ;(mesh.material as ShaderMaterial).dispose()
+    },
+    [mesh],
+  )
+  // Its own pass is outside the main scene; the GPU warm-up must still meet it before the first boost.
+  useEffect(() => registerWarmupOverlay(scene), [scene])
 
   useFrame(({ gl, camera }, delta) => {
     const player = getPlayerRuntime()
@@ -77,7 +109,9 @@ export function SpeedLines() {
     const playerView = useWorldStore.getState().cameraMode === 'player'
     const target = playerView && player?.phase === 'FLIGHT' ? smooth((speed - 55) / 75) * 0.35 : 0
     // A photo or cinematic camera cuts away from the rider at once, and the streaks go with it.
-    const opacity = uniforms.uOpacity.value = playerView ? uniforms.uOpacity.value + (target - uniforms.uOpacity.value) * (1 - Math.exp(-5 * delta)) : 0
+    const opacity = (uniforms.uOpacity.value = playerView
+      ? uniforms.uOpacity.value + (target - uniforms.uOpacity.value) * (1 - Math.exp(-5 * delta))
+      : 0)
     if (opacity < 0.01 || !player || speed < 1) return
     camera.getWorldQuaternion(inverse).invert()
     local.copy(player.velocity).applyQuaternion(inverse)
