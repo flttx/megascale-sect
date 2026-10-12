@@ -168,7 +168,8 @@ export function updateCameraRig(
   // Buffeting above ~60 m/s: a slow (~1–2 Hz), incommensurate sway in position and roll, read as air rather than shake.
   rig.time += delta
   const buffet = flight ? smooth((speed - 60) / 80) : 0
-  let roll = -bank * 0.08
+  // The view leans a share of the rider's bank: enough to feel the carve, not enough to unsettle the horizon.
+  let roll = -bank * 0.2
   if (buffet > 0) {
     const t = rig.time
     up.crossVectors(side, view)

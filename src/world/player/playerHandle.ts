@@ -63,6 +63,7 @@ function relocatePlayer(runtime: PlayerRuntime, position: readonly [number, numb
   runtime.air = 0
   runtime.landing = 0
   runtime.takeoff = runtime.takeoffTime = 0
+  runtime.launch = 0
   resetCameraRig()
   if (yaw !== undefined) {
     runtime.yaw = yaw

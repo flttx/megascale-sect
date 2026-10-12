@@ -27,7 +27,8 @@ await page.evaluate(async () => {
       const s = window.__playerSnapshot()
       const [vx, vy, vz] = s.velocity
       samples.push({
-        t: performance.now() / 1000,
+        // The simulation clock, not wall time: at 140 m/s a 2 ms timestamp skew alone reads as 0.3 m of jitter.
+        t: runtime.time,
         phase: s.phase,
         speed: Math.hypot(vx, vz),
         vy,
