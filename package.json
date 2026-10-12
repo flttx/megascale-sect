@@ -21,6 +21,7 @@
     "verify:air-walls": "node scripts/verify-air-walls.mjs",
     "verify:look": "node scripts/verify-look.mjs",
     "verify:feel": "node scripts/verify-feel.mjs",
+    "verify:hitch": "node scripts/verify-hitch.mjs",
     "verify:visual": "node scripts/verify-visual.mjs",
     "verify:controls": "node scripts/verify-controls.mjs",
     "verify:save": "node scripts/verify-save.mjs",

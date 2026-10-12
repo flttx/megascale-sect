@@ -4,8 +4,8 @@ import { openWorld } from './lib/world-session.mjs'
 
 /**
  * Feel telemetry with real keys through the game loop: ground start/stop/sprint/reverse/turn/jump and stairs, sword
- * summon, cruise/boost take-up, boosted turns, braking and landing. Writes artifacts/feel/<label>.json so a later pass
- * can be compared with the baseline. Mouse sweeps are emulated by turning the runtime yaw at a fixed rate.
+ * summon, cruise/boost take-up, boosted turns, braking and landing, gated on the R21 tuning. Writes
+ * artifacts/feel/<label>.json so a later pass can be compared with the baseline. Mouse sweeps are emulated by turning the runtime yaw at a fixed rate.
  */
 const label = process.argv[2] ?? 'latest'
 const out = 'artifacts/feel'
@@ -245,6 +245,31 @@ try {
   }
   assert.ok(report.scenarios['flight-summon'].metrics.toFlight !== null, 'summon reaches flight')
   assert.ok(report.scenarios['flight-landing'].metrics.toGround !== null, 'landing reaches ground')
+  // Feel floor set from the R21 tuning (measured value in each comment), with margin for machine noise.
+  const m = (name) => report.scenarios[name].metrics
+  const gates = [
+    ['boosted turn heading lag ≤ 20° (13.4)', m('flight-cruise-boost').sweepHeadingLagDeg <= 20],
+    ['boosted turn keeps ≥ 125 m/s (139)', m('flight-cruise-boost').sweepMinSpeed >= 125],
+    ['boosted turn banks ≥ 14° (19.8)', m('flight-cruise-boost').sweepBankDeg >= 14],
+    ['boost to 90% ≤ 1.0 s (0.86)', m('flight-cruise-boost').toBoost90 <= 1],
+    ['straight flight camera p50 ≤ 10 m/s² (≈3)', m('flight-cruise-boost').camera.p50 <= 10],
+    ['summon to flight ≤ 1.9 s (1.66)', m('flight-summon').toFlight <= 1.9],
+    ['take-off lift ≥ 2 m (2.8)', m('flight-summon').lift >= 2],
+    ['landing ≤ 2.3 s (1.98)', m('flight-landing').toGround <= 2.3],
+    [
+      'sprint reversal 0.18–0.35 s (0.23)',
+      m('ground-sprint-reverse').reverseTime >= 0.18 && m('ground-sprint-reverse').reverseTime <= 0.35,
+    ],
+    ['jog start ≤ 0.35 s (0.26)', m('ground-start-stop').toJog90 <= 0.35],
+    ['stop ≤ 0.3 s (0.15)', m('ground-start-stop').stopTime !== null && m('ground-start-stop').stopTime <= 0.3],
+    ['no stalls climbing the road (0)', m('ground-road-climb').stallFrames === 0],
+    ['jump apex 1.25–1.35 m (1.3)', Math.abs(m('ground-jump').apex - 1.3) <= 0.05],
+  ]
+  for (const [name, ok] of gates) {
+    console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`)
+    report.gates = [...(report.gates ?? []), { name, ok }]
+  }
+  for (const [name, ok] of gates) assert.ok(ok, name)
   assert.deepEqual(errors, [])
 } catch (error) {
   report.failure = String(error)

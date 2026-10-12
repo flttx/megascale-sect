@@ -114,7 +114,8 @@ Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright 
 | `vp run verify:model-collision`         | Rendered solid surface probes, gate/bridge access, balustrades, animated Kun belly and live crane collision                                   |
 | `vp run verify:air-walls`               | Standable ground across the core area and every island top: any walking block must come from a rendered surface, never an invisible wall      |
 | `vp run verify:look -- <label>`         | 12 fixed views × 4 times of day with contact sheets in `artifacts/look/<label>/`; `-- --compare <a> <b>` builds side-by-side sheets           |
-| `vp run verify:feel -- <label>`         | Real-key feel telemetry (ground start/stop/turn/jump/stairs, summon, cruise/boost, boosted turns, braking, landing) to `artifacts/feel/`      |
+| `vp run verify:feel -- <label>`         | Real-key feel telemetry (ground, summon, cruise/boost, boosted turns, landing) gated on the R21 tuning; report in `artifacts/feel/`           |
+| `vp run verify:hitch`                   | Cold start, then a gliding review camera past the R21 additions by day and night: no shader compiled on first sight, no frame over 100 ms     |
 | `vp run verify:visual`                  | Time-of-day and weather views with brightness/contrast checks                                                                                 |
 | `vp run verify:characters`              | Both characters, sword summon/flight, switching, and pause/resume                                                                             |
 | `vp run verify:navigation`              | Gate, stairs, hall collision, and high-altitude traversal                                                                                     |
