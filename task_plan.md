@@ -364,7 +364,8 @@
 - [x] **R21i 交互**（`interact/`）：交互时的身体动作（拜碑、撞钟、入定）、提示的可读性和触发距离、反馈的音效与特效一致；保持键盘操作和无障碍名称。验收：interact、ui、中英文案检查。
   - 完成：运行时新增交互手势（`playGesture`/`advanceGesture`），触发时身体转向交互点，开始移动即中断，打坐一直保持到冥想结束。石碑躬身合手 1.6 s，钟挥臂下击 0.9 s，祭坛/传送阵双臂前举 1.4 s，打坐坐到蒲团上（姿态修正范围放宽到 1.28 m）。碑文卡片或面板释放鼠标锁定时，手势计时照常推进。骨骼实测：躬身头部前移 0.18 m、双手抬到胸前；撞钟右手抬高 0.42 m；前举双手 0.25 m。interact 42/42、ui、controls、characters、riding-pose、motion 通过。
   - 未做：交互提示 UI 和音效、特效没有改；打坐更像坐在椅子上，不是标准的盘腿；环境复核镜头下不刷新角色姿势，所以截图只能在玩家镜头下核对。
-- [ ] **R21j 收尾**：全量回归、README/PROGRESS/findings 更新、REMAINING_ISSUES 整理。
+- [x] **R21j 收尾**：全量回归、README/PROGRESS/findings 更新、REMAINING_ISSUES 整理。
+  - 完成：在最终 HEAD 上重跑。构建通过（主包 890.41 kB / gzip 304.74 kB）；perf 最高 328/400；visual 21/21；air-walls 42,736 样本零空气墙；model-collision 36 项；quality-switch；save；smoke；生产预览 loading 通过（15.5 s 进入世界）。各阶段的专项验证见对应条目。README 已同步世界、移动、性能和资产说明；遗留项写入 REMAINING_ISSUES「R21」。
 
 ### 用户已确认（2026-10-12，不再询问）
 

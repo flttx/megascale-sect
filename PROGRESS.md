@@ -601,3 +601,7 @@ R17构建通过，主包785.73kB/gzip271.74kB；天空35项、运动157项和14�
 ## 2026-10-13 R21i 交互身体动作
 
 五类交互原来都没有身体动作。现在由姿态层驱动：石碑躬身合手，撞钟挥臂，祭坛/传送阵双臂前举，打坐坐到蒲团上并保持到起身；触发时身体转向交互点，移动即中断。碑文卡片打开时玩家模拟会暂停，手势计时单独推进，避免“看完碑文才鞠躬”。骨骼位置实测确认动作生效。interact 42/42、ui、controls、characters、riding-pose、motion 通过。提示 UI 和音效未改。
+
+## 2026-10-13 R21j 收尾
+
+在最终代码上重跑：构建（主包 890.41 kB / gzip 304.74 kB）、`verify:perf` 最高 328/400、`verify:visual` 21/21、`verify:air-walls`、`verify:model-collision` 36 项、`verify:quality-switch`、`verify:save`、smoke，以及生产预览下的 `verify:loading`，全部通过。README 与 REMAINING_ISSUES 已更新。
