@@ -30,8 +30,10 @@ class GradeEffect extends Effect {
   constructor() {
     super('GradeEffect', gradeFragment, {
       uniforms: new Map<string, Uniform>([
-        ['uShadowTint', new Uniform(new Vector3(0.95, 0.99, 1.06))], ['uHighlightTint', new Uniform(new Vector3(1.025, 1.0, 0.97))],
-        ['uSaturation', new Uniform(1.08)], ['uContrast', new Uniform(1.06)],
+        ['uShadowTint', new Uniform(new Vector3(0.93, 0.98, 1.08))],
+        ['uHighlightTint', new Uniform(new Vector3(1.03, 1.0, 0.96))],
+        ['uSaturation', new Uniform(1.1)],
+        ['uContrast', new Uniform(1.1)],
       ]),
     })
   }
@@ -42,11 +44,21 @@ const SUN_DISTANCE = 1600
 /** Emissive proxy the god-ray pass occludes against scene depth; tracks the sun at a fixed range. */
 function useSunProxy() {
   const sun = useMemo(() => {
-    const mesh = new Mesh(new SphereGeometry(26, 24, 12), new MeshBasicMaterial({ transparent: true, depthWrite: false, fog: false, toneMapped: false }))
-    mesh.name = 'SunProxy'; mesh.frustumCulled = false
+    const mesh = new Mesh(
+      new SphereGeometry(26, 24, 12),
+      new MeshBasicMaterial({ transparent: true, depthWrite: false, fog: false, toneMapped: false }),
+    )
+    mesh.name = 'SunProxy'
+    mesh.frustumCulled = false
     return mesh
   }, [])
-  useEffect(() => () => { sun.geometry.dispose(); (sun.material as MeshBasicMaterial).dispose() }, [sun])
+  useEffect(
+    () => () => {
+      sun.geometry.dispose()
+      ;(sun.material as MeshBasicMaterial).dispose()
+    },
+    [sun],
+  )
   useFrame(({ camera }) => {
     const a = atmosphere
     sun.position.copy(camera.position).addScaledVector(a.sunDirection, SUN_DISTANCE)
@@ -62,20 +74,27 @@ export function PostFX() {
   const gl = useThree((state) => state.gl)
   const quality = useWorldStore((state) => state.quality)
   const preset = QUALITY_PRESETS[quality]
-  const fog = useMemo(() => new AtmosphereEffect(camera as PerspectiveCamera, preset.volumetricClouds), [camera, preset.volumetricClouds])
+  const fog = useMemo(
+    () => new AtmosphereEffect(camera as PerspectiveCamera, preset.volumetricClouds),
+    [camera, preset.volumetricClouds],
+  )
   const grade = useMemo(() => new GradeEffect(), [])
   const sun = useSunProxy()
   useEffect(() => {
     if (!import.meta.env.DEV) return
     const target = window as Window & { __postfx?: () => unknown }
     target.__postfx = () => ({ composer: composer.current, renderer: gl })
-    return () => { delete target.__postfx }
+    return () => {
+      delete target.__postfx
+    }
   }, [gl])
 
   // Composer passes each call gl.render; accumulate draw stats over the whole frame for telemetry.
   useEffect(() => {
     gl.info.autoReset = false
-    return () => { gl.info.autoReset = true }
+    return () => {
+      gl.info.autoReset = true
+    }
   }, [gl])
   useEffect(() => () => fog.dispose(), [fog])
   useEffect(() => () => grade.dispose(), [grade])
@@ -87,12 +106,35 @@ export function PostFX() {
   return (
     <>
       <primitive object={sun} />
-      <EffectComposer ref={composer} key={quality} multisampling={preset.msaa} enableNormalPass={false} autoClear={false}
-        mergeMode={import.meta.env.DEV && new URLSearchParams(window.location.search).has('profileGpu') ? 'none' : 'auto'}>
-        {preset.ao && <N8AO halfRes quality="performance" aoRadius={3.5} distanceFalloff={1.2} intensity={2.2} color="#27303c" />}
+      <EffectComposer
+        ref={composer}
+        key={quality}
+        multisampling={preset.msaa}
+        enableNormalPass={false}
+        autoClear={false}
+        mergeMode={
+          import.meta.env.DEV && new URLSearchParams(window.location.search).has('profileGpu') ? 'none' : 'auto'
+        }
+      >
+        {preset.ao && (
+          <N8AO halfRes quality="performance" aoRadius={3.5} distanceFalloff={1.2} intensity={2.2} color="#27303c" />
+        )}
         <primitive object={fog} dispose={null} />
-        {preset.godRays && <GodRays sun={sun} samples={48} density={0.94} decay={0.925} weight={0.32} exposure={0.42} clampMax={1} blur />}
-        {preset.bloom && <Bloom mipmapBlur intensity={0.5} luminanceThreshold={1} luminanceSmoothing={0.3} radius={0.72} />}
+        {preset.godRays && (
+          <GodRays
+            sun={sun}
+            samples={48}
+            density={0.94}
+            decay={0.925}
+            weight={0.32}
+            exposure={0.42}
+            clampMax={1}
+            blur
+          />
+        )}
+        {preset.bloom && (
+          <Bloom mipmapBlur intensity={0.5} luminanceThreshold={1} luminanceSmoothing={0.3} radius={0.72} />
+        )}
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         <primitive object={grade} dispose={null} />
         <Vignette offset={0.32} darkness={0.42} />

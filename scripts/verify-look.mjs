@@ -7,6 +7,7 @@ import { openWorld, review, VIEWS } from './lib/world-session.mjs'
  * Look baseline for art passes: fixed views × times of day in clear weather, HUD hidden, one contact sheet per time.
  *   node scripts/verify-look.mjs <label>            capture artifacts/look/<label>/
  *   node scripts/verify-look.mjs --compare <a> <b>  side-by-side sheets of two captures (no browser)
+ *   node scripts/verify-look.mjs --stats <a> <b>    per-time averages of luminance, contrast and saturation
  * Frames are checked only for being neither black, blown out nor flat; judging the look is a human review.
  */
 const OUT = 'artifacts/look'
@@ -50,7 +51,40 @@ async function sheet(files, columns, file) {
     .toFile(file)
 }
 
-if (process.argv[2] === '--compare') {
+/** Mean luminance, its spread (contrast) and mean HSV saturation of a frame. */
+async function frameStats(file) {
+  const { data, info } = await sharp(file).resize(400, 225).raw().toBuffer({ resolveWithObject: true })
+  let n = 0,
+    sum = 0,
+    squares = 0,
+    saturation = 0
+  for (let i = 0; i < data.length; i += info.channels) {
+    const [r, g, b] = [data[i], data[i + 1], data[i + 2]].map((v) => v / 255)
+    const l = 0.2126 * r + 0.7152 * g + 0.0722 * b,
+      high = Math.max(r, g, b)
+    n++
+    sum += l
+    squares += l * l
+    saturation += high > 0 ? (high - Math.min(r, g, b)) / high : 0
+  }
+  const mean = sum / n
+  return { mean, contrast: Math.sqrt(squares / n - mean * mean), saturation: saturation / n }
+}
+
+if (process.argv[2] === '--stats') {
+  const [a, b] = process.argv.slice(3)
+  for (const hours of TIMES) {
+    const rows = await Promise.all(
+      Object.keys(SHOTS).map((name) =>
+        Promise.all([a, b].map((label) => frameStats(path.join(OUT, label, `${tag(hours)}-${name}.png`)))),
+      ),
+    )
+    const avg = (key, i) => (rows.reduce((total, row) => total + row[i][key], 0) / rows.length).toFixed(3)
+    console.log(
+      `${tag(hours)}: ${['mean', 'contrast', 'saturation'].map((key) => `${key} ${avg(key, 0)} → ${avg(key, 1)}`).join('  ')}`,
+    )
+  }
+} else if (process.argv[2] === '--compare') {
   const [a, b] = process.argv.slice(3)
   const dir = path.join(OUT, `${a}-vs-${b}`)
   await fs.mkdir(dir, { recursive: true })
