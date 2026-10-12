@@ -13,6 +13,7 @@
     "verify:optimization": "node scripts/verify-optimization.mjs",
     "verify:riding-pose": "node scripts/verify-riding-pose.mjs",
     "verify:interact": "node scripts/verify-interact.mjs",
+    "verify:viewpoints": "node scripts/verify-viewpoints.mjs",
     "verify:perf": "node scripts/verify-perf.mjs",
     "verify:quality-switch": "node scripts/verify-quality-switch.mjs",
     "verify:prop-collision": "node scripts/verify-prop-collision.mjs",

@@ -10,13 +10,31 @@ const RIG = {
   GROUND: { pivot: 1.55, tilt: 0.26, near: 4.3, far: 4.9, shoulder: 0.45 },
   FLIGHT: { pivot: 1.3, tilt: 0.2, near: 5.8, far: 7.2, shoulder: 0 },
 } as const
-const MIN_ARM = 0.7, PAD = 0.25
+const MIN_ARM = 0.7,
+  PAD = 0.25
 /** A pivot this far from the last one is a teleport: snap instead of easing across the map. */
 const SNAP = 30
 
-const rig = { ready: false, pivot: new Vector3(), last: new Vector3(), height: 0, rise: 0, arm: 5, shoulder: 0, time: 0, velocity: new Vector3(), lag: new Vector3() }
-const target = new Vector3(), focus = new Vector3(), view = new Vector3(), side = new Vector3(), up = new Vector3()
-const sample = new Vector3(), moved = new Vector3(), direction = new Vector3()
+const rig = {
+  ready: false,
+  pivot: new Vector3(),
+  last: new Vector3(),
+  height: 0,
+  rise: 0,
+  arm: 5,
+  shoulder: 0,
+  time: 0,
+  velocity: new Vector3(),
+  lag: new Vector3(),
+}
+const target = new Vector3(),
+  focus = new Vector3(),
+  view = new Vector3(),
+  side = new Vector3(),
+  up = new Vector3()
+const sample = new Vector3(),
+  moved = new Vector3(),
+  direction = new Vector3()
 
 /** The next update starts over (snaps) instead of easing in from wherever a cutscene, photo mode or teleport left it. */
 export function resetCameraRig() {
@@ -30,22 +48,28 @@ export function shiftCameraRig(previous: Vector3, current: Vector3, turn: number
   rig.velocity.applyAxisAngle(carryUp, turn)
 }
 
-function solid(point: Vector3) {
+export function cameraSolid(point: Vector3) {
   const ground = groundHeight(point.x, point.z, point.y)
-  return (ground !== null && point.y < ground + 0.3) || insideStructure(point.x, point.y, point.z) || insideAnyCollider(point.x, point.y, point.z, 0.3)
+  return (
+    (ground !== null && point.y < ground + 0.3) ||
+    insideStructure(point.x, point.y, point.z) ||
+    insideAnyCollider(point.x, point.y, point.z, 0.3)
+  )
 }
 
 /** Free length (≤ `length`) along the unit `direction` from `from` before terrain, a structure or a collider. */
-function clearance(from: Vector3, direction: Vector3, length: number) {
+export function cameraClearance(from: Vector3, direction: Vector3, length: number) {
   const deckFree = carrierClearance(from, direction, length)
   const steps = Math.max(2, Math.ceil(length / 0.6))
   for (let i = 1; i <= steps; i++) {
-    if (!solid(sample.copy(from).addScaledVector(direction, (i / steps) * length))) continue
+    if (!cameraSolid(sample.copy(from).addScaledVector(direction, (i / steps) * length))) continue
     // Refine the hit between the last free sample and this one.
-    let lo = ((i - 1) / steps) * length, hi = (i / steps) * length
+    let lo = ((i - 1) / steps) * length,
+      hi = (i / steps) * length
     for (let k = 0; k < 4; k++) {
       const mid = (lo + hi) / 2
-      if (solid(sample.copy(from).addScaledVector(direction, mid))) hi = mid; else lo = mid
+      if (cameraSolid(sample.copy(from).addScaledVector(direction, mid))) hi = mid
+      else lo = mid
     }
     return Math.min(lo, deckFree)
   }
@@ -53,7 +77,11 @@ function clearance(from: Vector3, direction: Vector3, length: number) {
 }
 
 export function CameraRig({ camera }: { camera: PerspectiveCamera }) {
-  return <group name="cameraRig"><primitive object={camera} name="camera" /></group>
+  return (
+    <group name="cameraRig">
+      <primitive object={camera} name="camera" />
+    </group>
+  )
 }
 
 /**
@@ -62,8 +90,17 @@ export function CameraRig({ camera }: { camera: PerspectiveCamera }) {
  * little lag (jumps, steps), flight adds lag under acceleration, a wider view and buffeting at speed.
  */
 export function updateCameraRig(
-  camera: PerspectiveCamera, player: Vector3, yaw: number, pitch: number,
-  mode: Mode, delta: number, speed = 0, bank = 0, impact = 0, baseFov = 72, landing = 0,
+  camera: PerspectiveCamera,
+  player: Vector3,
+  yaw: number,
+  pitch: number,
+  mode: Mode,
+  delta: number,
+  speed = 0,
+  bank = 0,
+  impact = 0,
+  baseFov = 72,
+  landing = 0,
 ) {
   const config = RIG[mode]
   const flight = mode === 'FLIGHT'
@@ -96,24 +133,34 @@ export function updateCameraRig(
   rig.rise = rig.pivot.y - target.y
   // Under acceleration the camera falls back a little, then catches up once the speed settles.
   rig.velocity.lerp(moved, 1 - Math.exp(-4 * delta))
-  rig.lag.copy(moved).sub(rig.velocity).multiplyScalar(flight ? -0.05 : 0)
+  rig.lag
+    .copy(moved)
+    .sub(rig.velocity)
+    .multiplyScalar(flight ? -0.05 : 0)
   const lag = Math.min(2.5, rig.lag.length())
   if (lag > 1e-3) {
     // Never let the lag carry the focus into a wall, or the arm would start inside it.
     direction.copy(rig.lag).divideScalar(rig.lag.length())
-    rig.lag.copy(direction).multiplyScalar(Math.max(0, Math.min(lag, clearance(rig.pivot, direction, lag + PAD) - PAD)))
+    rig.lag
+      .copy(direction)
+      .multiplyScalar(Math.max(0, Math.min(lag, cameraClearance(rig.pivot, direction, lag + PAD) - PAD)))
   }
 
   const tilt = pitch - config.tilt
   view.set(Math.sin(yaw) * Math.cos(tilt), Math.sin(tilt), -Math.cos(yaw) * Math.cos(tilt))
   side.set(Math.cos(yaw), 0, Math.sin(yaw))
   // Shoulder offset, kept clear of a wall on that side.
-  const shoulder = config.shoulder > 0 ? Math.max(0, Math.min(config.shoulder, clearance(rig.pivot, side, config.shoulder + PAD) - PAD)) : 0
-  rig.shoulder = fresh ? shoulder : rig.shoulder + (shoulder - rig.shoulder) * (1 - Math.exp(-(shoulder < rig.shoulder ? 30 : 5) * delta))
+  const shoulder =
+    config.shoulder > 0
+      ? Math.max(0, Math.min(config.shoulder, cameraClearance(rig.pivot, side, config.shoulder + PAD) - PAD))
+      : 0
+  rig.shoulder = fresh
+    ? shoulder
+    : rig.shoulder + (shoulder - rig.shoulder) * (1 - Math.exp(-(shoulder < rig.shoulder ? 30 : 5) * delta))
   focus.copy(rig.pivot).addScaledVector(side, rig.shoulder).add(rig.lag)
   // Probe out to the current arm as well, so a shorter wanted length (slowing down, landing) eases in rather than snapping.
   view.negate()
-  const free = Math.max(MIN_ARM, clearance(focus, view, Math.max(length, rig.arm) + PAD) - PAD)
+  const free = Math.max(MIN_ARM, cameraClearance(focus, view, Math.max(length, rig.arm) + PAD) - PAD)
   view.negate()
   rig.arm = free < rig.arm ? free : rig.arm + (Math.min(free, length) - rig.arm) * (1 - Math.exp(-3.5 * delta))
   camera.position.copy(focus).addScaledVector(view, -rig.arm)

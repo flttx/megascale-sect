@@ -13,7 +13,8 @@ export type { BridgeSite } from './bridges'
  */
 
 export interface IslandSite {
-  id: string; name: string
+  id: string
+  name: string
   /** Centre of the flat walkable top. */
   top: Vec3
   /** Walkable disc radius; the visual top must stay flat out to at least padRadius + 2 m. */
@@ -30,19 +31,53 @@ export interface IslandSite {
 export const ISLANDS: IslandSite[] = [
   { id: 'isle_west', name: '听松屿', top: [-302, 30, -102], padRadius: 20, radius: 27, depth: 46, bridged: true },
   { id: 'isle_east', name: '望月台', top: [332, 40, -85], padRadius: 20, radius: 27, depth: 50, bridged: true },
-  { id: 'isle_northwest', name: '栖霞屿', top: [-560, 150, -420], padRadius: 22, radius: 32, depth: 60, bridged: false },
+  {
+    id: 'isle_northwest',
+    name: '栖霞屿',
+    top: [-560, 150, -420],
+    padRadius: 22,
+    radius: 32,
+    depth: 60,
+    bridged: false,
+  },
   { id: 'isle_star', name: '摘星台', top: [640, 175, -260], padRadius: 24, radius: 34, depth: 64, bridged: false },
-  { id: 'isle_front_left', name: '流云屿', top: [-270, 115, 230], padRadius: 15, radius: 22, depth: 40, bridged: false },
-  { id: 'isle_front_right', name: '鹤鸣屿', top: [330, 140, 300], padRadius: 18, radius: 26, depth: 48, bridged: false },
+  {
+    id: 'isle_front_left',
+    name: '流云屿',
+    top: [-270, 115, 230],
+    padRadius: 15,
+    radius: 22,
+    depth: 40,
+    bridged: false,
+  },
+  {
+    id: 'isle_front_right',
+    name: '鹤鸣屿',
+    top: [330, 140, 300],
+    padRadius: 18,
+    radius: 26,
+    depth: 48,
+    bridged: false,
+  },
   { id: 'isle_sky', name: '天池', top: [-160, 300, -780], padRadius: 20, radius: 30, depth: 60, bridged: false },
-  { id: 'isle_chained', name: '锁云屿', top: [-790, 265, -260], padRadius: 45, radius: 67, depth: 135, bridged: false, chains: ['pillar_5', 'pillar_3', 'pillar_2', 'pillar_0', 'pillar_4'] },
+  {
+    id: 'isle_chained',
+    name: '锁云屿',
+    top: [-790, 265, -260],
+    padRadius: 45,
+    radius: 67,
+    depth: 135,
+    bridged: false,
+    chains: ['pillar_5', 'pillar_3', 'pillar_2', 'pillar_0', 'pillar_4'],
+  },
 ]
 
 export interface PillarSite {
   id: string
   /** Index of the cluster it was scattered in (rendered and LOD-switched together). */
   cluster: number
-  x: number; z: number
+  x: number
+  z: number
   /** Top surface height; the base is buried at PILLAR_BASE_Y under the cloud sea. */
   topY: number
   /** Mean radius of the shaft. */
@@ -56,10 +91,12 @@ export const PILLAR_BASE_Y = -440
 /** Highest ground (main terrain or an outer region) inside a circle. */
 function groundMax(cx: number, cz: number, r: number) {
   let best = -Infinity
-  for (let a = 0; a < 16; a++) for (const f of [0, 0.5, 1]) {
-    const x = cx + Math.cos(a / 16 * Math.PI * 2) * r * f, z = cz + Math.sin(a / 16 * Math.PI * 2) * r * f
-    best = Math.max(best, terrainHeight(x, z), regionHeight(x, z) ?? -Infinity)
-  }
+  for (let a = 0; a < 16; a++)
+    for (const f of [0, 0.5, 1]) {
+      const x = cx + Math.cos((a / 16) * Math.PI * 2) * r * f,
+        z = cz + Math.sin((a / 16) * Math.PI * 2) * r * f
+      best = Math.max(best, terrainHeight(x, z), regionHeight(x, z) ?? -Infinity)
+    }
   return best
 }
 
@@ -90,7 +127,8 @@ function generatePillars(): PillarSite[] {
   PILLAR_CLUSTERS.forEach(([cx, cz, spread, count, minTop, maxTop, maxRadius = 48], cluster) => {
     for (let placed = 0, attempt = 0; placed < count && attempt < count * 8; attempt++) {
       seed++
-      const x = cx + (hash(seed, 1, 501) - 0.5) * spread * 2, z = cz + (hash(seed, 2, 502) - 0.5) * spread * 2
+      const x = cx + (hash(seed, 1, 501) - 0.5) * spread * 2,
+        z = cz + (hash(seed, 2, 502) - 0.5) * spread * 2
       const topY = minTop + hash(seed, 3, 503) * (maxTop - minTop)
       const radius = Math.min(maxRadius, Math.max(12, (topY + 84) * (0.1 + hash(seed, 4, 504) * 0.08) + 8))
       if (groundMax(x, z, radius + 30) > -110) continue
@@ -108,60 +146,312 @@ export const PILLARS: PillarSite[] = generatePillars()
 export type InteractKind = 'stele' | 'viewpoint' | 'bell' | 'altar' | 'meditation' | 'teleport'
 
 export interface InteractSite {
-  id: string; kind: InteractKind; name: string
+  id: string
+  kind: InteractKind
+  name: string
   /** Ground contact point (y is the walkable height there). */
   position: Vec3
   /** Point the object's front (or a viewpoint's camera) should face. */
   faceToward: Vec3
   /** Footprint that decoration must keep clear. */
   clearance: number
+  /** Extra rise of the viewpoint sweep to frame over nearby roofs and tree crowns (metres). */
+  viewpointLift?: number
 }
 
 export const INTERACT_SITES: InteractSite[] = [
   // Steles: sect lore along the pilgrimage route and at the far corners.
-  { id: 'stele_spawn', kind: 'stele', name: '入山碑', position: [-12.5, 0, 150], faceToward: [0, 0, 150], clearance: 3 },
-  { id: 'stele_road_a', kind: 'stele', name: '问道碑', position: [11.5, 0, 118], faceToward: [0, 0, 118], clearance: 3 },
+  {
+    id: 'stele_spawn',
+    kind: 'stele',
+    name: '入山碑',
+    position: [-12.5, 0, 150],
+    faceToward: [0, 0, 150],
+    clearance: 3,
+  },
+  {
+    id: 'stele_road_a',
+    kind: 'stele',
+    name: '问道碑',
+    position: [11.5, 0, 118],
+    faceToward: [0, 0, 118],
+    clearance: 3,
+  },
   { id: 'stele_road_b', kind: 'stele', name: '云海碑', position: [-11.5, 0, 84], faceToward: [0, 0, 84], clearance: 3 },
   { id: 'stele_gate', kind: 'stele', name: '山门碑', position: [12, 0, 36], faceToward: [0, 0, 36], clearance: 3 },
-  { id: 'stele_stairs', kind: 'stele', name: '登阶碑', position: [-20, 24, -76], faceToward: [0, 24, -76], clearance: 3 },
-  { id: 'stele_forecourt', kind: 'stele', name: '宗规碑', position: [95, 24, -150], faceToward: [60, 24, -120], clearance: 3 },
-  { id: 'stele_bridge', kind: 'stele', name: '听松桥记', position: [-178, 24, -112], faceToward: [-178, 24, -102], clearance: 3 },
-  { id: 'stele_back', kind: 'stele', name: '后山碑', position: [-120, 24, -500], faceToward: [-120, 24, -480], clearance: 3 },
-  { id: 'stele_isle_west', kind: 'stele', name: '松涛碑', position: [-294, 30, -111], faceToward: [-302, 30, -102], clearance: 3 },
-  { id: 'stele_star', kind: 'stele', name: '摘星碑', position: [630, 175, -252], faceToward: [640, 175, -260], clearance: 3 },
+  {
+    id: 'stele_stairs',
+    kind: 'stele',
+    name: '登阶碑',
+    position: [-20, 24, -76],
+    faceToward: [0, 24, -76],
+    clearance: 3,
+  },
+  {
+    id: 'stele_forecourt',
+    kind: 'stele',
+    name: '宗规碑',
+    position: [95, 24, -150],
+    faceToward: [60, 24, -120],
+    clearance: 3,
+  },
+  {
+    id: 'stele_bridge',
+    kind: 'stele',
+    name: '听松桥记',
+    position: [-178, 24, -112],
+    faceToward: [-178, 24, -102],
+    clearance: 3,
+  },
+  {
+    id: 'stele_back',
+    kind: 'stele',
+    name: '后山碑',
+    position: [-120, 24, -500],
+    faceToward: [-120, 24, -480],
+    clearance: 3,
+  },
+  {
+    id: 'stele_isle_west',
+    kind: 'stele',
+    name: '松涛碑',
+    position: [-294, 30, -111],
+    faceToward: [-302, 30, -102],
+    clearance: 3,
+  },
+  {
+    id: 'stele_star',
+    kind: 'stele',
+    name: '摘星碑',
+    position: [630, 175, -252],
+    faceToward: [640, 175, -260],
+    clearance: 3,
+  },
   // Viewpoints: cinematic overlooks; the first visit reveals map regions.
-  { id: 'view_spawn', kind: 'viewpoint', name: '仰止台', position: [-6, 0, 160], faceToward: [0, 120, -320], clearance: 3 },
-  { id: 'view_stairs', kind: 'viewpoint', name: '回望阶', position: [12, 24, -70], faceToward: [0, 0, 100], clearance: 3 },
-  { id: 'view_back_west', kind: 'viewpoint', name: '西崖', position: [-176, 24, -505], faceToward: [-900, 0, -500], clearance: 3 },
-  { id: 'view_back_east', kind: 'viewpoint', name: '东崖', position: [176, 24, -505], faceToward: [900, 0, -600], clearance: 3 },
-  { id: 'view_isle_west', kind: 'viewpoint', name: '松风台', position: [-318, 30, -112], faceToward: [-760, 80, -300], clearance: 3 },
-  { id: 'view_star', kind: 'viewpoint', name: '摘星顶', position: [650, 175, -240], faceToward: [0, 200, -320], clearance: 3 },
+  {
+    id: 'view_spawn',
+    kind: 'viewpoint',
+    name: '仰止台',
+    position: [-6, 0, 160],
+    faceToward: [0, 120, -320],
+    clearance: 3,
+    viewpointLift: 16,
+  },
+  {
+    id: 'view_stairs',
+    kind: 'viewpoint',
+    name: '回望阶',
+    position: [12, 24, -70],
+    faceToward: [0, 0, 100],
+    clearance: 3,
+  },
+  {
+    id: 'view_back_west',
+    kind: 'viewpoint',
+    name: '西崖',
+    position: [-176, 24, -505],
+    faceToward: [-1000, 120, 0],
+    clearance: 3,
+    viewpointLift: 80,
+  },
+  {
+    id: 'view_back_east',
+    kind: 'viewpoint',
+    name: '东崖',
+    position: [176, 24, -505],
+    faceToward: [1000, 120, 0],
+    clearance: 3,
+    viewpointLift: 80,
+  },
+  {
+    id: 'view_isle_west',
+    kind: 'viewpoint',
+    name: '松风台',
+    position: [-318, 30, -112],
+    faceToward: [-760, 80, -300],
+    clearance: 3,
+  },
+  {
+    id: 'view_star',
+    kind: 'viewpoint',
+    name: '摘星顶',
+    position: [650, 175, -240],
+    faceToward: [0, 200, -320],
+    clearance: 3,
+  },
   // Forecourt mechanisms.
-  { id: 'bell_forecourt', kind: 'bell', name: '云阙古钟', position: [-62, 24, -118], faceToward: [0, 24, -118], clearance: 6 },
-  { id: 'altar_forecourt', kind: 'altar', name: '司天祭坛', position: [62, 24, -118], faceToward: [0, 24, -118], clearance: 6 },
+  {
+    id: 'bell_forecourt',
+    kind: 'bell',
+    name: '云阙古钟',
+    position: [-62, 24, -118],
+    faceToward: [0, 24, -118],
+    clearance: 6,
+  },
+  {
+    id: 'altar_forecourt',
+    kind: 'altar',
+    name: '司天祭坛',
+    position: [62, 24, -118],
+    faceToward: [0, 24, -118],
+    clearance: 6,
+  },
   // Meditation cushions fast-forward time.
-  { id: 'meditation_back', kind: 'meditation', name: '观云蒲团', position: [-50, 24, -505], faceToward: [-50, 24, -700], clearance: 3 },
-  { id: 'meditation_isle_east', kind: 'meditation', name: '望月蒲团', position: [338, 40, -91], faceToward: [900, 60, -91], clearance: 3 },
+  {
+    id: 'meditation_back',
+    kind: 'meditation',
+    name: '观云蒲团',
+    position: [-50, 24, -505],
+    faceToward: [-50, 24, -700],
+    clearance: 3,
+  },
+  {
+    id: 'meditation_isle_east',
+    kind: 'meditation',
+    name: '望月蒲团',
+    position: [338, 40, -91],
+    faceToward: [900, 60, -91],
+    clearance: 3,
+  },
   // Teleport arrays link once activated by visiting.
-  { id: 'teleport_spawn', kind: 'teleport', name: '山门阵', position: [0, 0, 141], faceToward: [0, 0, 100], clearance: 5 },
-  { id: 'teleport_forecourt', kind: 'teleport', name: '云阙阵', position: [0, 24, -128], faceToward: [0, 24, -320], clearance: 5 },
-  { id: 'teleport_back', kind: 'teleport', name: '后山阵', position: [70, 24, -492], faceToward: [70, 24, -600], clearance: 5 },
-  { id: 'teleport_isle_west', kind: 'teleport', name: '听松阵', position: [-302, 30, -102], faceToward: [-186, 24, -102], clearance: 5 },
-  { id: 'teleport_star', kind: 'teleport', name: '摘星阵', position: [640, 175, -260], faceToward: [0, 175, -320], clearance: 5 },
+  {
+    id: 'teleport_spawn',
+    kind: 'teleport',
+    name: '山门阵',
+    position: [0, 0, 141],
+    faceToward: [0, 0, 100],
+    clearance: 5,
+  },
+  {
+    id: 'teleport_forecourt',
+    kind: 'teleport',
+    name: '云阙阵',
+    position: [0, 24, -128],
+    faceToward: [0, 24, -320],
+    clearance: 5,
+  },
+  {
+    id: 'teleport_back',
+    kind: 'teleport',
+    name: '后山阵',
+    position: [70, 24, -492],
+    faceToward: [70, 24, -600],
+    clearance: 5,
+  },
+  {
+    id: 'teleport_isle_west',
+    kind: 'teleport',
+    name: '听松阵',
+    position: [-302, 30, -102],
+    faceToward: [-186, 24, -102],
+    clearance: 5,
+  },
+  {
+    id: 'teleport_star',
+    kind: 'teleport',
+    name: '摘星阵',
+    position: [640, 175, -260],
+    faceToward: [0, 175, -320],
+    clearance: 5,
+  },
   // R10 outer regions: stele, overlook and array on flat, open ground of each region's mesa or isle.
-  { id: 'stele_sage', kind: 'stele', name: '坐忘碑', position: [-70, 153.14, -1894], faceToward: [0, 152, -1880], clearance: 3 },
-  { id: 'view_sage', kind: 'viewpoint', name: '仰圣台', position: [0, 152.16, -1870], faceToward: [0, 470, -2175], clearance: 3 },
-  { id: 'teleport_sage', kind: 'teleport', name: '玄穹阵', position: [70, 149.55, -1890], faceToward: [0, 300, -2175], clearance: 5 },
-  { id: 'stele_dragon', kind: 'stele', name: '盘龙碑', position: [2080, 208.95, -360], faceToward: [1990, 209, -360], clearance: 3 },
+  {
+    id: 'stele_sage',
+    kind: 'stele',
+    name: '坐忘碑',
+    position: [-70, 153.14, -1894],
+    faceToward: [0, 152, -1880],
+    clearance: 3,
+  },
+  {
+    id: 'view_sage',
+    kind: 'viewpoint',
+    name: '仰圣台',
+    position: [0, 152.16, -1870],
+    faceToward: [0, 470, -2175],
+    clearance: 3,
+  },
+  {
+    id: 'teleport_sage',
+    kind: 'teleport',
+    name: '玄穹阵',
+    position: [70, 149.55, -1890],
+    faceToward: [0, 300, -2175],
+    clearance: 5,
+  },
+  {
+    id: 'stele_dragon',
+    kind: 'stele',
+    name: '盘龙碑',
+    position: [2080, 208.95, -360],
+    faceToward: [1990, 209, -360],
+    clearance: 3,
+  },
   // Looks north along the spine: a sweep toward the pillar would pass into its base.
-  { id: 'view_dragon', kind: 'viewpoint', name: '望脊台', position: [2070, 209.85, -440], faceToward: [1950, 450, -1500], clearance: 3 },
-  { id: 'teleport_dragon', kind: 'teleport', name: '龙脊阵', position: [2090, 210.7, -500], faceToward: [2200, 400, -420], clearance: 5 },
-  { id: 'stele_tomb', kind: 'stele', name: '葬剑碑', position: [-1880, 139.94, -560], faceToward: [-1780, 140, -560], clearance: 3 },
-  { id: 'view_tomb', kind: 'viewpoint', name: '观剑台', position: [-1860, 141.49, -620], faceToward: [-2200, 420, -250], clearance: 3 },
-  { id: 'teleport_tomb', kind: 'teleport', name: '万剑阵', position: [-1850, 139.57, -450], faceToward: [-2200, 300, -250], clearance: 5 },
-  { id: 'stele_guixu', kind: 'stele', name: '归墟碑', position: [-50, 60.41, 2400], faceToward: [-50, 60, 2300], clearance: 3 },
-  { id: 'view_guixu', kind: 'viewpoint', name: '望门台', position: [0, 61.12, 2380], faceToward: [0, 170, 2000], clearance: 3 },
-  { id: 'teleport_guixu', kind: 'teleport', name: '归墟阵', position: [50, 60.27, 2420], faceToward: [0, 60, 2000], clearance: 5 },
+  {
+    id: 'view_dragon',
+    kind: 'viewpoint',
+    name: '望脊台',
+    position: [2070, 209.85, -440],
+    faceToward: [1950, 450, -1500],
+    clearance: 3,
+  },
+  {
+    id: 'teleport_dragon',
+    kind: 'teleport',
+    name: '龙脊阵',
+    position: [2090, 210.7, -500],
+    faceToward: [2200, 400, -420],
+    clearance: 5,
+  },
+  {
+    id: 'stele_tomb',
+    kind: 'stele',
+    name: '葬剑碑',
+    position: [-1880, 139.94, -560],
+    faceToward: [-1780, 140, -560],
+    clearance: 3,
+  },
+  {
+    id: 'view_tomb',
+    kind: 'viewpoint',
+    name: '观剑台',
+    position: [-1860, 141.49, -620],
+    faceToward: [-2200, 420, -250],
+    clearance: 3,
+  },
+  {
+    id: 'teleport_tomb',
+    kind: 'teleport',
+    name: '万剑阵',
+    position: [-1850, 139.57, -450],
+    faceToward: [-2200, 300, -250],
+    clearance: 5,
+  },
+  {
+    id: 'stele_guixu',
+    kind: 'stele',
+    name: '归墟碑',
+    position: [-50, 60.41, 2400],
+    faceToward: [-50, 60, 2300],
+    clearance: 3,
+  },
+  {
+    id: 'view_guixu',
+    kind: 'viewpoint',
+    name: '望门台',
+    position: [0, 61.12, 2380],
+    faceToward: [0, 170, 2000],
+    clearance: 3,
+  },
+  {
+    id: 'teleport_guixu',
+    kind: 'teleport',
+    name: '归墟阵',
+    position: [50, 60.27, 2420],
+    faceToward: [0, 60, 2000],
+    clearance: 5,
+  },
 ]
 
 /**
@@ -170,10 +460,16 @@ export const INTERACT_SITES: InteractSite[] = [
  */
 export function siteClearance(x: number, z: number) {
   let best = Infinity
-  for (const site of INTERACT_SITES) best = Math.min(best, Math.hypot(x - site.position[0], z - site.position[2]) - site.clearance)
+  for (const site of INTERACT_SITES)
+    best = Math.min(best, Math.hypot(x - site.position[0], z - site.position[2]) - site.clearance)
   for (const bridge of BRIDGES) {
-    const deck = bridgeDeck(bridge, x, z), t = Math.min(1, Math.max(0, deck.t))
-    best = Math.min(best, Math.hypot(deck.side, (deck.t - t) * Math.hypot(bridge.to[0] - bridge.from[0], bridge.to[2] - bridge.from[2])) - (bridge.halfWidth + 4))
+    const deck = bridgeDeck(bridge, x, z),
+      t = Math.min(1, Math.max(0, deck.t))
+    best = Math.min(
+      best,
+      Math.hypot(deck.side, (deck.t - t) * Math.hypot(bridge.to[0] - bridge.from[0], bridge.to[2] - bridge.from[2])) -
+        (bridge.halfWidth + 4),
+    )
   }
   return best
 }

@@ -107,6 +107,7 @@ Browser scripts locate Chrome on Windows, macOS, and Linux, then try Playwright 
 | `vp run verify:horror-terrain`          | All six actors' 22 normal poses plus 768 attack poses each; actual high/low source vertices against terrain/pillar cylinders                  |
 | `vp run verify:horror-motion`           | Actual articulated vertices, patrol/stop/roar behavior, synchronized audio, pauses and LODs                                                   |
 | `vp run verify:interact`                | Interactions, exact spirit-light count, scroll, focus, photo, save/restore, draw-call deltas, and page errors                                 |
+| `vp run verify:viewpoints`              | All ten viewpoint paths at three qualities and frame rates, approach variants, live playback, canopy clearance, skips and camera hand-back    |
 | `vp run verify:perf`                    | 45 scene/tier/weather samples including the Kun deck; draw calls ≤400; supports `MIN_FPS`                                                     |
 | `vp run verify:quality-switch`          | First/repeated/rapid switches, deferred warm-up, shadow tiers, nonblank frames and WebGL recovery; `MAX_SWITCH_FRAME_MS` defaults to 2500 ms  |
 | `vp run verify:prop-collision`          | All prop types: quality density and registration cleanup; rocks/pines at 20/60/144 fps, boosted flight, old-save escape and keyboard movement |
