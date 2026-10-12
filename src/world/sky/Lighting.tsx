@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CSM } from 'three/examples/jsm/csm/CSM.js'
-import { DirectionalLight, HemisphereLight, Mesh, ShaderChunk, Vector3, type Material, type Object3D, type PerspectiveCamera } from 'three'
+import {
+  DirectionalLight,
+  HemisphereLight,
+  Mesh,
+  ShaderChunk,
+  Vector3,
+  type Material,
+  type Object3D,
+  type PerspectiveCamera,
+} from 'three'
 import { atmosphere, keyLight } from './atmosphere'
 import { useWorldStore } from '../store'
 import { QUALITY_PRESETS } from '../quality'
@@ -9,12 +18,25 @@ import { QUALITY_PRESETS } from '../quality'
 /** Shadowed range; beyond it the height fog carries depth. Splits are fractions of it. */
 const SHADOW_FAR = 1500
 const SPLITS: Record<number, number[]> = { 3: [0.035, 0.18, 1], 4: [0.02, 0.07, 0.25, 1] }
+/**
+ * Every shadowed tier compiles the same four cascade slots, so switching between them (by hand or by auto quality)
+ * reuses the lit programs instead of recompiling ~120 of them on the GPU process (a 12 s freeze on D3D). A tier with
+ * fewer cascades leaves its leading slots empty: a (0, 0) range has no fade margin, so the shader never selects it,
+ * and its 1×1 map is drawn once and then frozen. The real cascades keep their splits and the last one still fades.
+ */
+const CASCADE_SLOTS = 4
 /** How far toward the sun a caster may sit outside a cascade (the main hall is ~420 m tall). */
 const LIGHT_MARGIN = 900
 
 type Hook = Material['onBeforeCompile']
-const isLit = (material: Material) => ['isMeshStandardMaterial', 'isMeshLambertMaterial', 'isMeshPhongMaterial', 'isMeshToonMaterial'].some((flag) => flag in material)
+const isLit = (material: Material) =>
+  ['isMeshStandardMaterial', 'isMeshLambertMaterial', 'isMeshPhongMaterial', 'isMeshToonMaterial'].some(
+    (flag) => flag in material,
+  )
 const keyDirection = new Vector3()
+
+/** Bumped whenever lit materials need new programs (re-hooked to new cascades, or the light set changed). */
+export const lightingChanges = { serial: 0 }
 
 /**
  * three 0.186's CSMShader.lights_fragment_begin predates the DFG lookup the stock chunk does for standard
@@ -34,7 +56,8 @@ IncidentLight directLight;`
 function restoreStandardDfg() {
   const chunk = ShaderChunk.lights_fragment_begin
   if (chunk.includes('material.dfg')) return
-  if (import.meta.env.DEV && !chunk.includes('IncidentLight directLight;')) console.warn('[lighting] CSM lights chunk changed; standard materials may lose specular')
+  if (import.meta.env.DEV && !chunk.includes('IncidentLight directLight;'))
+    console.warn('[lighting] CSM lights chunk changed; standard materials may lose specular')
   ShaderChunk.lights_fragment_begin = chunk.replace('IncidentLight directLight;', STANDARD_DFG)
 }
 
@@ -54,30 +77,46 @@ export function Lighting() {
   const plain = useRef<DirectionalLight>(null)
   const hooked = useRef(new Map<Material, Hook | null>())
   const lens = useRef({ fov: 0, aspect: 0 })
+  const cascadesSeen = useRef(shadowCascades)
 
   // CSM adds its lights to the scene on construction, so it must be created in an effect (not during render).
   const csmRef = useRef<CSM | null>(null)
   useEffect(() => {
     if (!shadowCascades) return
-    const splits = SPLITS[shadowCascades]
+    const empty = CASCADE_SLOTS - shadowCascades
+    const splits = [...Array<number>(empty).fill(0), ...SPLITS[shadowCascades]]
     const instance = new CSM({
-      camera, parent: scene, cascades: shadowCascades, maxFar: SHADOW_FAR, shadowMapSize,
-      mode: 'custom', customSplitsCallback: (_count: number, _near: number, _far: number, target: number[]) => target.push(...splits),
-      lightMargin: LIGHT_MARGIN, lightFar: LIGHT_MARGIN + SHADOW_FAR * 2, shadowBias: -0.00015,
+      camera,
+      parent: scene,
+      cascades: CASCADE_SLOTS,
+      maxFar: SHADOW_FAR,
+      shadowMapSize,
+      mode: 'custom',
+      customSplitsCallback: (_count: number, _near: number, _far: number, target: number[]) => target.push(...splits),
+      lightMargin: LIGHT_MARGIN,
+      lightFar: LIGHT_MARGIN + SHADOW_FAR * 2,
+      shadowBias: -0.00015,
     })
     restoreStandardDfg()
     instance.fade = true
-    instance.lights.forEach((light) => { light.shadow.radius = 2 })
+    instance.lights.forEach((light, i) => {
+      light.shadow.radius = 2
+      if (i >= empty) return
+      light.shadow.mapSize.set(1, 1)
+      light.shadow.autoUpdate = false
+      light.shadow.needsUpdate = true
+    })
     lens.current = { fov: 0, aspect: 0 }
     csmRef.current = instance
     const originals = hooked.current
     const hooks = window as unknown as Record<string, unknown>
-    if (import.meta.env.DEV) hooks.__lightingStats = () => ({
-      cascades: instance.lights.length,
-      shadowMaps: instance.lights.filter((light) => light.shadow.map).length,
-      hookedMaterials: originals.size,
-      frustums: instance.lights.map((light) => Math.round(light.shadow.camera.right - light.shadow.camera.left)),
-    })
+    if (import.meta.env.DEV)
+      hooks.__lightingStats = () => ({
+        cascades: instance.lights.length,
+        shadowMaps: instance.lights.filter((light) => light.shadow.map).length,
+        hookedMaterials: originals.size,
+        frustums: instance.lights.map((light) => Math.round(light.shadow.camera.right - light.shadow.camera.left)),
+      })
     return () => {
       delete hooks.__lightingStats
       csmRef.current = null
@@ -85,7 +124,9 @@ export function Lighting() {
       instance.lights.forEach((light) => light.dispose())
       instance.dispose()
       // CSM deletes the hook it installed; put back the material's own shader hook.
-      originals.forEach((own, material) => { if (own) material.onBeforeCompile = own })
+      originals.forEach((own, material) => {
+        if (own) material.onBeforeCompile = own
+      })
       originals.clear()
     }
   }, [camera, scene, shadowCascades, shadowMapSize])
@@ -94,13 +135,26 @@ export function Lighting() {
     const csm = csmRef.current
     const dir = keyDirection
     const { color, intensity } = keyLight(dir)
-    hemi.color.copy(atmosphere.hemiSky); hemi.groundColor.copy(atmosphere.hemiGround); hemi.intensity = atmosphere.hemiIntensity
+    hemi.color.copy(atmosphere.hemiSky)
+    hemi.groundColor.copy(atmosphere.hemiGround)
+    hemi.intensity = atmosphere.hemiIntensity
+    if (cascadesSeen.current !== shadowCascades) {
+      cascadesSeen.current = shadowCascades
+      lightingChanges.serial++
+    }
 
     if (!csm) {
       const light = plain.current
-      if (light) { light.position.copy(camera.position).addScaledVector(dir, 500); light.target.position.copy(camera.position); light.target.updateMatrixWorld(); light.color.copy(color); light.intensity = intensity }
+      if (light) {
+        light.position.copy(camera.position).addScaledVector(dir, 500)
+        light.target.position.copy(camera.position)
+        light.target.updateMatrixWorld()
+        light.color.copy(color)
+        light.intensity = intensity
+      }
       return
     }
+    let rehooked = false
     scene.traverse((object: Object3D) => {
       const mesh = object as Mesh
       if (!mesh.isMesh) return
@@ -113,21 +167,31 @@ export function Lighting() {
         const own = Object.prototype.hasOwnProperty.call(material, 'onBeforeCompile') ? material.onBeforeCompile : null
         csm.setupMaterial(material)
         const csmHook = material.onBeforeCompile
-        if (own) material.onBeforeCompile = (shader, renderer) => { own.call(material, shader, renderer); csmHook.call(material, shader, renderer) }
+        if (own)
+          material.onBeforeCompile = (shader, renderer) => {
+            own.call(material, shader, renderer)
+            csmHook.call(material, shader, renderer)
+          }
         hooked.current.set(material, own)
         material.needsUpdate = true
+        rehooked = true
       }
-      if (lit) { mesh.receiveShadow = true; mesh.castShadow = mesh.userData.castShadow !== false }
+      if (lit) {
+        mesh.receiveShadow = true
+        mesh.castShadow = mesh.userData.castShadow !== false
+      }
     })
+    if (rehooked) lightingChanges.serial++
     if (lens.current.fov !== camera.fov || lens.current.aspect !== camera.aspect) {
       lens.current = { fov: camera.fov, aspect: camera.aspect }
       csm.updateFrustums()
     }
     csm.lightDirection.copy(dir).negate()
     csm.lights.forEach((light) => {
-      light.color.copy(color); light.intensity = intensity
+      light.color.copy(color)
+      light.intensity = intensity
       // Normal offset scaled to each cascade's texel footprint keeps acne away without peter-panning up close.
-      light.shadow.normalBias = (light.shadow.camera.right - light.shadow.camera.left) / shadowMapSize * 1.4
+      light.shadow.normalBias = ((light.shadow.camera.right - light.shadow.camera.left) / shadowMapSize) * 1.4
     })
     csm.update()
   })

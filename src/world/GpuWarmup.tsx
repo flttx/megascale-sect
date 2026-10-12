@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useThree } from '@react-three/fiber'
+import { useEffect, useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useProgress } from '@react-three/drei'
 import { create } from 'zustand'
 import { HalfFloatType, LOD, Material, Object3D, ShaderMaterial, Texture, WebGLRenderTarget } from 'three'
@@ -8,6 +8,7 @@ import { useWorldStore } from './store'
 import { worldAssetsReady } from './worldAssets'
 import { useEldritchLoadingStore, type EldritchLoadingStatus } from './blackMist/eldritchLoading'
 import { QUALITY_PRESETS } from './quality'
+import { lightingChanges } from './sky/Lighting'
 
 /** Main-thread budget (ms) per frame for spreading texture uploads. */
 const TEXTURE_BUDGET = 8
@@ -188,6 +189,18 @@ export function GpuWarmup() {
       finish()
     }
   }, [ready, loading, quality, eldritch, gl, scene, camera])
+
+  // A quality change swaps the shadow cascades (or drops them), so every lit material needs a new program. Left to
+  // the render, three creates each program and waits for its link before the next (one ~5 s frame for ~150 programs).
+  // Issue them all first, after Lighting has re-hooked the materials (priority 0) and before the composer draws (1),
+  // so the GPU process compiles them in parallel and the render only waits for the slowest.
+  const applied = useRef(lightingChanges.serial)
+  useFrame(({ gl, scene, camera }) => {
+    if (applied.current === lightingChanges.serial) return
+    applied.current = lightingChanges.serial
+    gl.compile(scene, camera)
+    overlays.forEach((overlay) => gl.compile(overlay, camera))
+  }, 0.5)
 
   useEffect(() => {
     if (!import.meta.env.DEV) return
