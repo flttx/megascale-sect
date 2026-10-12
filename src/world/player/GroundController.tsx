@@ -14,13 +14,19 @@ const SLIDE_SPEED = 6
 /** Take-off speed for the jump height; in the air the feet can clear a ledge this far above them. */
 export const JUMP_SPEED = Math.sqrt(2 * LAYOUT.player.gravity * LAYOUT.player.jumpHeight)
 const AIR_STEP = 0.45
+/** A reversal above `from` m/s first brakes at `rate` (1/s) until the body is nearly stopped. */
+const SKID = { from: 3, rate: 7 } as const
 /** A single stair remains grounded at every frame rate; larger drops still require a jump. */
 const STEP_DOWN = 0.45
 /** Longest drop that still ends on foot: the sword catches a fall at 20 m/s, about 7 m down. */
 const LANDING_DROP = 8
 /** Torso (knee to crown) and radius tested against props, steles and rock for walking. */
 const BODY = { bottom: 0.45, top: 1.7, radius: 0.35 }
-export interface GroundStep { touchdown: number; grounded: boolean; sliding: boolean }
+export interface GroundStep {
+  touchdown: number
+  grounded: boolean
+  sliding: boolean
+}
 /** Inspect before consuming a buffered jump; a sliding foot cannot push off. */
 export function groundState(position: Vector3): GroundStep {
   const h = groundHeight(position.x, position.z, position.y)
@@ -28,14 +34,19 @@ export function groundState(position: Vector3): GroundStep {
   const gradient = grounded ? terrainGradient(position.x, position.z, position.y) : null
   return { touchdown: 0, grounded, sliding: gradient !== null && Math.hypot(gradient.x, gradient.z) > SLIDE_GRADIENT }
 }
-const fall = { x: 0, z: 0 }, probeGradient = { x: 0, z: 0 }
-const forward = new Vector3(), right = new Vector3(), desired = new Vector3()
+const fall = { x: 0, z: 0 },
+  probeGradient = { x: 0, z: 0 }
+const forward = new Vector3(),
+  right = new Vector3(),
+  desired = new Vector3()
 /** Set for a step that starts inside a prop collider (e.g. an uneven pillar top), so the player can walk out of it. */
 let ignoreProps = false
 
 /** The main hall's whole footprint is off limits on foot: its roofs are for flight, and there is no floor under them. */
 const bodyBlocked = (x: number, y: number, z: number) =>
-  insideMainFootprint(x, z) || insideStructure(x, y + 1, z) || (!ignoreProps && bodyInsideAnyCollider(x, y + BODY.bottom, y + BODY.top, z, BODY.radius))
+  insideMainFootprint(x, z) ||
+  insideStructure(x, y + 1, z) ||
+  (!ignoreProps && bodyInsideAnyCollider(x, y + BODY.bottom, y + BODY.top, z, BODY.radius))
 
 /**
  * Whether a step from (x, z) to (nx, nz) lands on ground and stays within the climb and drop limits, measured
@@ -43,13 +54,24 @@ const bodyBlocked = (x: number, y: number, z: number) =>
  * `steepHere`: already standing on ground too steep to hold (where a slide cannot continue), so any step
  * within the limits may lead off it.
  */
-function canStep(x: number, z: number, nx: number, nz: number, y: number, here: number, steepHere: boolean, moving: boolean) {
+function canStep(
+  x: number,
+  z: number,
+  nx: number,
+  nz: number,
+  y: number,
+  here: number,
+  steepHere: boolean,
+  moving: boolean,
+) {
   const next = groundHeight(nx, nz, y)
   // Walking off a carrier is a fall; static cliff-edge protection must not trap its passenger.
   if (moving && (next === null || here - next > MAX_DROP)) return !bodyBlocked(nx, y, nz)
   // Stepping down, the body must also clear the lower footing (a censer at the foot of a ledge).
   if (next === null || bodyBlocked(nx, Math.max(y, next), nz) || (next < y && bodyBlocked(nx, next, nz))) return false
-  const dx = nx - x, dz = nz - z, length = Math.hypot(dx, dz)
+  const dx = nx - x,
+    dz = nz - z,
+    length = Math.hypot(dx, dz)
   if (length < 1e-6) return true
   const ahead = groundHeight(x + (dx / length) * PROBE, z + (dz / length) * PROBE, y)
   const target = ahead ?? next
@@ -82,8 +104,13 @@ function canFly(nx: number, nz: number, y: number) {
  * Returns footing and the downward speed at touchdown (zero without a landing).
  */
 export function stepGround(
-  position: Vector3, velocity: Vector3, input: Vector3, yaw: number,
-  sprinting: boolean, jump: boolean, delta: number,
+  position: Vector3,
+  velocity: Vector3,
+  input: Vector3,
+  yaw: number,
+  sprinting: boolean,
+  jump: boolean,
+  delta: number,
 ) {
   const speed = sprinting ? LAYOUT.player.sprintSpeed : LAYOUT.player.jogSpeed
   forward.set(Math.sin(yaw), 0, -Math.cos(yaw))
@@ -97,30 +124,67 @@ export function stepGround(
   const grounded = position.y <= here + 0.04
   // Footing pushes off quickly and stops sooner than it builds up; in the air the body only steers.
   const slowing = desired.x * desired.x + desired.z * desired.z < velocity.x * velocity.x + velocity.z * velocity.z
-  const blend = 1 - Math.exp(-(grounded ? (slowing ? 14 : 9) : 2.5) * delta)
+  // Turning back on a run plants the feet first: the body brakes to a near stop, then drives off the other way,
+  // instead of swinging straight through zero onto the new heading.
+  const speedNow = Math.hypot(velocity.x, velocity.z)
+  const reversing =
+    grounded &&
+    speedNow > SKID.from &&
+    desired.x * velocity.x + desired.z * velocity.z < -0.3 * speedNow * desired.length()
+  const blend = 1 - Math.exp(-(grounded ? (reversing ? SKID.rate : slowing ? 14 : 9) : 2.5) * delta)
+  if (reversing) desired.set(0, 0, 0)
   velocity.x += (desired.x - velocity.x) * blend
   velocity.z += (desired.z - velocity.z) * blend
-  if (desired.lengthSq() === 0 && Math.hypot(velocity.x, velocity.z) < 0.015) { velocity.x = 0; velocity.z = 0 }
+  if (desired.lengthSq() === 0 && Math.hypot(velocity.x, velocity.z) < 0.015) {
+    velocity.x = 0
+    velocity.z = 0
+  }
   // Too steep to stand on (e.g. set down on a cliff face): slide down the fall line.
   const gradient = grounded ? terrainGradient(position.x, position.z, position.y, fall) : null
   const steepness = gradient ? Math.hypot(gradient.x, gradient.z) : 0
   const steep = gradient !== null && steepness > SLIDE_GRADIENT
   // The slide stops where the fall line leaves walkable ground (the terrain walk floor).
-  const sliding = steep && groundHeight(position.x + (gradient.x / steepness) * PROBE, position.z + (gradient.z / steepness) * PROBE, position.y) !== null
+  const sliding =
+    steep &&
+    groundHeight(
+      position.x + (gradient.x / steepness) * PROBE,
+      position.z + (gradient.z / steepness) * PROBE,
+      position.y,
+    ) !== null
   if (sliding) {
-    velocity.x += (gradient.x / steepness * SLIDE_SPEED - velocity.x) * blend
-    velocity.z += (gradient.z / steepness * SLIDE_SPEED - velocity.z) * blend
+    velocity.x += ((gradient.x / steepness) * SLIDE_SPEED - velocity.x) * blend
+    velocity.z += ((gradient.z / steepness) * SLIDE_SPEED - velocity.z) * blend
   }
   const airborne = !grounded || (jump && !sliding)
   if (grounded && jump && !sliding) velocity.y = JUMP_SPEED
-  ignoreProps = bodyInsideAnyCollider(position.x, position.y + BODY.bottom, position.y + BODY.top, position.z, BODY.radius)
-  const startX = position.x, startZ = position.z
+  ignoreProps = bodyInsideAnyCollider(
+    position.x,
+    position.y + BODY.bottom,
+    position.y + BODY.top,
+    position.z,
+    BODY.radius,
+  )
+  const startX = position.x,
+    startZ = position.z
   // Walking stops at the flight bounds too; a body already outside them (a teleport or a carrier) is held where it is.
   const { world } = LAYOUT
-  const nextX = MathUtils.clamp(position.x + velocity.x * delta, Math.min(world.minX, position.x), Math.max(world.maxX, position.x))
-  const nextZ = MathUtils.clamp(position.z + velocity.z * delta, Math.min(world.minZ, position.z), Math.max(world.maxZ, position.z))
-  const allowed = (nx: number, nz: number) => !carrierBodyBlocked(position.x, position.y, position.z, nx, nz) && (airborne ? canFly(nx, nz, position.y)
-    : sliding ? canSlide(nx, nz, position.y) : canStep(position.x, position.z, nx, nz, position.y, here, steep, isCarrier(footing?.surfaceId)))
+  const nextX = MathUtils.clamp(
+    position.x + velocity.x * delta,
+    Math.min(world.minX, position.x),
+    Math.max(world.maxX, position.x),
+  )
+  const nextZ = MathUtils.clamp(
+    position.z + velocity.z * delta,
+    Math.min(world.minZ, position.z),
+    Math.max(world.maxZ, position.z),
+  )
+  const allowed = (nx: number, nz: number) =>
+    !carrierBodyBlocked(position.x, position.y, position.z, nx, nz) &&
+    (airborne
+      ? canFly(nx, nz, position.y)
+      : sliding
+        ? canSlide(nx, nz, position.y)
+        : canStep(position.x, position.z, nx, nz, position.y, here, steep, isCarrier(footing?.surfaceId)))
   // Blocked moves slide along the obstacle (cliff edge, steep bank) instead of stopping dead.
   if (allowed(nextX, nextZ)) {
     position.x = nextX
@@ -138,7 +202,12 @@ export function stepGround(
   const surface = groundHeight(position.x, position.z, position.y + (airborne ? AIR_STEP : 0)) ?? -Infinity
   // Walking downhill keeps the feet planted: a grounded step follows the ground down as far as a walkable drop.
   const stepLength = Math.hypot(position.x - startX, position.z - startZ)
-  if (!airborne && velocity.y <= 0 && position.y > surface && position.y - surface <= Math.max(STEP_DOWN + 1e-6, stepLength * DROP_GRADIENT + 0.05)) {
+  if (
+    !airborne &&
+    velocity.y <= 0 &&
+    position.y > surface &&
+    position.y - surface <= Math.max(STEP_DOWN + 1e-6, stepLength * DROP_GRADIENT + 0.05)
+  ) {
     velocity.y = 0
     position.y = surface
     return { touchdown: 0, grounded: true, sliding }
