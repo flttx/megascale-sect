@@ -23,6 +23,8 @@ import { Landmarks } from './landmarks/Landmarks'
 import { PropField } from './props/PropField'
 import { Interactables } from './interact/Interactables'
 import { Colossi } from './colossi/Colossi'
+import { Plankway } from './regions/Plankway'
+import { RegionStructures } from './regions/RegionStructures'
 import { WindRibbons } from './wind/WindRibbons'
 import { TrialRings } from './trials/TrialRings'
 import { BlackMist } from './blackMist/BlackMist'
@@ -107,6 +109,8 @@ export function World() {
       <Landmarks />
       <PropField />
       <Colossi />
+      <Plankway />
+      <RegionStructures />
       <WindRibbons />
       <TrialRings />
       <Interactables />

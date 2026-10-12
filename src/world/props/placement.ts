@@ -14,6 +14,7 @@ import { BRIDGES, ISLANDS, siteClearance, yawToward } from '../sites'
 import { DRAGON_MESA, GATE_ISLE, SAGE_TERRACE, SWORD_MESA, worldTerrainHeight } from '../regions/regions'
 import { COLOSSI, colossusColliders } from '../colossi/layout'
 import { swordFieldColliders } from '../colossi/swordField'
+import { REGION_STRUCTURES } from '../regions/structures'
 import type { Vec3 } from '../surfaces'
 import { LAYOUT } from '../worldLayout'
 import { PROPS } from './propCatalog'
@@ -358,7 +359,8 @@ export function buildPropLayout(): PropLayout {
   // blades and the sites, so the tops read as places rather than bare tables. Last, so earlier indices keep. ──
   const solids = [...COLOSSI.flatMap((c) => colossusColliders(c)), ...swordFieldColliders()]
   const clearOfSolids = (x: number, y: number, z: number, r: number) =>
-    solids.every((c) => c.maxY < y || c.minY > y + 14 || Math.hypot(x - c.x, z - c.z) > c.radius + r + 2)
+    solids.every((c) => c.maxY < y || c.minY > y + 14 || Math.hypot(x - c.x, z - c.z) > c.radius + r + 2) &&
+    REGION_STRUCTURES.every((b) => Math.hypot(x - b.x, z - b.z) > b.footprint + r + 4)
   // The top stays within ~1 m of level to 0.8 × radius; the lip beyond falls away.
   const level = (x: number, z: number, y: number) =>
     [

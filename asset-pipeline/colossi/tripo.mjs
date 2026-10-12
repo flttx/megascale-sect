@@ -14,8 +14,10 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const MODEL_VERSION = 'v3.1-20260211'
 const TEXTURE_VERSION = 'v3.5-20260815'
 
-const STATUE_STYLE = 'monumental ancient stone sculpture, carved from pale grey granite and limestone, heavily weathered, moss and lichen streaks, fine cracks and chipped edges, faint remnants of gold leaf on the crown and trim, Chinese xianxia fantasy, single isolated object, centered, the entire statue visible from the top of the head to the bottom of the plinth, plain flat light grey studio background, no ground plane, no shadow on the background, soft even diffuse lighting, no harsh highlights, strong three-dimensional volume, high detail, photorealistic 3D render'
-const STATUE_NEG = 'cropped, cut off, multiple figures, second statue, landscape, mountains, sky, clouds, ground, floor, pedestal cut off, text, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint, modern clothing'
+const STATUE_STYLE =
+  'monumental ancient stone sculpture, carved from pale grey granite and limestone, heavily weathered, moss and lichen streaks, fine cracks and chipped edges, faint remnants of gold leaf on the crown and trim, Chinese xianxia fantasy, single isolated object, centered, the entire statue visible from the top of the head to the bottom of the plinth, plain flat light grey studio background, no ground plane, no shadow on the background, soft even diffuse lighting, no harsh highlights, strong three-dimensional volume, high detail, photorealistic 3D render'
+const STATUE_NEG =
+  'cropped, cut off, multiple figures, second statue, landscape, mountains, sky, clouds, ground, floor, pedestal cut off, text, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint, modern clothing'
 const PLINTH = 'standing on a rough rocky natural stone plinth, a craggy boulder base slightly wider than the feet'
 
 const PROMPTS = {
@@ -28,34 +30,91 @@ const PROMPTS = {
     q34: `Colossal statue of a Chinese female immortal goddess (仙女), standing upright, full body, graceful layered long flowing robes with wide sleeves falling to the feet, long ribbon sashes (披帛) draped over both forearms and hanging down close to the body in solid carved folds until they touch the plinth, elegant high hair bun with a small crown, her left hand holds a lotus lamp at waist height, her right hand raised before her chest in a mudra gesture, serene gentle face with eyes lowered, ${PLINTH}, three-quarter front view, ${STATUE_STYLE}`,
   },
   giant_sword: {
-    muted: 'An immense ancient Chinese straight double-edged jian sword, shown vertically with the blade tip pointing straight down, the whole sword visible from the ring pommel at the top to the sharp blade tip at the bottom, long straight thin flat blade of old grey steel with a dull bronze tint, light rust and faint verdigris stains, engraved seal-script runes running along the central fuller, compact crossguard of dark muted celadon antique jade with worn gold inlay, straight hilt tightly wrapped in dark brown cord, a round bronze ring pommel at the top with a long faded dusty red silk tassel hanging straight down beside the hilt, front view with the flat of the blade facing the viewer, museum artifact photograph, single isolated object, centered, no hand, no person, no ground, no stone, plain flat light grey studio background, soft even diffuse lighting, matte, high detail',
-    front: 'An immense ancient Chinese straight double-edged jian sword, shown vertically with the blade tip pointing straight down, the whole sword visible from the ring pommel at the top to the sharp blade tip at the bottom, long straight blade of slightly corroded dark bronze-steel with green verdigris patina and pitting, engraved seal-script runes running along the central fuller, ornate crossguard of carved green jade inlaid with gold, straight hilt tightly wrapped in dark cord, a round ring pommel at the top with a long faded red silk tassel hanging down beside the hilt, front view with the flat of the blade facing the viewer, single isolated object, centered, no hand, no person, no ground, no stone, plain flat light grey studio background, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+    muted:
+      'An immense ancient Chinese straight double-edged jian sword, shown vertically with the blade tip pointing straight down, the whole sword visible from the ring pommel at the top to the sharp blade tip at the bottom, long straight thin flat blade of old grey steel with a dull bronze tint, light rust and faint verdigris stains, engraved seal-script runes running along the central fuller, compact crossguard of dark muted celadon antique jade with worn gold inlay, straight hilt tightly wrapped in dark brown cord, a round bronze ring pommel at the top with a long faded dusty red silk tassel hanging straight down beside the hilt, front view with the flat of the blade facing the viewer, museum artifact photograph, single isolated object, centered, no hand, no person, no ground, no stone, plain flat light grey studio background, soft even diffuse lighting, matte, high detail',
+    front:
+      'An immense ancient Chinese straight double-edged jian sword, shown vertically with the blade tip pointing straight down, the whole sword visible from the ring pommel at the top to the sharp blade tip at the bottom, long straight blade of slightly corroded dark bronze-steel with green verdigris patina and pitting, engraved seal-script runes running along the central fuller, ornate crossguard of carved green jade inlaid with gold, straight hilt tightly wrapped in dark cord, a round ring pommel at the top with a long faded red silk tassel hanging down beside the hilt, front view with the flat of the blade facing the viewer, single isolated object, centered, no hand, no person, no ground, no stone, plain flat light grey studio background, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
   },
   seated_sage: {
     front: `Colossal statue of a Chinese Taoist immortal sage (仙尊), seated cross-legged in deep meditation, full body, long layered robes draped over the crossed legs and spreading in heavy carved folds over the base, wide sleeves, long flowing beard, tall ornate crown, both hands resting together in the lap in a meditation mudra, eyes closed, serene timeless face, seated on a broad rough rocky natural stone base slightly wider than the knees, front view, symmetrical, ${STATUE_STYLE}`,
   },
   dragon_pillar: {
-    front: 'An immense ancient carved stone column with a long Chinese dragon coiled tightly around it, the dragon body spiralling upward three times from the base to the top, the dragon head at the very top turned upward roaring toward the sky, four claws gripping the column, carved scales, horns and flowing whiskers, the column rising from a rough craggy rocky base, tall slender vertical composition, the entire column visible from the base to the dragon head, monumental weathered pale grey granite, moss and lichen streaks, fine cracks, faint remnants of gold leaf on the horns and claws, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no ground plane, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+    front:
+      'An immense ancient carved stone column with a long Chinese dragon coiled tightly around it, the dragon body spiralling upward three times from the base to the top, the dragon head at the very top turned upward roaring toward the sky, four claws gripping the column, carved scales, horns and flowing whiskers, the column rising from a rough craggy rocky base, tall slender vertical composition, the entire column visible from the base to the dragon head, monumental weathered pale grey granite, moss and lichen streaks, fine cracks, faint remnants of gold leaf on the horns and claws, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no ground plane, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
   },
   turtle: {
     q34: 'A colossal ancient mythical sea turtle (鳌) swimming forward, three-quarter front side view from slightly above, the whole creature visible, a huge high domed shell whose top is a craggy rocky mountain with a broad flat stone terrace on the summit holding a small Chinese temple hall with a curved tiled roof and a few gnarled pines, four very large wide flippers spread out to the sides, long thick wrinkled neck and a massive ancient head stretched forward with calm old eyes, weathered grey-green stone-like skin with barnacles, moss and lichen, shell plates cracked and mossy, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no water, no clouds, no ground, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
   },
   sky_gate: {
-    front: 'A colossal ancient Chinese stone memorial gateway archway (天门牌坊) with three openings, four massive square stone pillars carved with swirling cloud and dragon reliefs, heavy stone crossbeams and carved bracket sets, three stepped curved stone tiled roofs with sweeping upturned eaves on top, a large blank stone plaque in the centre, standing on a rough rocky stone base, front view, symmetrical, the entire gateway visible, monumental weathered pale grey granite, moss and lichen streaks, fine cracks and chipped edges, faint remnants of gold leaf on the plaque and roof ridges, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no ground plane, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+    front:
+      'A colossal ancient Chinese stone memorial gateway archway (天门牌坊) with three openings, four massive square stone pillars carved with swirling cloud and dragon reliefs, heavy stone crossbeams and carved bracket sets, three stepped curved stone tiled roofs with sweeping upturned eaves on top, a large blank stone plaque in the centre, standing on a rough rocky stone base, front view, symmetrical, the entire gateway visible, monumental weathered pale grey granite, moss and lichen streaks, fine cracks and chipped edges, faint remnants of gold leaf on the plaque and roof ridges, Chinese xianxia fantasy, single isolated object, centered, plain flat light grey studio background, no ground plane, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+  },
+  cloud_pavilion: {
+    q34: 'An ancient Chinese octagonal double-eave pavilion (重檐八角亭) for viewing clouds, eight slender dark red lacquered wooden columns with carved bracket sets under the eaves, two tiers of deep indigo glazed tile roofs with sweeping upturned corners and gold ridge ornaments, a gold gourd finial on top, low white jade carved balustrades between the columns, standing on a stepped octagonal white jade stone platform with short stairs on one side, weathered and slightly mossy stone, three-quarter front view from slightly above, Chinese xianxia fantasy, single isolated building, centered, the entire structure visible from the roof finial to the bottom of the base, plain flat light grey studio background, no ground plane, no landscape, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+  },
+  tomb_gate: {
+    front:
+      'An ancient weathered Chinese stone mountain gate (剑冢山门) guarding a sword tomb, two massive square grey granite pillars and a heavy stone lintel with a single curved stone tiled roof, the pillars carved with reliefs of crossed swords and swirling clouds, several rusted ancient iron swords driven point-down into the stone base beside the pillars, broken chains hanging from the lintel, a blank weathered stone plaque, cracked and chipped stone with moss and lichen, standing on a rough rocky stone base, front view, symmetrical, Chinese xianxia fantasy, single isolated building, centered, the entire structure visible from the roof finial to the bottom of the base, plain flat light grey studio background, no ground plane, no landscape, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
+  },
+  dragon_shrine: {
+    q34: 'A small ancient Chinese stone dragon king shrine (龙王祠), a square hall of weathered pale grey granite with a single sweeping indigo glazed tile hip roof with upturned eaves, carved dragon heads on the roof corners and a coiled dragon on the ridge, an open front with two stone columns wrapped by carved dragons, stone incense altar in front, stone steps up to a raised white stone platform, moss and lichen, faint gold leaf on the dragons, three-quarter front view from slightly above, Chinese xianxia fantasy, single isolated building, centered, the entire structure visible from the roof finial to the bottom of the base, plain flat light grey studio background, no ground plane, no landscape, soft even diffuse lighting, strong three-dimensional volume, high detail, photorealistic 3D render',
   },
 }
 const NEG = {
   guardian_a: STATUE_NEG,
   guardian_b: STATUE_NEG,
   seated_sage: `${STATUE_NEG}, standing, legs cut off`,
-  dragon_pillar: 'cropped, cut off, multiple columns, building, temple, landscape, mountains, sky, clouds, ground, floor, text, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint, western dragon, wings',
-  turtle: 'cropped, cut off, water, ocean, waves, clouds, sky, ground, floor, multiple turtles, tortoise legs with toes, land tortoise, text, watermark, blurry, low quality, painting, flat 2D, cartoon',
-  sky_gate: 'cropped, cut off, people, landscape, mountains, sky, clouds, ground, floor, modern building, text, characters on plaque, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint',
-  giant_sword: 'hand, person, ground, rock, stone, embedded, scabbard, curved blade, katana, broken blade, multiple swords, cropped, cut off, text, watermark, blurry, low quality, glowing, fire',
+  dragon_pillar:
+    'cropped, cut off, multiple columns, building, temple, landscape, mountains, sky, clouds, ground, floor, text, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint, western dragon, wings',
+  turtle:
+    'cropped, cut off, water, ocean, waves, clouds, sky, ground, floor, multiple turtles, tortoise legs with toes, land tortoise, text, watermark, blurry, low quality, painting, flat 2D, cartoon',
+  sky_gate:
+    'cropped, cut off, people, landscape, mountains, sky, clouds, ground, floor, modern building, text, characters on plaque, watermark, signature, blurry, low quality, painting, flat 2D, colourful paint',
+  cloud_pavilion:
+    'cropped, cut off, people, landscape, mountains, sky, clouds, ground, floor, grass, trees, modern building, text, characters on plaque, watermark, signature, blurry, low quality, painting, flat 2D, multiple buildings',
+  tomb_gate:
+    'cropped, cut off, people, landscape, mountains, sky, clouds, ground, floor, grass, trees, modern building, text, characters on plaque, watermark, signature, blurry, low quality, painting, flat 2D, multiple buildings, sword in hand, person',
+  dragon_shrine:
+    'cropped, cut off, people, landscape, mountains, sky, clouds, ground, floor, grass, trees, modern building, text, characters on plaque, watermark, signature, blurry, low quality, painting, flat 2D, multiple buildings, western dragon, wings',
+  giant_sword:
+    'hand, person, ground, rock, stone, embedded, scabbard, curved blade, katana, broken blade, multiple swords, cropped, cut off, text, watermark, blurry, low quality, glowing, fire',
 }
-const SIZE = { guardian_a: '1728x3072', guardian_b: '1728x3072', giant_sword: '1152x3456', seated_sage: '2048x2048', dragon_pillar: '1152x3456', turtle: '3072x1728', sky_gate: '3072x1728' }
-const CHAT_SIZE = { guardian_a: '1024x1536', guardian_b: '1024x1536', giant_sword: '1024x1536', seated_sage: '1024x1024', dragon_pillar: '1024x1536', turtle: '1536x1024', sky_gate: '1536x1024' }
-const FACE_LIMIT = { guardian_a: 58000, guardian_b: 58000, giant_sword: 19000, seated_sage: 58000, dragon_pillar: 60000, turtle: 60000, sky_gate: 36000 }
+const SIZE = {
+  guardian_a: '1728x3072',
+  guardian_b: '1728x3072',
+  giant_sword: '1152x3456',
+  seated_sage: '2048x2048',
+  dragon_pillar: '1152x3456',
+  turtle: '3072x1728',
+  sky_gate: '3072x1728',
+  cloud_pavilion: '2048x2048',
+  tomb_gate: '2048x2048',
+  dragon_shrine: '2048x2048',
+}
+const CHAT_SIZE = {
+  guardian_a: '1024x1536',
+  guardian_b: '1024x1536',
+  giant_sword: '1024x1536',
+  seated_sage: '1024x1024',
+  dragon_pillar: '1024x1536',
+  turtle: '1536x1024',
+  sky_gate: '1536x1024',
+  cloud_pavilion: '1024x1024',
+  tomb_gate: '1024x1024',
+  dragon_shrine: '1024x1024',
+}
+const FACE_LIMIT = {
+  guardian_a: 58000,
+  guardian_b: 58000,
+  giant_sword: 19000,
+  seated_sage: 58000,
+  dragon_pillar: 60000,
+  turtle: 60000,
+  sky_gate: 36000,
+  cloud_pavilion: 36000,
+  tomb_gate: 30000,
+  dragon_shrine: 30000,
+}
 
 const [cmd, asset, ...rest] = process.argv.slice(2)
 if (!PROMPTS[asset]) throw new Error(`unknown asset ${asset}`)
@@ -64,7 +123,11 @@ await fs.mkdir(path.join(dir, 'concepts'), { recursive: true })
 await fs.mkdir(path.join(dir, 'raw'), { recursive: true })
 const stateFile = path.join(dir, 'state.json')
 const load = () => (existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : { concepts: {}, models: {} })
-const save = (fn) => { const s = load(); fn(s); writeFileSync(stateFile, `${JSON.stringify(s, null, 2)}\n`) }
+const save = (fn) => {
+  const s = load()
+  fn(s)
+  writeFileSync(stateFile, `${JSON.stringify(s, null, 2)}\n`)
+}
 const log = (msg) => console.log(`[${new Date().toISOString().slice(11, 19)}] ${asset} ${redact(msg)}`)
 
 async function concept(variant, idx, model, refTask) {
@@ -72,7 +135,13 @@ async function concept(variant, idx, model, refTask) {
   const prompt = `${PROMPTS[asset][variant]} --no ${NEG[asset]}`
   let body
   if (refTask) {
-    body = { model: 'seedream_v5', input: refTask, prompt: `Create a companion statue in exactly the same stone material, weathering, lighting, background, camera and plinth style as the reference image: ${PROMPTS[asset][variant]}`, size: SIZE[asset], output_format: 'png' }
+    body = {
+      model: 'seedream_v5',
+      input: refTask,
+      prompt: `Create a companion statue in exactly the same stone material, weathering, lighting, background, camera and plinth style as the reference image: ${PROMPTS[asset][variant]}`,
+      size: SIZE[asset],
+      output_format: 'png',
+    }
   } else if (model.startsWith('chat_image')) {
     body = { model, prompt, size: CHAT_SIZE[asset], quality: 'high', output_format: 'png' }
   } else {
@@ -84,7 +153,16 @@ async function concept(variant, idx, model, refTask) {
   const url = outputUrl(task, ['generated_image_url', 'image_url', 'url'])
   if (!url) throw new Error(`no image url (${Object.keys(task.output ?? {}).join(',')})`)
   const file = await download(url, path.join(dir, 'concepts', key))
-  save((s) => { s.concepts[key] = { task_id: taskId, variant, model, ref: refTask ?? null, file: path.basename(file.path), at: new Date().toISOString() } })
+  save((s) => {
+    s.concepts[key] = {
+      task_id: taskId,
+      variant,
+      model,
+      ref: refTask ?? null,
+      file: path.basename(file.path),
+      at: new Date().toISOString(),
+    }
+  })
   log(`${key} -> ${path.basename(file.path)}`)
 }
 
@@ -92,9 +170,16 @@ async function model(conceptKey, tag = 'm') {
   const c = load().concepts[conceptKey]
   if (!c) throw new Error(`unknown concept ${conceptKey}`)
   const body = {
-    input: c.task_id, model: MODEL_VERSION, texture: true, pbr: true,
-    texture_quality: 'detailed', geometry_quality: 'detailed', texture_version: TEXTURE_VERSION, delight: true,
-    face_limit: FACE_LIMIT[asset], texture_alignment: 'original_image',
+    input: c.task_id,
+    model: MODEL_VERSION,
+    texture: true,
+    pbr: true,
+    texture_quality: 'detailed',
+    geometry_quality: 'detailed',
+    texture_version: TEXTURE_VERSION,
+    delight: true,
+    face_limit: FACE_LIMIT[asset],
+    texture_alignment: 'original_image',
   }
   const key = `${conceptKey}__${tag}`
   const taskId = await createTask('image-to-model', body)
@@ -105,17 +190,30 @@ async function model(conceptKey, tag = 'm') {
   const raw = await download(url, path.join(dir, 'raw', `${key}.glb`))
   const prevUrl = outputUrl(task, ['rendered_image_url'])
   const prev = prevUrl ? await download(prevUrl, path.join(dir, 'raw', `${key}_preview`)).catch(() => null) : null
-  save((s) => { s.models[key] = { task_id: taskId, concept: conceptKey, request: { ...body }, file: path.basename(raw.path), bytes: raw.bytes, preview: prev ? path.basename(prev.path) : null, credits: task.credits_consumed ?? null, at: new Date().toISOString() } })
+  save((s) => {
+    s.models[key] = {
+      task_id: taskId,
+      concept: conceptKey,
+      request: { ...body },
+      file: path.basename(raw.path),
+      bytes: raw.bytes,
+      preview: prev ? path.basename(prev.path) : null,
+      credits: task.credits_consumed ?? null,
+      at: new Date().toISOString(),
+    }
+  })
   log(`${key} -> ${path.basename(raw.path)} (${(raw.bytes / 1e6).toFixed(1)} MB)`)
 }
 
 try {
   if (cmd === 'concepts') {
     const [variant, count = '2', m = 'seedream_v5'] = rest
-    for (let i = 0; i < Number(count); i++) await concept(variant, i, m).catch((e) => log(`concept ${i} FAILED ${e.message}`)) // image gen allows ~1 concurrent task
+    for (let i = 0; i < Number(count); i++)
+      await concept(variant, i, m).catch((e) => log(`concept ${i} FAILED ${e.message}`)) // image gen allows ~1 concurrent task
   } else if (cmd === 'edit') {
     const [variant, count = '2', ref] = rest
-    for (let i = 0; i < Number(count); i++) await concept(variant, i, 'i2i', ref).catch((e) => log(`edit ${i} FAILED ${e.message}`))
+    for (let i = 0; i < Number(count); i++)
+      await concept(variant, i, 'i2i', ref).catch((e) => log(`edit ${i} FAILED ${e.message}`))
   } else if (cmd === 'model') {
     await model(rest[0], rest[1])
   } else throw new Error(`unknown cmd ${cmd}`)
