@@ -19,6 +19,8 @@
     "verify:prop-collision": "node scripts/verify-prop-collision.mjs",
     "verify:model-collision": "node scripts/verify-model-collision.mjs",
     "verify:air-walls": "node scripts/verify-air-walls.mjs",
+    "verify:look": "node scripts/verify-look.mjs",
+    "verify:feel": "node scripts/verify-feel.mjs",
     "verify:visual": "node scripts/verify-visual.mjs",
     "verify:controls": "node scripts/verify-controls.mjs",
     "verify:save": "node scripts/verify-save.mjs",
