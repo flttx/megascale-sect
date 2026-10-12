@@ -47,6 +47,16 @@ const SITES: [number, number, number][] = [
   // Flanking the great censer's dais, arms toward the axis.
   [-24, -160, 0],
   [24, -160, Math.PI],
+  // Banner avenues: down both sides of the forecourt every 15 m, and along the hall's flanks every 30 m between the
+  // tree pits, arms toward the axis. A measured rhythm of 13 m poles gives the plaza a human-scale ruler.
+  ...[-80, -95, -110, -125, -140, -155, -170].flatMap((z): [number, number, number][] => [
+    [-128, z, 0],
+    [128, z, Math.PI],
+  ]),
+  ...[-200, -230, -260, -320, -380, -410, -440].flatMap((z): [number, number, number][] => [
+    [-174, z, 0],
+    [174, z, Math.PI],
+  ]),
 ]
 
 /** Pole feet that survive the interact-site clearance check (also used for flight colliders). */

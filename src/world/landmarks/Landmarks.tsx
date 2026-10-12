@@ -8,6 +8,7 @@ import type { Collider, WalkableSurface } from '../surfaces'
 import { LAYOUT } from '../worldLayout'
 import { Balustrades } from './Balustrades'
 import { BANNER_POLES, BANNER_TOP, Banners } from './Banners'
+import { Huabiao } from './Huabiao'
 import { Bridges } from './Bridges'
 import { chainColliders, Chains } from './Chains'
 import { buildRockField } from './rockField'
@@ -96,6 +97,7 @@ export function Landmarks() {
       <Balustrades />
       <Waterfalls />
       <Banners />
+      <Huabiao />
     </>
   )
 }
