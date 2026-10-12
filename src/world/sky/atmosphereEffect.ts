@@ -4,6 +4,7 @@ import {
   Matrix4,
   Uniform,
   Vector3,
+  Vector4,
   type PerspectiveCamera,
   type Texture,
   type WebGLRenderer,
@@ -13,6 +14,7 @@ import { atmosphere, keyLight } from './atmosphere'
 import { CLOUD_SEA_Y } from './CloudSea'
 import { createCloudNoise2D, createCloudNoise3D } from './cloudNoise'
 import { cloudSwell } from './cloudSwell'
+import { COLLAR_HEIGHT, COLLAR_RECT, cloudCollarTexture } from './cloudCollar'
 import { fogUniforms } from './fog'
 import { FOG_GLSL } from './glsl'
 import { BLACK_MIST_UNIFORMS, STORM_SHADE_GLSL } from '../blackMist/materials'
@@ -36,9 +38,10 @@ uniform sampler2D uNoise; uniform sampler3D uErosion;
 uniform vec3 uLightDir; uniform vec3 uLightColor;
 uniform float uTime; uniform vec2 uWind; uniform float uCover; uniform float uPixelAngle; uniform float uGain;
 uniform vec4 uSwell;
+uniform sampler2D uCollar; uniform vec4 uCollarRect;
 
 const float SEA_Y = ${CLOUD_SEA_Y.toFixed(1)};
-const float SEA_CEIL = SEA_Y + 100.0;
+const float SEA_CEIL = SEA_Y + 100.0 + ${COLLAR_HEIGHT.toFixed(1)};
 const float SEA_FLOOR = SEA_Y - 380.0;
 const float SIGMA = 0.07;
 const float MAX_DIST = 14000.0;
@@ -78,7 +81,9 @@ float seaTop(vec2 xz, float lod) {
   vec4 mound = textureLod(uNoise, (xz - drift) / 950.0, lod);
   // Heavier weather closes the rifts into a continuous deck.
   float rift = 1.0 - smoothstep(0.0, 0.16, broad.r - mix(0.3, 0.0, smoothstep(0.45, 0.95, uCover)));
-  return SEA_Y + (broad.r - 0.47) * 90.0 + (mound.g - 0.4) * 84.0 + (mound.b - 0.5) * 20.0 - rift * 120.0 + swell(xz);
+  // Cloud piles against pillars and slopes that pierce the sea (cloudCollar), instead of meeting them in a flat cut.
+  float collar = textureLod(uCollar, (xz - uCollarRect.xy) * uCollarRect.z, 0.0).r * uCollarRect.w;
+  return SEA_Y + (broad.r - 0.47) * 90.0 + (mound.g - 0.4) * 84.0 + (mound.b - 0.5) * 20.0 - rift * 120.0 + swell(xz) + collar;
 }
 
 float cloudDensity(vec3 p, float top, bool detail) {
@@ -148,7 +153,9 @@ vec4 marchClouds(vec3 ro, vec3 rd, float tScene, bool sky, float jitter, out flo
       float sun = exp(-od) * ph0 + 0.5 * exp(-od * 0.35) * ph1 + 0.25 * exp(-od * 0.12) * ph2;
       float powder = 1.0 - 0.55 * exp(-dens * 45.0);
       float shade = stormShade(p.x);
-      vec3 amb = mix(ambBottom, ambTop, exp(-(top - p.y) / 35.0)) * (0.45 + 0.55 * shade);
+      // Rifts and troughs see less of the sky than the crests, so the high-sun sea keeps its relief.
+      float open = mix(0.6, 1.0, smoothstep(SEA_Y - 100.0, SEA_Y + 40.0, top));
+      vec3 amb = mix(ambBottom, ambTop, exp(-(top - p.y) / 35.0)) * (0.45 + 0.55 * shade) * open;
       vec3 S = uLightColor * (sun * uGain * powder * shade) + amb;
       float st = exp(-dens * dt);
       L += T * S * (1.0 - st);
@@ -226,7 +233,7 @@ export class AtmosphereEffect extends Effect {
     const textures: Texture[] = []
     if (cloudSteps > 0) {
       const [noise, erosion] = cloudNoise()
-      textures.push(noise, erosion)
+      textures.push(noise, erosion, cloudCollarTexture())
       uniforms.set('uNoise', new Uniform(noise))
       uniforms.set('uErosion', new Uniform(erosion))
       uniforms.set('uLightDir', new Uniform(new Vector3(0, 1, 0)))
@@ -237,6 +244,11 @@ export class AtmosphereEffect extends Effect {
       uniforms.set('uPixelAngle', new Uniform(0.001))
       uniforms.set('uGain', new Uniform(CLOUD_GAIN))
       uniforms.set('uSwell', new Uniform(cloudSwell))
+      uniforms.set('uCollar', new Uniform(cloudCollarTexture()))
+      uniforms.set(
+        'uCollarRect',
+        new Uniform(new Vector4(COLLAR_RECT.x0, COLLAR_RECT.z0, 1 / COLLAR_RECT.size, COLLAR_HEIGHT)),
+      )
     }
     super('AtmosphereEffect', fragment, {
       attributes: EffectAttribute.DEPTH,
