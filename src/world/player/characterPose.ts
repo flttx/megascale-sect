@@ -118,14 +118,18 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
     gt = runtime.gestureTime,
     span = g ? GESTURE_TIME[g] : 0
   const env = g ? smooth(gt / 0.25) * (Number.isFinite(span) ? 1 - smooth((gt - span + 0.35) / 0.35) : 1) : 0
-  const bow = g === 'bow' ? env : 0,
-    attune = g === 'attune' ? env : 0,
+  // Clip-driven gestures leave only what the clip does not cover (none, once the clip is at full weight).
+  const procedural = 1 - rig.clips.gestureWeight
+  const bow = g === 'bow' ? env * procedural : 0,
+    attune = g === 'attune' ? env * procedural : 0,
     sit = g === 'sit' ? env : 0
   // The bell: draw the arm back and up, then swing through and let it fall.
   const swingT = g === 'strike' ? gt / span : 0
   const strike =
-    g === 'strike' ? env * (swingT < 0.45 ? smooth(swingT / 0.45) : 1 - smooth((swingT - 0.45) / 0.15) * 0.8) : 0
-  const follow = g === 'strike' ? env * smooth((swingT - 0.45) / 0.15) : 0
+    g === 'strike'
+      ? procedural * env * (swingT < 0.45 ? smooth(swingT / 0.45) : 1 - smooth((swingT - 0.45) / 0.15) * 0.8)
+      : 0
+  const follow = g === 'strike' ? procedural * env * smooth((swingT - 0.45) / 0.15) : 0
   const pose: Record<string, [number, number, number]> = {
     Spine: [
       carve * 0.4,

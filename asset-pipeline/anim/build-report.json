@@ -2,7 +2,7 @@
   "male": {
     "heightM": 1.75,
     "file": "public/assets/characters/male/anim.glb",
-    "bytes": 300892,
+    "bytes": 388956,
     "clips": [
       {
         "name": "idle",
@@ -262,13 +262,43 @@
           }
         },
         "footLockMaxCorrectionM": 0.0631
+      },
+      {
+        "name": "gesture_bow",
+        "frames": 79,
+        "duration": 2.6,
+        "loop": false,
+        "source": "bow",
+        "window": [27, 132],
+        "minFootAboveRest": 0,
+        "hipsY": [0.5483, 0.5554]
+      },
+      {
+        "name": "gesture_strike",
+        "frames": 55,
+        "duration": 1.8,
+        "loop": false,
+        "source": "chop",
+        "window": [21, 99],
+        "minFootAboveRest": 0,
+        "hipsY": [0.502, 0.5542]
+      },
+      {
+        "name": "gesture_attune",
+        "frames": 91,
+        "duration": 3,
+        "loop": false,
+        "source": "cast_a_spell",
+        "window": [9, 147],
+        "minFootAboveRest": 0,
+        "hipsY": [0.4368, 0.5469]
       }
     ]
   },
   "female": {
     "heightM": 1.7,
     "file": "public/assets/characters/female/anim.glb",
-    "bytes": 299100,
+    "bytes": 387088,
     "clips": [
       {
         "name": "idle",
@@ -528,6 +558,36 @@
           }
         },
         "footLockMaxCorrectionM": 0.0608
+      },
+      {
+        "name": "gesture_bow",
+        "frames": 79,
+        "duration": 2.6,
+        "loop": false,
+        "source": "bow",
+        "window": [27, 132],
+        "minFootAboveRest": 0,
+        "hipsY": [0.5495, 0.5565]
+      },
+      {
+        "name": "gesture_strike",
+        "frames": 55,
+        "duration": 1.8,
+        "loop": false,
+        "source": "chop",
+        "window": [21, 99],
+        "minFootAboveRest": 0,
+        "hipsY": [0.5029, 0.5535]
+      },
+      {
+        "name": "gesture_attune",
+        "frames": 91,
+        "duration": 3,
+        "loop": false,
+        "source": "cast_a_spell",
+        "window": [9, 147],
+        "minFootAboveRest": 0,
+        "hipsY": [0.4378, 0.5445]
       }
     ]
   }

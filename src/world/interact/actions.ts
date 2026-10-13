@@ -4,7 +4,7 @@ import { translate } from '../../ui/i18n'
 import { hasGameInput } from '../../ui/gameKeys'
 import { worldEvents } from '../events'
 import { getPlayerRuntime, playGesture, teleportPlayer } from '../player/playerHandle'
-import type { Gesture } from '../player/playerMotion'
+import { STRIKE_IMPACT, type Gesture } from '../player/playerMotion'
 import { useWorldStore } from '../store'
 import type { Vec3 } from '../surfaces'
 import { fastForward } from '../weather/timeOfDay'
@@ -25,10 +25,15 @@ function strikeBell(site: SiteSpec) {
   const now = performance.now() / 1000
   if (now - lastBell < 3.2) return
   lastBell = now
-  playBell()
-  bellWave.position = site.position
-  bellWave.pending = true
-  worldEvents.emit('bell', { position: site.position })
+  // The bell sounds when the swing lands, not when E is pressed (only on foot is there a swing to wait for).
+  const ring = () => {
+    playBell()
+    bellWave.position = site.position
+    bellWave.pending = true
+    worldEvents.emit('bell', { position: site.position })
+  }
+  if (onFoot()) window.setTimeout(ring, STRIKE_IMPACT * 1000)
+  else ring()
 }
 
 function meditate(site: SiteSpec) {

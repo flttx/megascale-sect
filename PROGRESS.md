@@ -621,3 +621,7 @@ R17构建通过，主包785.73kB/gzip271.74kB；天空35项、运动157项和14�
 ## 2026-10-13 R22b 站立变化动作
 
 动画构建新增 3 段站立变化：`idle_wait`（6 s）、`idle_look`（15.6 s）、`idle_relax`（17.6 s），来自此前已下载但没有用上的 Tripo 预设 wait / look_around / standing_relax，没有新的 Tripo 消耗。处理方式与 idle 相同：首尾误差均摊、去除根位移、贴地、双脚锁定。原有 8 个片段的构建结果逐项不变。每个角色的 anim.glb 从约 120 KB 增至 300 KB。运行时站立不动 8–14 s 后随机淡入一段（不连续重复），播完淡回 idle；移动、跳跃、落地或交互手势时立刻淡出。实测站立 44 s 内依次播放了 idle_wait 和 idle_look，截图确认双脚始终贴地。characters、riding-pose、jumps、motion、feel 门槛、interact 42/42 通过。
+
+## 2026-10-13 R22b 交互动作改用真实片段
+
+新拉取 4 个 Tripo 预设（bow、sit、cast_a_spell、chop），两个角色共 8 次，全部成功，记录在 `asset-pipeline/anim/tripo/lock.json`。`sit` 全程是坐椅子的姿势，不适合蒲团打坐，没有采用。其余裁剪、重定时后构建为 `gesture_bow`（2.6 s）、`gesture_strike`（1.8 s）、`gesture_attune`（3.0 s），只对齐首帧站位并贴地，不强制首尾闭合，由游戏淡入淡出。运行时手势按片段时长播放，程序化手势只作后备；钟声延迟到挥臂劈下的第 0.95 s 再响。实测：行礼时头部下降 0.19 m、前移 0.45 m；撞钟右臂举过头顶后劈下；祭坛前下蹲前推。interact 42/42、characters、riding-pose、motion、feel 门槛通过。每个角色的 anim.glb 约 390 KB。

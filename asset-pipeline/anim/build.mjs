@@ -42,6 +42,15 @@ const FIDGETS = [
   ['idle_look', 'look_around'],
   ['idle_relax', 'standing_relax'],
 ]
+/**
+ * Interaction gestures [clip, Tripo preset, from s, to s, played over s]: a bow at a stele, an overhead swing at the
+ * bell (the `chop` preset's raise and downstroke), a step-in casting push at an altar or waygate.
+ */
+const GESTURES = [
+  ['gesture_bow', 'bow', 0.9, 4.4, 2.6],
+  ['gesture_strike', 'chop', 0.7, 3.3, 1.8],
+  ['gesture_attune', 'cast_a_spell', 0.3, 4.9, 3],
+]
 
 // ---------- pose helpers (pose = { rot: Map(bone → local quat), hips: world Vector3 }) ----------
 const clonePose = (p) => ({ rot: new Map([...p.rot].map(([b, q]) => [b, q.clone()])), hips: p.hips.clone() })
@@ -459,6 +468,30 @@ async function buildClips(c, T) {
     clip.contacts = lockFeet(T, clip, LOCK.fidget)
     clips[name] = clip
   }
+  // Gestures: a window of the preset retimed to its game duration, played once and faded in and out by the game, so
+  // the ends are not forced together. The first frame's feet are centred on the rest stance (a cast's step-in stays a
+  // step) and the lowest sole put on the ground.
+  const stanceMid = T.restW
+    .get(PREFIX + 'LeftFoot')
+    .p.clone()
+    .add(T.restW.get(PREFIX + 'RightFoot').p)
+    .multiplyScalar(0.5)
+  for (const [name, source, from, to, seconds] of GESTURES) {
+    const s = await src(c, T, source)
+    const frames = cut(s, from * FPS, to * FPS, Math.round(seconds * FPS))
+    const W0 = world(T, frames[0])
+    const d = W0.get(PREFIX + 'LeftFoot')
+      .p.clone()
+      .add(W0.get(PREFIX + 'RightFoot').p)
+      .multiplyScalar(0.5)
+      .sub(stanceMid)
+    frames.forEach((f) => {
+      f.hips.x -= d.x
+      f.hips.z -= d.z
+    })
+    shiftY(frames, -groundOf(T, frames))
+    clips[name] = { frames, loop: false, source, window: [from * FPS, to * FPS] }
+  }
 
   const jd = await src(c, T, 'jump_down')
   const feetMid = (f) => {
@@ -723,7 +756,7 @@ const ORDER = [
   'fall',
   'land',
   'stand_on_sword',
-  ...FIDGETS.map(([name]) => name),
+  ...[...FIDGETS, ...GESTURES].map(([name]) => name),
 ]
 const which = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : 'all'
 const write = !process.argv.includes('--no-write')

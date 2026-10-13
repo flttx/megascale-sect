@@ -50,7 +50,9 @@ export const smooth = (t: number) => {
 /** Body actions at interaction sites: bow to a stele, strike the bell, attune at an array or altar, sit to meditate. */
 export type Gesture = 'bow' | 'strike' | 'attune' | 'sit'
 /** How long each lasts (s); sitting holds until the meditation ends. */
-export const GESTURE_TIME: Record<Gesture, number> = { bow: 1.6, strike: 0.9, attune: 1.4, sit: Infinity }
+export const GESTURE_TIME: Record<Gesture, number> = { bow: 2.6, strike: 1.8, attune: 3, sit: Infinity }
+/** When the bell swing's downstroke lands (s into the strike gesture; the gesture_strike clip's frame of impact). */
+export const STRIKE_IMPACT = 0.95
 
 export type PlayerRuntime = {
   position: Vector3

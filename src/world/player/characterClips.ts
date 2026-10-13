@@ -2,7 +2,7 @@ import { PropertyBinding, Quaternion, Vector3 } from 'three'
 import type { AnimationClip, Interpolant, KeyframeTrack } from 'three'
 import { JUMP_SPEED } from './GroundController'
 import { JUMP } from './jumpMarks'
-import { FLIGHT_SEQUENCE, smooth, type PlayerRuntime } from './playerMotion'
+import { FLIGHT_SEQUENCE, GESTURE_TIME, smooth, type Gesture, type PlayerRuntime } from './playerMotion'
 import { groundHeight, LAYOUT } from '../worldLayout'
 
 /** A bone the clips drive: its rest pose, and this frame's blended pose in `rotation` / `position`. */
@@ -52,6 +52,13 @@ const CLIPS = ['idle', ...LOCOMOTION, 'jump', 'fall', 'land'] as const
 const FIDGETS = ['idle_wait', 'idle_look', 'idle_relax'] as const
 /** Standing still this long (s, plus up to FIDGET.spread) before a variation starts; fades in and out over `fade`. */
 const FIDGET = { after: 8, spread: 6, fade: 0.6 } as const
+/** Interaction gestures played from clips (build.mjs GESTURES); sitting stays procedural. Fade in and out (s). */
+const GESTURE_CLIPS: Partial<Record<Gesture, string>> = {
+  bow: 'gesture_bow',
+  strike: 'gesture_strike',
+  attune: 'gesture_attune',
+}
+const GESTURE_FADE = { in: 0.2, out: 0.35 } as const
 
 function bind(clip: AnimationClip, targets: ReadonlyMap<string, ClipTarget>): Clip {
   const channels: Channel[] = []
@@ -141,6 +148,9 @@ export class ClipLayer {
     land: 0,
   }
   private fidgets: Clip[] = []
+  private gestures = new Map<Gesture, Clip>()
+  /** Share of this frame's pose taken by a gesture clip; the procedural gesture layer gives way by as much. */
+  gestureWeight = 0
   private still = 0
   private stillFor: number = FIDGET.after
   private fidget = -1
@@ -163,6 +173,10 @@ export class ClipLayer {
     for (const name of FIDGETS) {
       const clip = animations.find((animation) => animation.name === name)
       if (clip) this.fidgets.push(bind(clip, targets))
+    }
+    for (const [gesture, name] of Object.entries(GESTURE_CLIPS) as [Gesture, string][]) {
+      const clip = animations.find((animation) => animation.name === name)
+      if (clip) this.gestures.set(gesture, bind(clip, targets))
     }
     this.cycle = { walk: 0, run: 0, sprint: 0 }
     for (const name of LOCOMOTION) {
@@ -352,10 +366,23 @@ export class ClipLayer {
         this.stillFor = FIDGET.after + Math.random() * FIDGET.spread
       }
     }
+    // A gesture clip runs on the gesture's own clock, scaled onto the clip, and takes the standing share of the pose.
+    const gesture = runtime.gesture ? this.gestures.get(runtime.gesture) : undefined
+    let gestureMix = 0,
+      gestureTime = 0
+    if (gesture && runtime.gesture) {
+      const span = GESTURE_TIME[runtime.gesture],
+        t = runtime.gestureTime
+      gestureTime = (t / span) * gesture.duration
+      gestureMix = smooth(t / GESTURE_FADE.in) * (1 - smooth((t - span + GESTURE_FADE.out) / GESTURE_FADE.out))
+    }
+    const standing = w.idle,
+      gestureWeight = (this.gestureWeight = standing * gestureMix)
     const idle = this.clip('idle'),
-      fidgetWeight = w.idle * this.fidgetMix
-    sample(idle, this.idleTime % idle.duration, w.idle - fidgetWeight)
+      fidgetWeight = (standing - gestureWeight) * this.fidgetMix
+    sample(idle, this.idleTime % idle.duration, standing - gestureWeight - fidgetWeight)
     if (playing) sample(playing, Math.min(this.fidgetTime, playing.duration), fidgetWeight)
+    if (gesture) sample(gesture, Math.min(gestureTime, gesture.duration), gestureWeight)
     for (const name of LOCOMOTION) {
       const clip = this.clip(name)
       sample(clip, ((this.gait / CYCLES[name] + this.gaits[name].leftStance) % 1) * clip.duration, w[name])
