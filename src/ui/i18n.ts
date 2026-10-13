@@ -586,6 +586,26 @@ const ENGLISH: Record<string, string> = {
     'After snow has fallen for a while and the peaks turn white, photograph the mountains',
   '落雪之后，千峰尽白，云海反倒显得更暗。积雪要等雪落一阵才会积起，雪停后又慢慢化去。':
     'After snowfall every peak turns white and the cloud sea looks darker by contrast. Snow takes a while to settle and melts slowly once it stops.',
+  楼阁: 'Buildings',
+  观云亭: 'Cloud-Watching Pavilion',
+  剑冢山门: 'Sword Tomb Gate',
+  龙王祠: 'Dragon King Shrine',
+  望海亭: 'Sea-Watching Pavilion',
+  龙脊栈道: 'Dragonspine Plank Walk',
+  '玄穹峰坐像台地的东缘；南方天门岛上另有一座望海亭':
+    "On the east edge of the seated sage's terrace in the Azure Vault Peaks; a twin, the Sea-Watching Pavilion, stands on the sky-gate isle to the south",
+  '重檐八角，宝顶鎏金，立在台地边上望北山。弟子说云最好看的时候是午后，云海涨到坐像膝下，亭子就像漂在云上。天门岛上那座同样的亭子，叫望海亭。':
+    "Octagonal, double-eaved and crowned in gold, it stands at the terrace edge facing the northern peaks. Disciples say the clouds are best in the afternoon, when the sea rises to the sage's knees and the pavilion seems to float on it. Its twin on the sky-gate isle is called the Sea-Watching Pavilion.",
+  '西方万剑冢东缘，面朝宗门': 'On the east edge of the Tomb of Myriad Swords, facing the sect',
+  '剑冢的山门只有两根石柱与一道门楣，柱上刻着交叉的剑。断链从门楣垂下，没人记得原先锁的是什么。来祭剑的人在柱脚插下自己的剑，锈了也不拔。':
+    "The tomb gate is two stone pillars and a lintel carved with crossed swords. Broken chains hang from the lintel; no one remembers what they once held. Those who come to honour the swords drive their own into the pillars' feet and leave them to rust.",
+  东方龙脊岭台地的东南角: 'The south-east corner of the mesa in Dragonspine Ridge',
+  '一座小小的龙王祠，屋脊上盘着石龙，门前两根盘龙柱。龙脊岭的灵风从这里起，弟子出行前会在祠前上一炷香。':
+    'A small shrine to the Dragon King, a stone dragon coiled along its ridge and two dragon-wrapped columns at its door. The spirit wind of Dragonspine Ridge rises here, and disciples light incense before setting out.',
+  '龙脊岭台地东南的崖壁上，自台缘下行':
+    "On the cliff below the south-east edge of Dragonspine Ridge's mesa, leading down from the rim",
+  '木栈道钉在崖壁上，一路绕着台地往下，尽头是一座悬空的观景台。走到尽头时，龙柱就在头顶，云海就在脚下。':
+    'A plank walk pinned to the cliff winds down around the mesa to a lookout hung over the drop. At its end the dragon pillar is overhead and the cloud sea underfoot.',
 }
 
 export function translate(source: string, language: Language, values: Record<string, string | number> = {}): string {

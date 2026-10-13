@@ -51,7 +51,12 @@ function cliffRadius(angle: number, y: number) {
 }
 
 /** Deck centre line from the terrace lip down round the face. */
-export function plankwayPath() {
+export function plankwayPath(): readonly Vector3[] {
+  return (path ??= tracePath())
+}
+let path: Vector3[] | null = null
+
+function tracePath() {
   const stations: { angle: number; y: number; r: number }[] = []
   let y = DRAGON_MESA.top - 0.35,
     angle = ARC.from

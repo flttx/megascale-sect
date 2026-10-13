@@ -2,6 +2,7 @@ import { Suspense, useEffect, useMemo, useRef } from 'react'
 import { addAfterEffect, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import {
+  AdditiveBlending,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -20,6 +21,7 @@ import {
   PlaneGeometry,
   Points,
   Quaternion,
+  RingGeometry,
   SphereGeometry,
   Uniform,
   Vector3,
@@ -320,6 +322,52 @@ function ArrayGlyphs() {
 
 const WAVE_SECONDS = 2.6
 const WAVE_RADIUS = 70
+/** A soft gold ring at the feet of whatever is in reach: it breathes while the prompt shows and fades when it goes. */
+function SiteHalo() {
+  const mesh = useMemo(() => {
+    const ring = new Mesh(
+      new RingGeometry(0.82, 1, 48).rotateX(-Math.PI / 2),
+      new MeshBasicMaterial({
+        color: '#ffd38a',
+        transparent: true,
+        opacity: 0,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        fog: false,
+        toneMapped: false,
+      }),
+    )
+    ring.name = 'Site_Halo'
+    ring.renderOrder = 3
+    ring.visible = false
+    ring.userData.castShadow = false
+    return ring
+  }, [])
+  useEffect(
+    () => () => {
+      mesh.geometry.dispose()
+      ;(mesh.material as MeshBasicMaterial).dispose()
+    },
+    [mesh],
+  )
+  const level = useRef(0),
+    shown = useRef<string | null>(null)
+  useFrame(({ clock }, delta) => {
+    const nearby = useUiStore.getState().nearby
+    const site = nearby ? (SITES.find((candidate) => candidate.id === nearby.id) ?? null) : null
+    if (site && site.id !== shown.current) {
+      shown.current = site.id
+      mesh.scale.setScalar(Math.max(1.2, site.radius * 0.45))
+      mesh.position.set(site.position[0], site.position[1] + 0.06, site.position[2])
+    }
+    level.current += ((site ? 1 : 0) - level.current) * (1 - Math.exp(-6 * delta))
+    ;(mesh.material as MeshBasicMaterial).opacity = level.current * (0.35 + 0.15 * Math.sin(clock.elapsedTime * 2.4))
+    mesh.visible = level.current > 0.01
+    if (!site && !mesh.visible) shown.current = null
+  })
+  return <primitive object={mesh} />
+}
+
 function BellShockwave() {
   const mesh = useMemo(() => {
     const ring = new Mesh(
@@ -761,6 +809,7 @@ export function Interactables() {
       <ViewpointMarkers />
       <ArrayGlyphs />
       <BellShockwave />
+      <SiteHalo />
       {mode === 'exploration' && <SpiritOrbs />}
       <Sparks />
       <SiteSurfaces />

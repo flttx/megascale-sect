@@ -9,6 +9,8 @@ import { worldTerrainHeight } from './regions'
 export interface RegionStructure {
   id: string
   model: 'cloud_pavilion' | 'tomb_gate' | 'dragon_shrine'
+  /** Map and compendium name (Chinese source string, translated through i18n). */
+  name: string
   x: number
   z: number
   yaw: number
@@ -24,6 +26,7 @@ export const REGION_STRUCTURES: RegionStructure[] = [
   {
     id: 'pavilion_sage',
     model: 'cloud_pavilion',
+    name: '观云亭',
     x: 215,
     z: -2005,
     yaw: facing(215, -2005, 0, -2175),
@@ -31,18 +34,42 @@ export const REGION_STRUCTURES: RegionStructure[] = [
     footprint: 14,
   },
   // Faces the sect across the gulf, the way a pilgrim arrives at the tomb.
-  { id: 'gate_tomb', model: 'tomb_gate', x: -1830, z: -500, yaw: Math.PI / 2, height: 34, footprint: 22 },
+  {
+    id: 'gate_tomb',
+    model: 'tomb_gate',
+    name: '剑冢山门',
+    x: -1830,
+    z: -500,
+    yaw: Math.PI / 2,
+    height: 34,
+    footprint: 22,
+  },
   {
     id: 'shrine_dragon',
     model: 'dragon_shrine',
+    name: '龙王祠',
     x: 2290,
     z: -520,
     yaw: facing(2290, -520, 2200, -420),
     height: 22,
     footprint: 14,
   },
-  { id: 'pavilion_guixu', model: 'cloud_pavilion', x: 0, z: 2580, yaw: Math.PI, height: 22, footprint: 14 },
+  {
+    id: 'pavilion_guixu',
+    model: 'cloud_pavilion',
+    name: '望海亭',
+    x: 0,
+    z: 2580,
+    yaw: Math.PI,
+    height: 22,
+    footprint: 14,
+  },
 ]
+
+/** A structure's middle, from its base to its roof, for the compendium's framing sphere. */
+export function structureCentre(s: RegionStructure): [number, number, number] {
+  return [s.x, structureBase(s) + s.height / 2, s.z]
+}
 
 /** The lowest ground under the footprint, so no corner of the base floats over a dip. */
 export function structureBase(s: RegionStructure) {

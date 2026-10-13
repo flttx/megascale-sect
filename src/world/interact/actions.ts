@@ -14,7 +14,7 @@ import { director, endShot, startShot } from './cinematics'
 import { bellWave, emitSparks } from './effects'
 import { facingYaw, SITE_BY_ID, sitesOf } from './registry'
 import type { SiteSpec } from './registry'
-import { playAttune, playBell, playTeleport } from './sounds'
+import { playAttune, playBell, playBowl, playStele, playTeleport } from './sounds'
 
 const notice = (text: string, values: Record<string, string | number> = {}) =>
   useWorldStore.getState().setNotice(translate(text, useUiStore.getState().language, values))
@@ -39,6 +39,8 @@ function meditate(site: SiteSpec) {
   const [x, y, z] = site.position
   teleportPlayer([x, y + 0.6, z], facingYaw(site.position, site.faceToward))
   playGesture('sit')
+  playBowl()
+  emitSparks([x, y + 1.2, z], 30, [0.95, 0.97, 1], 1.6, 1.8, 2.2)
   useUiStore
     .getState()
     .setCaption({ kicker: 'MEDITATION · 静坐观云', title: site.name, text: '心随云动，一坐六时。按 E 起身。' })
@@ -93,12 +95,16 @@ export function triggerSite(id: string): boolean {
   switch (site.kind) {
     case 'stele':
       ui.readStele(id)
+      playStele()
+      emitSparks([site.position[0], site.position[1] + 3, site.position[2]], 28, [1, 0.85, 0.5], 1.4, 2.2, 1.6)
       showOverlay({ kind: 'lore', id })
       break
     case 'bell':
       strikeBell(site)
       break
     case 'altar':
+      playAttune()
+      emitSparks([site.position[0], site.position[1] + 1.5, site.position[2]], 32, [0.55, 0.9, 1], 2.6, 2, 1.4)
       showOverlay({ kind: 'weather' })
       break
     case 'meditation':

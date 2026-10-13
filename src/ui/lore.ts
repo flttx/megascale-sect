@@ -1,61 +1,94 @@
 /** Stele inscriptions: the sect's history, told one stone at a time along the pilgrimage. */
-export interface LoreEntry { title: string; era: string; text: string; hint: string }
+export interface LoreEntry {
+  title: string
+  era: string
+  text: string
+  hint: string
+}
 
 export const STELE_LORE: Record<string, LoreEntry> = {
   stele_spawn: {
-    title: '入山碑', era: '开山 · 太初三年', hint: '山门前路起点',
+    title: '入山碑',
+    era: '开山 · 太初三年',
+    hint: '山门前路起点',
     text: '云阙仙宗，开山于太初三年。祖师御剑过此，见云海翻作玉阶，遂驻足立宗。凡入山者，先卸尘心，再问来路。',
   },
   stele_road_a: {
-    title: '问道碑', era: '第一代 · 祖师', hint: '石道东侧',
+    title: '问道碑',
+    era: '第一代 · 祖师',
+    hint: '石道东侧',
     text: '昔有樵者问祖师：道在何处？祖师指山下云海：在彼。又指足下石道：亦在此。樵者弃斧随之登山，三十年后，为第二代掌门。',
   },
   stele_road_b: {
-    title: '云海碑', era: '宗门典籍 · 卷三', hint: '石道西侧',
+    title: '云海碑',
+    era: '宗门典籍 · 卷三',
+    hint: '石道西侧',
     text: '宗门浮于云海之上，海深不可测。典籍载：云下另有一重天地，唯心无挂碍者，于子夜可见其灯火，如星沉水。',
   },
   stele_gate: {
-    title: '山门碑', era: '第二代 · 樵者掌门', hint: '山门之后',
+    title: '山门碑',
+    era: '第二代 · 樵者掌门',
+    hint: '山门之后',
     text: '山门五十六丈，不设门扉，亦无守者。祖训曰：来者不拒，去者不留。门槛不在石上，只在人心。',
   },
   stele_stairs: {
-    title: '登阶碑', era: '晨课 · 负剑', hint: '长阶尽头西侧',
+    title: '登阶碑',
+    era: '晨课 · 负剑',
+    hint: '长阶尽头西侧',
     text: '长阶九十六级，应周天之数。弟子每日晨课，负剑登阶，一级一息，不疾不徐；至顶回望，心定如镜，方可入殿。',
   },
   stele_forecourt: {
-    title: '宗规碑', era: '第四代 · 立规', hint: '云阙广场东侧',
+    title: '宗规碑',
+    era: '第四代 · 立规',
+    hint: '云阙广场东侧',
     text: '宗规三则：不以剑欺弱，不以术乱天，不以道骄人。违者不废修为，只罚面壁听钟三百日——钟声里，自有答案。',
   },
   stele_bridge: {
-    title: '听松桥记', era: '第七代 · 重修', hint: '西桥桥头',
+    title: '听松桥记',
+    era: '第七代 · 重修',
+    hint: '西桥桥头',
     text: '此桥原为藤索，风过则松涛满耳，故名听松。第七代掌门以云木重修，仍留旧索于桥下，以记来处之艰。',
   },
   stele_back: {
-    title: '后山碑', era: '闭关之地', hint: '主殿之后 · 西',
+    title: '后山碑',
+    era: '闭关之地',
+    hint: '主殿之后 · 西',
     text: '后山为闭关之所，古钟不鸣则不入。崖边蒲团，前后坐化三人，临去皆言一语：云起之时，得见天地初开。',
   },
   stele_isle_west: {
-    title: '松涛碑', era: '大劫之后', hint: '听松屿',
+    title: '松涛碑',
+    era: '大劫之后',
+    hint: '听松屿',
     text: '听松屿本是一峰之巅。大劫之后，山崩而峰浮，至今随云海缓缓东移，每百年一寸。屿上古松，犹记当年山形。',
   },
   stele_star: {
-    title: '摘星碑', era: '无记', hint: '摘星台 · 无桥可渡',
+    title: '摘星碑',
+    era: '无记',
+    hint: '摘星台 · 无桥可渡',
     text: '摘星台悬于天外，无桥可渡。能至此者，剑心已成。台上星辰低垂，伸手可触；然触之即散，唯余一掌清凉。',
   },
   stele_sage: {
-    title: '坐忘碑', era: '第三代 · 坐忘', hint: '玄穹峰 · 坐像台地前沿',
+    title: '坐忘碑',
+    era: '第三代 · 坐忘',
+    hint: '玄穹峰 · 坐像台地前沿',
     text: '第三代掌门在北方云海之外面朝宗门入定，说听满一万次钟声便醒。弟子年年来此上香，香灰积成了台地，他却渐渐化作了石。钟至今仍在敲，只是没有人再数。',
   },
   stele_dragon: {
-    title: '盘龙碑', era: '上古 · 无考', hint: '龙脊岭 · 盘龙台地西侧',
+    title: '盘龙碑',
+    era: '上古 · 无考',
+    hint: '龙脊岭 · 盘龙台地西侧',
     text: '石龙不是人雕的。开山之前它便盘在柱上，龙首向东，像在等日出。典籍说龙脊岭是它蜕下的旧鳞，绕柱而上的灵风，是它还没吐尽的一口气。',
   },
   stele_tomb: {
-    title: '葬剑碑', era: '历代 · 剑修', hint: '万剑冢 · 台地东缘',
+    title: '葬剑碑',
+    era: '历代 · 剑修',
+    hint: '万剑冢 · 台地东缘',
     text: '剑修一生只葬一剑。剑尖入土那一刻，便不再以剑为名，下山做个寻常人。碑上名录已刻满三面，第四面至今空白，留给最后一位肯放下剑的人。',
   },
   stele_guixu: {
-    title: '归墟碑', era: '无记', hint: '归墟云海 · 天门孤屿',
+    title: '归墟碑',
+    era: '无记',
+    hint: '归墟云海 · 天门孤屿',
     text: '归墟是众水所归之处，云海也归于此。古人立天门为界，门外再无记载。曾有弟子御剑穿门而去，数十年后从北方云海归来，说门外仍是云阙。',
   },
 }
@@ -76,16 +109,93 @@ export const VIEWPOINT_LINES: Record<string, string> = {
 
 /** Map regions each viewpoint unveils on its first visit: [x, z, radius] circles in world metres. */
 export const VIEWPOINT_REGIONS: Record<string, { name: string; circles: [number, number, number][] }> = {
-  view_spawn: { name: '前山云海', circles: [[-40, 300, 360], [330, 300, 150], [-270, 230, 140]] },
-  view_stairs: { name: '南麓石林', circles: [[-620, 330, 360], [680, 380, 360]] },
-  view_back_west: { name: '西野石林', circles: [[-760, -300, 360], [-560, -420, 150], [-720, -760, 270]] },
-  view_back_east: { name: '东野石林', circles: [[880, -250, 340], [800, -720, 270]] },
-  view_isle_west: { name: '天池云径', circles: [[-160, -780, 220], [-302, -102, 110]] },
-  view_star: { name: '摘星天外', circles: [[640, -260, 200], [332, -85, 110]] },
-  view_sage: { name: '玄穹峰', circles: [[0, -2150, 700], [0, -3050, 700], [-850, -2550, 520], [850, -2550, 520], [-330, -1640, 280], [330, -1640, 280]] },
-  view_dragon: { name: '龙脊岭', circles: [[2200, -420, 700], [2400, -1500, 700], [2400, -2700, 700], [2400, 450, 520], [1620, -760, 360]] },
-  view_tomb: { name: '万剑冢', circles: [[-2200, -450, 750], [-2400, -1550, 650], [-2400, -2750, 650], [-2400, 450, 520], [-2050, -1600, 350]] },
-  view_guixu: { name: '归墟云海', circles: [[0, 2300, 800], [-1600, 1950, 800], [1600, 1950, 800], [-2850, 2050, 620], [2850, 2050, 620], [-900, 1800, 380], [900, 1800, 380]] },
+  view_spawn: {
+    name: '前山云海',
+    circles: [
+      [-40, 300, 360],
+      [330, 300, 150],
+      [-270, 230, 140],
+    ],
+  },
+  view_stairs: {
+    name: '南麓石林',
+    circles: [
+      [-620, 330, 360],
+      [680, 380, 360],
+    ],
+  },
+  view_back_west: {
+    name: '西野石林',
+    circles: [
+      [-760, -300, 360],
+      [-560, -420, 150],
+      [-720, -760, 270],
+    ],
+  },
+  view_back_east: {
+    name: '东野石林',
+    circles: [
+      [880, -250, 340],
+      [800, -720, 270],
+    ],
+  },
+  view_isle_west: {
+    name: '天池云径',
+    circles: [
+      [-160, -780, 220],
+      [-302, -102, 110],
+    ],
+  },
+  view_star: {
+    name: '摘星天外',
+    circles: [
+      [640, -260, 200],
+      [332, -85, 110],
+    ],
+  },
+  view_sage: {
+    name: '玄穹峰',
+    circles: [
+      [0, -2150, 700],
+      [0, -3050, 700],
+      [-850, -2550, 520],
+      [850, -2550, 520],
+      [-330, -1640, 280],
+      [330, -1640, 280],
+    ],
+  },
+  view_dragon: {
+    name: '龙脊岭',
+    circles: [
+      [2200, -420, 700],
+      [2400, -1500, 700],
+      [2400, -2700, 700],
+      [2400, 450, 520],
+      [1620, -760, 360],
+    ],
+  },
+  view_tomb: {
+    name: '万剑冢',
+    circles: [
+      [-2200, -450, 750],
+      [-2400, -1550, 650],
+      [-2400, -2750, 650],
+      [-2400, 450, 520],
+      [-2050, -1600, 350],
+    ],
+  },
+  view_guixu: {
+    name: '归墟云海',
+    circles: [
+      [0, 2300, 800],
+      [-1600, 1950, 800],
+      [1600, 1950, 800],
+      [-2850, 2050, 620],
+      [2850, 2050, 620],
+      [-900, 1800, 380],
+      [900, 1800, 380],
+    ],
+  },
 }
 
 /** 万象图录 pages (by entry id): the page text and a clue to where or when each is found. */
@@ -146,7 +256,26 @@ export const COMPENDIUM_LORE: Record<string, { text: string; hint: string }> = {
     hint: '落雪一阵、群山积白之后，拍摄远山',
     text: '落雪之后，千峰尽白，云海反倒显得更暗。积雪要等雪落一阵才会积起，雪停后又慢慢化去。',
   },
+  cloud_pavilion: {
+    hint: '玄穹峰坐像台地的东缘；南方天门岛上另有一座望海亭',
+    text: '重檐八角，宝顶鎏金，立在台地边上望北山。弟子说云最好看的时候是午后，云海涨到坐像膝下，亭子就像漂在云上。天门岛上那座同样的亭子，叫望海亭。',
+  },
+  tomb_gate: {
+    hint: '西方万剑冢东缘，面朝宗门',
+    text: '剑冢的山门只有两根石柱与一道门楣，柱上刻着交叉的剑。断链从门楣垂下，没人记得原先锁的是什么。来祭剑的人在柱脚插下自己的剑，锈了也不拔。',
+  },
+  dragon_shrine: {
+    hint: '东方龙脊岭台地的东南角',
+    text: '一座小小的龙王祠，屋脊上盘着石龙，门前两根盘龙柱。龙脊岭的灵风从这里起，弟子出行前会在祠前上一炷香。',
+  },
+  plankway: {
+    hint: '龙脊岭台地东南的崖壁上，自台缘下行',
+    text: '木栈道钉在崖壁上，一路绕着台地往下，尽头是一座悬空的观景台。走到尽头时，龙柱就在头顶，云海就在脚下。',
+  },
 }
 
 /** Always-visible heart of the sect (road, stairs, platform). */
-export const CORE_REGION: [number, number, number][] = [[0, -260, 300], [0, 90, 110]]
+export const CORE_REGION: [number, number, number][] = [
+  [0, -260, 300],
+  [0, 90, 110],
+]

@@ -11,6 +11,8 @@ import { KUN_PATH } from '../world/colossi/layout'
 import type { OrbGroup } from '../world/interact/orbs'
 import { KIND_LABELS, SITES, sitesOf } from '../world/interact/registry'
 import { REGIONS, worldTerrainHeight } from '../world/regions/regions'
+import { REGION_STRUCTURES } from '../world/regions/structures'
+import { plankwayPath } from '../world/regions/Plankway'
 import { CLOUD_SEA_Y } from '../world/sky/CloudSea'
 import type { SiteSpec } from '../world/interact/registry'
 import { getPlayerRuntime } from '../world/player/playerHandle'
@@ -242,6 +244,12 @@ function Marker({ site, done, unit }: { site: SiteSpec; done: boolean; unit: num
     </g>
   )
 }
+
+/** Where the map names the dragon mesa's plank walkway: the middle of its run. */
+const PLANKWAY_LABEL = (() => {
+  const path = plankwayPath()
+  return path[Math.floor(path.length / 2)]
+})()
 
 function MapPanel() {
   const t = useTranslation()
@@ -485,9 +493,15 @@ function MapPanel() {
           <g className="map-labels">
             {label('云阙主殿', main[0], main[2] + unit * 4, 15, 'map-label map-label-major')}
             {zoom === 'realm' ? (
-              REGIONS.map((r) => (
-                <g key={r.id}>{label(r.name, r.center[0], r.center[1], 15, 'map-label map-label-major')}</g>
-              ))
+              <>
+                {REGIONS.map((r) => (
+                  <g key={r.id}>{label(r.name, r.center[0], r.center[1], 15, 'map-label map-label-major')}</g>
+                ))}
+                {REGION_STRUCTURES.map((s) => (
+                  <g key={s.id}>{label(s.name, s.x, s.z - unit * 10, 9)}</g>
+                ))}
+                {label('龙脊栈道', PLANKWAY_LABEL.x, PLANKWAY_LABEL.z, 9)}
+              </>
             ) : (
               <>
                 {label('山门', 34, LAYOUT.gate.position[2] + unit * 4, 10)}

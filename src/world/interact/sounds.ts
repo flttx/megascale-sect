@@ -1,11 +1,14 @@
 import { mixer } from '../audio/mixer'
 
 const voices = new WeakMap<AudioNode, (source: AudioScheduledSourceNode, nodes: AudioNode[]) => void>()
-const track = (target: AudioNode, source: AudioScheduledSourceNode, ...nodes: AudioNode[]) => voices.get(target)?.(source, nodes)
+const track = (target: AudioNode, source: AudioScheduledSourceNode, ...nodes: AudioNode[]) =>
+  voices.get(target)?.(source, nodes)
 
 /** Routes a voice to the sfx bus and its hall reverb; null before audio is unlocked. */
 function output(wet: number) {
-  const context = mixer.audioContext, dry = mixer.bus('sfx'), send = mixer.reverbSend('sfx')
+  const context = mixer.audioContext,
+    dry = mixer.bus('sfx'),
+    send = mixer.reverbSend('sfx')
   if (!context || !dry) return null
   const gain = context.createGain()
   const outputs: AudioNode[] = [gain]
@@ -20,15 +23,29 @@ function output(wet: number) {
   voices.set(gain, (source, nodes) => {
     sources++
     source.onended = () => {
-      source.disconnect(); nodes.forEach((node) => node.disconnect()); source.onended = null
-      if (--sources === 0) { outputs.forEach((node) => node.disconnect()); voices.delete(gain) }
+      source.disconnect()
+      nodes.forEach((node) => node.disconnect())
+      source.onended = null
+      if (--sources === 0) {
+        outputs.forEach((node) => node.disconnect())
+        voices.delete(gain)
+      }
     }
   })
   return { context, gain }
 }
 
-function partial(context: AudioContext, target: AudioNode, frequency: number, level: number, decay: number, start: number, type: OscillatorType = 'sine') {
-  const osc = context.createOscillator(), env = context.createGain()
+function partial(
+  context: AudioContext,
+  target: AudioNode,
+  frequency: number,
+  level: number,
+  decay: number,
+  start: number,
+  type: OscillatorType = 'sine',
+) {
+  const osc = context.createOscillator(),
+    env = context.createGain()
   osc.type = type
   osc.frequency.value = frequency
   env.gain.setValueAtTime(0, start)
@@ -40,14 +57,26 @@ function partial(context: AudioContext, target: AudioNode, frequency: number, le
   osc.stop(start + decay + 0.05)
 }
 
-function noiseBurst(context: AudioContext, target: AudioNode, start: number, seconds: number, frequency: number, q: number, level: number) {
+function noiseBurst(
+  context: AudioContext,
+  target: AudioNode,
+  start: number,
+  seconds: number,
+  frequency: number,
+  q: number,
+  level: number,
+) {
   const length = Math.floor(context.sampleRate * seconds)
   const buffer = context.createBuffer(1, length, context.sampleRate)
   const data = buffer.getChannelData(0)
   for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 3)
-  const source = context.createBufferSource(), filter = context.createBiquadFilter(), env = context.createGain()
+  const source = context.createBufferSource(),
+    filter = context.createBiquadFilter(),
+    env = context.createGain()
   source.buffer = buffer
-  filter.type = 'bandpass'; filter.frequency.value = frequency; filter.Q.value = q
+  filter.type = 'bandpass'
+  filter.frequency.value = frequency
+  filter.Q.value = q
   env.gain.value = level
   source.connect(filter).connect(env).connect(target)
   track(target, source, filter, env)
@@ -61,11 +90,21 @@ function noiseBurst(context: AudioContext, target: AudioNode, start: number, sec
 export function playBell() {
   const out = output(0.9)
   if (!out) return
-  const { context, gain } = out, now = context.currentTime + 0.02
+  const { context, gain } = out,
+    now = context.currentTime + 0.02
   gain.gain.value = 0.55
   const base = 82
   const partials: [number, number, number][] = [
-    [0.5, 0.5, 14], [1, 0.42, 11], [1.183, 0.28, 8], [1.506, 0.2, 6.5], [2, 0.22, 5.5], [2.514, 0.1, 4], [2.662, 0.09, 3.6], [3.011, 0.07, 3], [4.166, 0.05, 2.2], [5.433, 0.035, 1.4],
+    [0.5, 0.5, 14],
+    [1, 0.42, 11],
+    [1.183, 0.28, 8],
+    [1.506, 0.2, 6.5],
+    [2, 0.22, 5.5],
+    [2.514, 0.1, 4],
+    [2.662, 0.09, 3.6],
+    [3.011, 0.07, 3],
+    [4.166, 0.05, 2.2],
+    [5.433, 0.035, 1.4],
   ]
   for (const [ratio, level, decay] of partials) {
     partial(context, gain, base * ratio, level, decay, now)
@@ -83,7 +122,8 @@ let chimeStep = 0
 export function playChime() {
   const out = output(0.7)
   if (!out) return
-  const { context, gain } = out, now = context.currentTime + 0.01
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
   gain.gain.value = 0.22
   const note = 880 * Math.pow(2, PENTATONIC[chimeStep++ % PENTATONIC.length] / 12)
   partial(context, gain, note, 0.5, 1.6, now)
@@ -95,9 +135,11 @@ export function playChime() {
 export function playTeleport() {
   const out = output(1)
   if (!out) return
-  const { context, gain } = out, now = context.currentTime + 0.01
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
   gain.gain.value = 0.3
-  const osc = context.createOscillator(), env = context.createGain()
+  const osc = context.createOscillator(),
+    env = context.createGain()
   osc.type = 'triangle'
   osc.frequency.setValueAtTime(220, now)
   osc.frequency.exponentialRampToValueAtTime(1320, now + 0.55)
@@ -106,7 +148,8 @@ export function playTeleport() {
   env.gain.exponentialRampToValueAtTime(0.0001, now + 1.4)
   osc.connect(env).connect(gain)
   track(gain, osc, env)
-  osc.start(now); osc.stop(now + 1.5)
+  osc.start(now)
+  osc.stop(now + 1.5)
   noiseBurst(context, gain, now + 0.3, 0.9, 3200, 0.7, 0.35)
   partial(context, gain, 1320, 0.2, 2.2, now + 0.4)
   partial(context, gain, 1980, 0.1, 1.8, now + 0.45)
@@ -116,18 +159,54 @@ export function playTeleport() {
 export function playAttune() {
   const out = output(0.8)
   if (!out) return
-  const { context, gain } = out, now = context.currentTime + 0.01
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
   gain.gain.value = 0.2
   partial(context, gain, 392, 0.4, 2.4, now)
   partial(context, gain, 587.3, 0.3, 2.2, now + 0.12)
   partial(context, gain, 784, 0.2, 2, now + 0.24)
 }
 
+/** Reading a stele: a light knock on the stone, a scroll unrolling, two pentatonic overtones settling. */
+export function playStele() {
+  const out = output(0.6)
+  if (!out) return
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
+  gain.gain.value = 0.22
+  partial(context, gain, 196, 0.35, 0.18, now, 'triangle')
+  noiseBurst(context, gain, now + 0.05, 0.55, 2600, 0.6, 0.22)
+  partial(context, gain, 659.3, 0.16, 1.8, now + 0.18)
+  partial(context, gain, 987.8, 0.1, 1.5, now + 0.3)
+}
+
+/**
+ * Settling into meditation: a singing bowl, its inharmonic partials paired a few hertz apart so they beat slowly,
+ * fading over six seconds.
+ */
+export function playBowl() {
+  const out = output(1)
+  if (!out) return
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
+  gain.gain.value = 0.2
+  for (const [ratio, level, decay] of [
+    [1, 0.42, 6.5],
+    [2.71, 0.2, 4.5],
+    [5.15, 0.08, 2.6],
+  ] as const) {
+    partial(context, gain, 220 * ratio, level, decay, now)
+    partial(context, gain, 220 * ratio + 1.6, level * 0.7, decay * 0.9, now)
+  }
+  noiseBurst(context, gain, now, 0.12, 900, 1.2, 0.18)
+}
+
 /** A seal pressed into the compendium: a soft wooden knock under a rising fifth. */
 export function playDiscovery() {
   const out = output(0.8)
   if (!out) return
-  const { context, gain } = out, now = context.currentTime + 0.01
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
   gain.gain.value = 0.24
   noiseBurst(context, gain, now, 0.08, 700, 1.4, 0.7)
   partial(context, gain, 587.3, 0.34, 1.6, now + 0.04)
@@ -139,7 +218,8 @@ export function playDiscovery() {
 export function playRing(step: number, total: number) {
   const out = output(0.6)
   if (!out) return
-  const { context, gain } = out, now = context.currentTime + 0.01
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
   gain.gain.value = 0.2
   const degree = Math.round((step / Math.max(1, total - 1)) * (PENTATONIC.length - 1))
   const note = 660 * Math.pow(2, PENTATONIC[degree] / 12)
@@ -152,8 +232,12 @@ export function playRing(step: number, total: number) {
 export function playTrialFinish(best: boolean) {
   const out = output(0.9)
   if (!out) return
-  const { context, gain } = out, now = context.currentTime + 0.01
+  const { context, gain } = out,
+    now = context.currentTime + 0.01
   gain.gain.value = 0.22
   ;[523.3, 659.3, 784, 1046.5].forEach((note, i) => partial(context, gain, note, 0.36, 1.8, now + i * 0.11))
-  if (best) { partial(context, gain, 2093, 0.18, 2.6, now + 0.5); partial(context, gain, 2093 * 1.5, 0.08, 2, now + 0.55) }
+  if (best) {
+    partial(context, gain, 2093, 0.18, 2.6, now + 0.5)
+    partial(context, gain, 2093 * 1.5, 0.08, 2, now + 0.55)
+  }
 }
