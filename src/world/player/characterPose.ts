@@ -77,6 +77,12 @@ function lowestFoot(rig: CharacterRig) {
 
 // The baked clips give the base pose; procedural angles on top (summoning, riding, landing crouches) are expressed
 // in the source model's anatomical axes, then converted into each bone's frame. This keeps the generated skin weights.
+/**
+ * Cross-legged on the cushion. The procedural angles act after the hip flexion, so the first axis rolls each flexed
+ * thigh about its own length (bringing the shins across in front) and the second splays it outward.
+ */
+const CROSS = { roll: -1.4, splay: 0.5 }
+
 export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, delta: number): number {
   const speed = Math.hypot(runtime.velocity.x, runtime.velocity.z)
   const moving = runtime.phase === 'GROUND'
@@ -158,8 +164,16 @@ export function updateCharacterPose(rig: CharacterRig, runtime: PlayerRuntime, d
       summon * 0.4 + riding * 0.15 + bow * 0.55 + attune * 1.05 + sit * 0.25,
     ],
     LeftForeArm: [0, summon * -0.3, summon * 0.7 + bow * 1.25 + attune * 0.25 + sit * 0.55],
-    LeftUpLeg: [0, 0, riding * 0.11 + landing * 0.18 + leadL * 0.55 - leadR * 0.4 + sit * 1.45],
-    RightUpLeg: [0, 0, riding * 0.04 + landing * 0.18 + leadR * 0.55 - leadL * 0.4 + sit * 1.45],
+    LeftUpLeg: [
+      sit * CROSS.roll,
+      sit * CROSS.splay,
+      riding * 0.11 + landing * 0.18 + leadL * 0.55 - leadR * 0.4 + sit * 1.45,
+    ],
+    RightUpLeg: [
+      -sit * CROSS.roll,
+      -sit * CROSS.splay,
+      riding * 0.04 + landing * 0.18 + leadR * 0.55 - leadL * 0.4 + sit * 1.45,
+    ],
     LeftLeg: [0, 0, -riding * 0.14 - landing * 0.36 - leadL * 0.35 - leadR * 0.6 - sit * 2.2],
     RightLeg: [0, 0, -riding * 0.12 - landing * 0.36 - leadR * 0.35 - leadL * 0.6 - sit * 2.2],
     LeftFoot: [0, 0, riding * 0.04],
